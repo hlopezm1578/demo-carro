@@ -73,7 +73,7 @@ Escala de 8 puntos, mapeada directo a utilidades Tailwind (cero valores arbitrar
 
 | Token | Value | Tailwind | Usage |
 |-------|-------|----------|-------|
-| xs | 4px | `gap-1`, `p-1` | Gap entre badge y texto inline |
+| xs | 4px | `gap-1`, `p-1`, `py-1` | Padding vertical de badges; gap entre badge y texto inline |
 | sm | 8px | `gap-2`, `p-2` | Dentro de chips y badges; padding interno de card body |
 | md | 16px | `p-4`, `gap-4` | Padding de card body; gap base de elementos |
 | lg | 24px | `p-6`, `gap-6` | Padding de cards completas; **gap de la grilla**; entre barra de filtros y grilla |
@@ -81,7 +81,7 @@ Escala de 8 puntos, mapeada directo a utilidades Tailwind (cero valores arbitrar
 | 2xl | 48px | `py-12` | Ritmo vertical entre secciones de la landing |
 | 3xl | 64px | `py-16` | Padding vertical del hero y de páginas completas |
 
-Exceptions: **none**. Los targets interactivos (chips, botones, links de navbar) usan altura mínima 44px (`min-h-11`) — 44 es múltiplo de 4, no es excepción sino regla táctil de accesibilidad.
+Exceptions: **none**. Todo padding/gap del contrato usa exclusivamente las utilidades de esta escala (`p-1|2|4|6|8`, `px-2|4|6`, `py-1|2|12|16`, `gap-1|2|4|6|8`); los valores intermedios (`py-3`, `px-3`, `px-2.5`, `py-0.5`, …) están prohibidos. Los targets interactivos (chips, botones, links de navbar) usan altura mínima 44px (`min-h-11`) — 44 es múltiplo de 4, no es excepción sino regla táctil de accesibilidad; el padding vertical de botones/chips es `py-2` y es `min-h-11` el que garantiza el target, nunca un padding fuera de escala.
 
 ---
 
@@ -130,7 +130,7 @@ Contraste 60/30/10 sobre la paleta por defecto de Tailwind (cero tokens custom, 
 | Disponibilidad: stock 0 (no está en seed; contrato lo define) | `bg-neutral-200 text-neutral-700` "Agotado" |
 | Chips de notas aromáticas (ficha) | `bg-orange-50 text-neutral-700` |
 
-Los badges de familia se definen junto al mapa de etiquetas ( patrón FAMILIA_LABELS de 01-RESEARCH.md Pattern 3): `FAMILIA_BADGES: Record<Familia, string>` con estas clases.
+Todos los badges (familia y disponibilidad, en card, ficha y mini-cards de la landing) comparten la misma forma: `text-sm rounded-full px-2 py-1` (padding 8px/4px — escala sm/xs). Los badges de familia se definen junto al mapa de etiquetas (patrón FAMILIA_LABELS de 01-RESEARCH.md Pattern 3): `FAMILIA_BADGES: Record<Familia, string>` con estas clases.
 
 ---
 
@@ -153,7 +153,7 @@ Los badges de familia se definen junto al mapa de etiquetas ( patrón FAMILIA_LA
 ### Landing `/`
 
 - **Hero** (`bg-orange-50`, centrado, `py-16`, contenido `max-w-xl`): eyebrow "Maura · Body Splash" (`text-sm tracking-wide text-neutral-600`), h1 Display = tagline **"Frescura que te acompaña"**, párrafo persona (Body, `text-neutral-600`): *"Soy Maura. Hago body splash a mano, en lotes pequeños, con esencias frescas que elijo una por una. Esta tienda nace para que encuentres tu aroma desde cualquier parte de Chile, sin intermediarios."* (D-02; primera persona — esta voz la hereda el asistente IA de fase 4).
-- **CTA**: `bg-orange-600 text-white font-bold rounded-full px-6 py-3 min-h-11 hover:bg-orange-700` → Link a `/productos`. Label: **"Ver catálogo"**.
+- **CTA**: `bg-orange-600 text-white font-bold rounded-full px-6 py-2 min-h-11 hover:bg-orange-700` → Link a `/productos`. Label: **"Ver catálogo"**.
 - **Sección "Nuestras familias"** (`py-12`): heading "Nuestras familias" + 4 mini-cards (`grid sm:grid-cols-2 lg:grid-cols-4 gap-6`; cada una `bg-white rounded-2xl border border-orange-100 p-6`): badge de familia, nombre (`text-xl font-bold`), descripción 1 línea (`text-sm`), link "Ver aromas →" (`text-orange-600`) hacia `/productos?familia={slug}`.
   - Cítricas: "Frescas y chispeantes, para despertar."
   - Florales: "Suaves y románticas, de flor a flor."
@@ -164,12 +164,12 @@ Los badges de familia se definen junto al mapa de etiquetas ( patrón FAMILIA_LA
 
 - **Barra de filtros** (`bg-orange-50 rounded-2xl p-4`, `flex flex-wrap gap-4 items-center`):
   - Familia: chips "Todas" + las 4 familias (label con acento vía `FAMILIA_LABELS`, slug ASCII en la URL — Pitfall 5 de RESEARCH). Chip inactivo: `bg-white border border-orange-200 text-neutral-700`; activo: `bg-orange-600 border-orange-600 text-white font-bold`. Todos `rounded-full px-4 py-2 min-h-11 text-sm`.
-  - Precio: dos inputs `type="number" min="0"` (`w-28 rounded-lg border-orange-200 px-3 py-2`, placeholders "$ mínimo" / "$ máximo") + botón "Filtrar precio" (`bg-white border border-orange-300 font-bold rounded-full px-4 py-2 min-h-11`) que escribe `precio_min`/`precio_max` juntos. Referencia visual del rango real: $6.990–$12.990 (D-07).
+  - Precio: dos inputs `type="number" min="0"` (`w-28 rounded-lg border-orange-200 px-4 py-2`, placeholders "$ mínimo" / "$ máximo") + botón "Filtrar precio" (`bg-white border border-orange-300 font-bold rounded-full px-4 py-2 min-h-11`) que escribe `precio_min`/`precio_max` juntos. Referencia visual del rango real: $6.990–$12.990 (D-07).
   - Link "Limpiar filtros" (`text-sm text-orange-600`): visible solo cuando hay filtros activos; resetea los search params.
   - **El estado de los filtros vive en URL search params** (`useSearchParams`): `?familia=citricas&precio_min=6990&precio_max=9990` — compartible, back/forward y reload funcionan (asunción A6 elevada a contrato).
 - **Encabezado de sección**: "Nuestros aromas" (`text-xl font-bold`) + contador `text-sm` con plural correcto: "12 aromas" / "1 aroma" / "0 aromas".
 - **Grilla**: `grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6`. Con el seed de 12 SKU son 3 filas de 4 en desktop.
-- **ProductCard** (`bg-white rounded-2xl border border-orange-100 overflow-hidden hover:shadow-md transition-shadow`, toda la card es un Link a `/productos/:id`): imagen `aspect-square w-full object-cover` con `loading="lazy"` y `alt` = nombre del producto; body `p-4` con badge de familia (`text-sm rounded-full px-2.5 py-0.5`), nombre (`text-xl font-bold line-clamp-2`), precio (`text-base font-bold`, formateado con `Intl.NumberFormat("es-CL", { style: "currency", currency: "CLP" })` → `$6.990`, verificado en RESEARCH).
+- **ProductCard** (`bg-white rounded-2xl border border-orange-100 overflow-hidden hover:shadow-md transition-shadow`, toda la card es un Link a `/productos/:id`): imagen `aspect-square w-full object-cover` con `loading="lazy"` y `alt` = nombre del producto; body `p-4` con badge de familia (`text-sm rounded-full px-2 py-1`), nombre (`text-xl font-bold line-clamp-2`), precio (`text-base font-bold`, formateado con `Intl.NumberFormat("es-CL", { style: "currency", currency: "CLP" })` → `$6.990`, verificado en RESEARCH).
 - **Fuera de alcance en fase 1** (prohibido construirlo): botón "Agregar al carro" (fase 2), búsqueda textual (STORE-05, v2), paginación (12 SKU no la necesitan), íconos.
 
 ### Ficha `/productos/:id`
@@ -198,6 +198,7 @@ Los badges de familia se definen junto al mapa de etiquetas ( patrón FAMILIA_LA
 | Empty state (catálogo sin datos, sin filtros) | Heading: "Aún no hay aromas por aquí" · Body: "Siembra los datos demo con `uv run python -m app.seed` y vuelve a intentar." + botón "Reintentar" |
 | Error state (catálogo) | "No pudimos cargar el catálogo" · "Revisa que el backend esté corriendo en el puerto 8000 e inténtalo de nuevo." + botón "Reintentar" |
 | Error state (ficha) | "No pudimos cargar este producto" · misma causa + "Reintentar". Si es 404: "Producto no encontrado" + "Puede que el enlace esté viejo." + link "Volver al catálogo" |
+| Botón de reintento | **"Reintentar"** — verbo solo, deliberado: el botón vive dentro del bloque de error cuyo heading ya nombra el objeto de la carga ("No pudimos cargar el catálogo" / "No pudimos cargar este producto"), y "Reintentar carga" duplicaría el sustantivo del heading inmediato. Label estándar de UI en español ("reintentar" registrado en RAE); la acción es `refetch()` de TanStack Query |
 | Destructive confirmation | **Ninguna en fase 1** — no existen acciones destructivas (sin carro, sin admin). El patrón de confirmación modal se contrata en la fase que introduzca la primera acción destructiva |
 | Navbar links | "Inicio" (/) · "Catálogo" (/productos) · marca: "Maura · Body Splash" |
 | Hero | Eyebrow: "Maura · Body Splash" · Tagline (Display): "Frescura que te acompaña" (locked D-04) · Persona: "Soy Maura. Hago body splash a mano, en lotes pequeños, con esencias frescas que elijo una por una. Esta tienda nace para que encuentres tu aroma desde cualquier parte de Chile, sin intermediarios." |
