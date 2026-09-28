@@ -15,7 +15,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Tienda (storefront)
 
-- [ ] **STORE-01**: Visitante ve una landing con identidad de marca de la PYME ficticia
+- [x] **STORE-01**: Visitante ve una landing con identidad de marca de la PYME ficticia
 - [ ] **STORE-02**: Visitante navega el catálogo en grilla con filtros por familia aromática y rango de precio
 - [ ] **STORE-03**: Visitante ve la página de producto con descripción, precio, familia aromática, notas y disponibilidad de stock
 - [ ] **STORE-04**: El catálogo incluye datos demo sembrados (seed idempotente) para desarrollo y UAT
@@ -108,7 +108,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | GUIDE-01 | Phase 5 | Pending |
 | GUIDE-02 | Phase 1 | Pending |
 | GUIDE-03 | Phase 1 | Pending |
-| STORE-01 | Phase 1 | Pending |
+| STORE-01 | Phase 1 | Complete |
 | STORE-02 | Phase 1 | Pending |
 | STORE-03 | Phase 1 | Pending |
 | STORE-04 | Phase 1 | Pending |
