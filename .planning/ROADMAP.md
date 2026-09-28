@@ -44,7 +44,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. El seed idempotente deja datos demo reproducibles (re-ejecutable sin duplicar) para desarrollo y UAT (STORE-04)
   4. Un alumno que sigue la guía de esta fase paso a paso levanta desde cero los dos tiers con el catálogo funcionando; la fase documenta sus ADRs y el contrato de API inicial, y cada fase posterior actualiza ambos (GUIDE-02, GUIDE-03)
 
-**Plans**: 7 plans
+**Plans**: 0/7 plans executed
 **UI hint**: yes
 
 Plans:
@@ -129,7 +129,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Fundaciones de dos tiers y catálogo | 0/TBD | Not started | - |
+| 1. Fundaciones de dos tiers y catálogo | 0/7 | Planned    |  |
 | 2. Cuentas de cliente y carro persistente | 0/TBD | Not started | - |
 | 3. Checkout Webpay y órdenes | 0/TBD | Not started | - |
 | 4. Panel de administración y asistente IA | 0/TBD | Not started | - |

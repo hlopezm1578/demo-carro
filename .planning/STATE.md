@@ -3,11 +3,11 @@ gsd_state_version: "1.0"
 current_phase: 1
 current_phase_name: Fundaciones de dos tiers y catálogo
 status: executing
-stopped_at: Phase 1 UI-SPEC approved
-last_updated: "2026-09-28T18:34:59.063Z"
+stopped_at: Completed 01-01-PLAN.md
+last_updated: "2026-09-28T18:50:33.512Z"
 last_activity: 2026-09-28
-last_activity_desc: Roadmap creado (5 fases, 29/29 requerimientos mapeados)
-state_head: 0a3e8fc3c746360baaaf66134b7593f96464d614
+last_activity_desc: Phase 1 execution started
+state_head: de0253e2fc774bfce4df028f0d7e04e284021f96
 progress:
   total_phases: 5
   completed_phases: 0
@@ -27,10 +27,10 @@ See: .planning/PROJECT.md (updated 2026-09-28)
 
 ## Current Position
 
-Phase: 1 (Fundaciones de dos tiers y catálogo) — READY TO EXECUTE
-Plan: 0 of TBD in current phase
+Phase: 1 (Fundaciones de dos tiers y catálogo) — EXECUTING
+Plan: 2 of 7
 Status: Ready to execute
-Last activity: 2026-09-28 — Roadmap creado (5 fases, 29/29 requerimientos mapeados)
+Last activity: 2026-09-28 — Phase 1 execution started
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -52,6 +52,11 @@ Progress: [░░░░░░░░░░] 0%
 - Trend: -
 
 *Updated after each plan completion*
+**Per-Plan Metrics:**
+
+| Plan | Duration | Tasks | Files |
+|------|----------|-------|-------|
+| Phase 01 P01-01 | 9min | 3 tasks | 22 files |
 
 ## Accumulated Context
 
@@ -63,6 +68,9 @@ Recent decisions affecting current work:
 - Roadmap: granularidad coarse → 5 fases MVP verticales (consolida las 8 fases sugeridas por research); orden: catálogo → auth/carro → checkout → admin+IA → deploy
 - Roadmap: spike de retorno Webpay vive dentro de la Phase 3, antes de redactar su guía de desarrollo
 - Roadmap: GUIDE-02/GUIDE-03 se anclan en Phase 1 (convenciones ADR + contrato API + primera guía paso a paso); GUIDE-01 se cierra en Phase 5 con el ciclo completo
+- [Phase 01]: Contrato API-first aprobado antes del codigo: docs/04_arquitectura/contrato_api.yaml (OpenAPI 3.0.3, paths /api/salud, /api/productos, /api/productos/{producto_id}; schemas Error/ProductoResumen/ProductoDetalle) — GUIDE-02/D-15
+- [Phase 01]: Backend en capas routers->services->repositories con sesion inyectada; los routers no importan sqlalchemy (Session se re-exporta desde app.database) y solo main.py arma la app
+- [Phase 01]: Seed converge por upsert de SKU al estado canonico de 12 productos (D-05/D-06/D-07): re-ejecutar restaura stock/precios demo sin duplicar filas ni resetear IDs (STORE-04)
 
 ### Pending Todos
 
@@ -85,6 +93,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-28T17:59:01.945Z
-Stopped at: Phase 1 UI-SPEC approved
-Resume file: .planning/phases/01-fundaciones-de-dos-tiers-y-cat-logo/01-UI-SPEC.md
+Last session: 2026-09-28T18:50:33.476Z
+Stopped at: Completed 01-01-PLAN.md
+Resume file: None
