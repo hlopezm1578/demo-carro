@@ -618,20 +618,26 @@ clp.format(6990); // "$6.990"  — render en grilla y ficha
 | A12 | Las 12 URLs concretas de fotos stock se seleccionan en tiempo de ejecución (consistencia visual por familia, D-08) | STORE-04 | Medio — necesita búsqueda/selección manual en ejecución; el repo debe commitear las imágenes |
 | A13 | `npm create vite@latest frontend -- --template react-ts` escribe el scaffold dentro de `frontend/` en el monorepo existente | Installation | Bajo — comportamiento estándar de create-vite; verificar al ejecutar |
 
-## Open Questions
+## Open Questions (RESOLVED)
+
+> Todas las preguntas abiertas quedaron resueltas por los planes de la fase 1. Resolución inline citando plan/tarea.
 
 1. **¿Cómo se resuelve el upgrade de Node a >= 22.22?**
    - What we know: Node v22.18.0 instalado; react-router 8 exige >= 22.22; el stack del proyecto fija Node >= 22.22 o 24.
    - What's unclear: quién/cómo actualiza Node en la máquina del usuario (nvm-windows, instalador MSI, etc.).
    - Recommendation: el plan abre con un `checkpoint:human-verify` o tarea explícita de upgrade + `node -v` como gate antes de cualquier `npm install` del frontend.
+   - **RESOLVED en 01-03 Task 1:** gate bloqueante `checkpoint:human-action` (upgrade con opciones MSI / nvm-windows / winget, verificación `node -v` >= 22.22) antes de cualquier comando npm del scaffold (Task 2).
 2. **¿Qué ADRs exactos se numeran en la fase 1?**
    - What we know: candidatos naturales listados en CONTEXT (stack, capas, SQLite, TypeScript, uv, monorepo, API-first) — es discretion.
    - Recommendation: 7 ADRs (001 capas, 002 dos tiers SPA+API, 003 monorepo, 004 TypeScript, 005 SQLite+SQLAlchemy, 006 uv, 007 API-first); el planner ajusta numeración y si separa el stack frontend.
+   - **RESOLVED en 01-04 (Tasks 2-3):** exactamente 7 ADRs numerados 001-007 según la recomendación — 001 capas, 002 dos tiers SPA+API, 003 monorepo, 004 TypeScript, 005 SQLite+create_all, 006 uv, 007 API-first.
 3. **¿La landing incluye ya sección de "sobre Maura" con la persona?**
    - What we know: STORE-01 pide identidad de marca; D-02 fija persona breve para docs/narrativa.
    - Recommendation: hero (marca + tagline) + bloque breve con la persona; la paleta concreta la formaliza `/gsd:ui-phase` (D-03) — coordinar que esta fase deja la estructura CSS lista.
+   - **RESOLVED en 01-03 Task 3:** la landing implementa hero (eyebrow "Maura · Body Splash" + tagline D-04) con el párrafo de persona en primera persona según los copies del UI-SPEC (contrato UI ya formalizado en 01-UI-SPEC.md), más la sección "Nuestras familias".
 4. **¿Volúmenes de stock en el seed?**
    - What we know: discretion; sugerencia: valores variados incluyendo 1-2 productos con stock bajo (prepara la alerta ADMN-02 de fase 4) y ninguno en 0 (la ficha debe mostrar disponibilidad).
+   - **RESOLVED en 01-01 Task 3:** stock exactos fijados en el seed (14, 9, 3, 11, 7, 2, 16, 8, 5, 6, 12, 10) — exactamente 2 productos con stock bajo (citricas-03 = 3, florales-03 = 2) y ninguno en 0.
 
 ## Environment Availability
 
