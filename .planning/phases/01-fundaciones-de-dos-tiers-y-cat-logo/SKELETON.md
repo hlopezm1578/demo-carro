@@ -2,42 +2,49 @@
 
 **Phase:** 1
 **Generated:** 2026-09-28
+**Reinterpreted:** 2026-09-28 — corrección de alcance D-17 (repositorio guide-only)
 
 ## Capability Proven End-to-End
 
-> Un visitante abre `http://localhost:5173/productos` y ve la grilla del catálogo con los 12
-> body splash sembrados en SQLite, servidos por la API FastAPI en capas
-> (router → service → repository → SQLAlchemy) a través del proxy `/api` de Vite: el stack
-> completo navegador → SPA React → proxy → API → SQLite queda probado de punta a punta.
+> **El walking skeleton es documental (D-17):** un alumno que sigue `guia-01` y `guia-02` de
+> `docs/05_desarrollo/` construye EN SU MÁQUINA el camino completo navegador → SPA React →
+> proxy `/api` de Vite → API FastAPI en capas (router → service → repository → SQLAlchemy) →
+> SQLite, y lo VERIFICA por sí mismo con las ✅ mini-verificaciones de la guía (backend:
+> `uv init --vcs none` → `/api/salud` responde `{"estado": "ok"}` en su navegador; frontend:
+> node -v >= 22.22 → create-vite → landing de marca + rutas + estados async). La grilla cobra
+> vida con los 12 SKU en `guia-03`/`guia-04` y se cierra comparando `/docs` contra
+> `contrato_api.yaml`.
 
-El skeleton se completa en dos planes por una razón de ambiente (no de arquitectura):
-`01-01-PLAN.md` (ola 1) entrega el tier servidor completo con seed real, y `01-03-PLAN.md`
-(ola 2) entrega el tier cliente, porque el upgrade de Node a >= 22.22 (exigencia de
-`react-router@8.4.0`, RESEARCH Pitfall 1) requiere acción humana antes del scaffold.
+Este repositorio **no contiene ni ejecuta la aplicación**: el código vive narrado dentro de las
+guías como bloques que el alumno copia (modelo demo-cine). La implementación que las guías
+narran se construyó y verificó de verdad antes de la corrección de alcance (historial git:
+`364dee6` backend en capas, `de0253e` seed de 12 SKU) — las guías no inventan código. Los
+planes de la fase se verifican por contenido documental (greps/estructura), jamás ejecutando.
 
 ## Architectural Decisions
 
 | Decision | Choice | Rationale |
 |---|---|---|
-| Framework (SPA) | React 19.3 + TypeScript ~6.0.2 sobre Vite 8.3.1 (`react-ts` template) | Stack verificado en `.planning/research/STACK.md`; el pin TS es del template (no subir a 7.x) |
-| Framework (API) | FastAPI 0.141.1 con `fastapi[standard]`, gestionado por uv | Doc oficial FastAPI enseña uv-first (D-10) |
-| Arquitectura backend | Capas `routers → services → repositories` con DI de FastAPI | Objetivo pedagógico declarado del proyecto |
+| Modelo del repo | **Guide-only (D-17)**: docs/ + .planning/ únicamente; el código vive narrado en las guías; README raíz como portada (D-18) | El producto educativo ES la guía; ADR-008 registra la decisión con consecuencias honestas |
+| Framework (SPA) | React 19.3 + TypeScript ~6.0.2 sobre Vite 8.3.1 (`react-ts` template) — lo que la guía ENSEÑA a instalar | Stack verificado en `.planning/research/STACK.md`; el pin TS es del template (no subir a 7.x) |
+| Framework (API) | FastAPI 0.141.1 con `fastapi[standard]`, gestionado por uv (`uv init --vcs none`, `requires-python >=3.12,<3.13`) | Doc oficial FastAPI enseña uv-first (D-10); techo 3.13 por transbank-sdk (fase 3) |
+| Arquitectura backend | Capas `routers → services → repositories` con DI de FastAPI | Objetivo pedagógico declarado del proyecto (ADR-001) |
 | Data layer | SQLite (stdlib 3.12) + SQLAlchemy 2.1, `Base.metadata.create_all` + seed upsert por SKU | Cero setup de aula; Alembic diferido al primer cambio de schema sobre datos (ADR-005, Pitfall 8) |
-| Routing SPA | React Router 8 library mode (`BrowserRouter`, imports desde `react-router`) | v8 elimina `react-router-dom`; data mode descartado |
+| Routing SPA | React Router 8 library mode (`BrowserRouter`, imports desde `react-router`) | v8 elimina el paquete `-dom`; el gate Node >= 22.22 es prerrequisito EN PROSA de guia-02, no del pipeline (D-17) |
 | Estado servidor | TanStack Query 5.104 (`useQuery`) | Cache/estados de carga gratis; patrón que reusan las fases 2-4 |
-| Contrato de API | OpenAPI 3.0.3 manual API-first (`docs/04_arquitectura/contrato_api.yaml`) ANTES del código | D-15; punto pedagógico diseño por contrato |
+| Contrato de API | OpenAPI 3.0.3 manual API-first (`docs/04_arquitectura/contrato_api.yaml`) — único artefacto de código-adyacente del repo | D-15; entregado por 01-01; cierre por guía: `/docs` ≈ contrato (ADR-007) |
 | Styling | Tailwind 4 vía `@tailwindcss/vite` (sin config file) + Nunito self-hosted | Contrato UI aprobado (`01-UI-SPEC.md`) |
 | Auth | Ninguna en fase 1 (público de solo lectura) | JWT llega en fase 2 |
-| Deployment | Dev local documentado: `uv run fastapi dev` (8000) + `npm run dev` (5173) + proxy `/api` | Free tier público se congela para la fase 5 (decisiones de `return_url`) |
-| Directory layout | Monorepo `backend/` + `frontend/`; `frontend/src/lib/api.ts` único punto HTTP; features por dominio | D-11; regla de único punto de salida HTTP |
+| Deployment | Dev local documentado en las guías: `uv run fastapi dev` (8000) + `npm run dev` (5173) + proxy `/api` | Free tier público se congela para la fase 5 (decisiones de `return_url`) |
+| Directory layout | Monorepo `backend/` + `frontend/` EN LA MÁQUINA DEL ALUMNO; `frontend/src/lib/api.ts` único punto HTTP; features por dominio | D-11 reinterpretado (D-17): el árbol documentado en 04_arquitectura es lo que las guías construyen |
 
-## Stack Touched in Phase 1
+## Stack Touched in Phase 1 (como contenido de las guías)
 
-- [x] Project scaffold — uv (`uv init backend --vcs none`) + create-vite (`react-ts`) — planes 01-01 y 01-03
-- [x] Routing — rutas `/`, `/productos`, `/productos/:id`, `*` (React Router 8) — plan 01-03
-- [x] Database — lectura real (`GET /api/productos`, `GET /api/productos/{id}`) Y escritura real (seed upsert por SKU) — plan 01-01
-- [x] UI — grilla con datos reales + navegación grilla → ficha vía Link — planes 01-03 y 01-05
-- [x] Deployment — comando local full-stack documentado (backend 8000 + frontend 5173 + proxy) y reproducido en las guías — planes 01-01, 01-03, 01-06
+- [x] Project scaffold — uv (`uv init backend --vcs none`) + create-vite (`react-ts`) — enseñado en guia-01/guia-02 (planes 01-04)
+- [x] Routing — rutas `/`, `/productos`, `/productos/:id`, `*` (React Router 8) — enseñado en guia-02 (plan 01-04)
+- [x] Database — escritura (seed upsert por SKU) y lectura (`GET /api/productos`, `GET /api/productos/{id}`) — enseñado en guia-03/guia-04 (plan 01-05)
+- [x] UI — landing de marca + grilla con datos reales + navegación grilla → ficha — enseñado en guia-02/guia-04 (planes 01-04/01-05)
+- [x] Contrato API-first — `contrato_api.yaml` vive en el repo (01-01); su cierre `/docs` ≈ contrato se enseña en guia-04 (01-05)
 
 ## Out of Scope (Deferred to Later Slices)
 
@@ -47,10 +54,12 @@ El skeleton se completa en dos planes por una razón de ambiente (no de arquitec
 - Despliegue free tier y CORS de producción (fase 5 — congela `return_url`)
 - Alembic (entra al primer cambio de schema que toque datos existentes)
 - Búsqueda textual y paginación (STORE-05, v2)
+- Cualquier código de aplicación en ESTE repo — prohibido por D-17 (invariant permanente)
 
 ## Subsequent Slice Plan
 
-Cada fase posterior agrega un slice vertical sobre este skeleton sin alterar sus decisiones:
+Cada fase posterior agrega un slice vertical sobre este skeleton sin alterar sus decisiones —
+siempre como guías que el alumno construye y verifica en su máquina:
 
 - Phase 2: cliente identificado — cuentas JWT + carro persistente en localStorage
 - Phase 3: checkout Webpay sandbox + órdenes con stock atómico
