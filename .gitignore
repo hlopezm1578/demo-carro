@@ -1,0 +1,3 @@
+# Runtime/tool installations (GSD lives in .zcode/, .kilo/ si se usa ese runtime)
+.zcode/
+.kilo/
