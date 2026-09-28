@@ -152,3 +152,10 @@ None - no external service configuration required. (`backend/maura.db` se genera
 - El contrato y la API quedan listos para que 01-03 (frontend) consuma `/api/productos` con los tipos espejo (D-09) y para que 01-02/01-04 documenten ADRs y guías citando esta implementación.
 - Los 12 SKU canónicos están fijados; las fotos `/products/{sku}.jpg` aún no existen (llegan con el frontend, D-08) — el seed referencia las rutas finales.
 - `requirements.ready-ids` devolvió 0/4: los IDs GUIDE-02/STORE-02/STORE-03/STORE-04 son compartidos con otros planes de la fase (p. ej. 01-03, 01-04) que aún no tienen SUMMARY — se marcarán complete cuando todos los planes declarantes terminen (shared-ID gate).
+
+## Self-Check: PASSED
+
+- Archivos verificados: 13/13 FOUND (contrato, 11 módulos backend, pyproject, SUMMARY)
+- Commits verificados: 4/4 FOUND (1dc84d7, 364dee6, de0253e, abd4764)
+- Ledger medido: `git rev-list --count 7669381..HEAD` = 4 (3 producción + 1 docs)
+- Sin archivos generados sin trackear relevantes (maura.db y .venv gitignored; untracked restantes son artefactos previos de planificación fuera del alcance del plan)
