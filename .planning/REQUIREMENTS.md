@@ -105,13 +105,43 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| (pending — filled by roadmap creation) | | |
+| GUIDE-01 | Phase 5 | Pending |
+| GUIDE-02 | Phase 1 | Pending |
+| GUIDE-03 | Phase 1 | Pending |
+| STORE-01 | Phase 1 | Pending |
+| STORE-02 | Phase 1 | Pending |
+| STORE-03 | Phase 1 | Pending |
+| STORE-04 | Phase 1 | Pending |
+| CART-01 | Phase 2 | Pending |
+| CART-02 | Phase 2 | Pending |
+| CART-03 | Phase 3 | Pending |
+| AUTH-01 | Phase 2 | Pending |
+| AUTH-02 | Phase 2 | Pending |
+| AUTH-03 | Phase 2 | Pending |
+| AUTH-04 | Phase 2 | Pending |
+| PAY-01 | Phase 3 | Pending |
+| PAY-02 | Phase 3 | Pending |
+| PAY-03 | Phase 3 | Pending |
+| PAY-04 | Phase 3 | Pending |
+| ORDR-01 | Phase 3 | Pending |
+| ORDR-02 | Phase 3 | Pending |
+| ADMN-01 | Phase 4 | Pending |
+| ADMN-02 | Phase 4 | Pending |
+| ADMN-03 | Phase 4 | Pending |
+| ADMN-04 | Phase 4 | Pending |
+| AIAS-01 | Phase 4 | Pending |
+| AIAS-02 | Phase 4 | Pending |
+| AIAS-03 | Phase 4 | Pending |
+| DEPL-01 | Phase 5 | Pending |
+| DEPL-02 | Phase 5 | Pending |
 
 **Coverage:**
-- v1 requirements: 27 total
-- Mapped to phases: 0
-- Unmapped: 27 ⚠️ (se completa al crear el roadmap)
+- v1 requirements: 29 total
+- Mapped to phases: 29
+- Unmapped: 0
+
+Nota: el conteo previo indicaba 27; el recuento real por categorías es 29 (GUIDE 3, STORE 4, CART 3, AUTH 4, PAY 4, ORDR 2, ADMN 4, AIAS 3, DEPL 2).
 
 ---
 *Requirements defined: 2026-09-28*
-*Last updated: 2026-09-28 after initial definition (auto mode)*
+*Last updated: 2026-09-28 after roadmap creation*
