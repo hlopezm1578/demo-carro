@@ -899,6 +899,6 @@ nueva.
 - `apiGet` como único punto de salida HTTP, con los errores del contrato
 - La landing de marca completa (STORE-01) y los estados async como primera ciudadanía
 
-**Siguiente:** `guia-03-modelos-y-seed.md` — le damos memoria al backend: la
+**Siguiente:** guia-03-modelos-y-seed.md — le damos memoria al backend: la
 tabla `productos`, el modelo con familia y notas, y el seed que siembra los
 12 aromas demo sin duplicar nada.

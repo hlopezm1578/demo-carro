@@ -25,12 +25,13 @@
 |---|---|---|---|
 | 1 | `guia-01-proyecto-backend.md` | El tier servidor: proyecto Python con uv, configuración tipada y el primer endpoint (`/api/salud`) | ✅ Listo |
 | 2 | `guia-02-proyecto-frontend.md` | El tier cliente: SPA React con TypeScript, la marca y la landing de Maura | ✅ Listo |
-| 3 | `guia-03-modelos-y-seed.md` | Los datos: la tabla `productos`, el modelo con familia y notas, y el seed de 12 SKU | ⏳ Pendiente (misma fase) |
-| 4 | `guia-04-catalogo.md` | La pantalla que une los tiers: API de productos con filtros, grilla del catálogo, ficha y fotos | ⏳ Pendiente (misma fase) |
+| 3 | `guia-03-modelos-y-seed.md` | Los datos: la tabla `productos`, el modelo con familia y notas, y el seed de 12 SKU | ✅ Listo |
+| 4 | `guia-04-catalogo.md` | La pantalla que une los tiers: API de productos con filtros, grilla del catálogo, ficha y fotos | ✅ Listo |
 
-> Las guías 3 y 4 se escriben dentro de esta misma fase del proyecto: la tabla
-> declara el orden completo desde ya, igual que el índice de `docs/README.md`
-> avanza por fase.
+> La fase 1 del proyecto completa sus cuatro guías. Las guías 5+ llegan con
+> las fases siguientes (carro, pago, panel, IA) — cada una asumiendo que estas
+> están construidas y verificadas en tu máquina, igual que el índice de
+> `docs/README.md` avanza por fase.
 
 **Mapa mental de la serie:** el orden es **de adentro hacia afuera**. Primero
 construimos cada tier por separado (guías 1 y 2: el backend que responde JSON y

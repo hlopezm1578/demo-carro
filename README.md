@@ -39,7 +39,7 @@ sin aprobar la anterior.
 | 2 | Análisis de requerimientos | [`docs/02_requerimientos.md`](docs/02_requerimientos.md) | ✅ Listo |
 | 3 | Diseño (datos, procesos, pantallas) | [`docs/03_diseno.md`](docs/03_diseno.md) | ✅ Listo |
 | 4 | Arquitectura + 8 ADRs + contrato OpenAPI | [`docs/04_arquitectura/`](docs/04_arquitectura) | ✅ Listo |
-| 5 | Desarrollo (guías 1–4 paso a paso) | [`05_desarrollo/`](docs/05_desarrollo) | 🚧 Parcial (guías 1–4 en curso) |
+| 5 | Desarrollo (guías 1–4 paso a paso) | [`05_desarrollo/`](docs/05_desarrollo) | 🚧 Parcial (guías 1-4 listas; continúa en fases 2+) |
 | 6 | Pruebas | `06_pruebas.md` | ⏳ Pendiente |
 | 7 | Despliegue | `07_despliegue.md` | ⏳ Pendiente |
 | 8 | Mantenimiento | `08_mantenimiento.md` | ⏳ Pendiente |

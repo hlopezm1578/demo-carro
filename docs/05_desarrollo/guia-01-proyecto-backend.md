@@ -425,5 +425,5 @@ de "el servicio está roto".
 - CORS con orígenes explícitos desde el día 1 (ADR-002)
 - Tu primer endpoint y la documentación automática de FastAPI — el anticipo del contrato (ADR-007)
 
-**Siguiente:** `guia-02-proyecto-frontend.md` — el otro tier: la SPA React con
+**Siguiente:** guia-02-proyecto-frontend.md — el otro tier: la SPA React con
 TypeScript, la marca de Maura y la landing que ya conversará con esta API.
