@@ -54,6 +54,7 @@ La fase 1 entrega, como documentos: docs/README (índice del ciclo), 01_necesida
   - D-09/D-10/D-11/D-12 (TS, uv, monorepo, comandos agnósticos): describen lo que la guía ENSEÑA al alumno; el gate Node >=22.22 pasa a ser nota de prerrequisito en la guía, no un gate de ejecución del pipeline.
   - STORE-01..04 y los success criteria "visitante..." del ROADMAP: describen lo que el alumno logra siguiendo la guía; en los planes se verifican como cobertura documental de las guías (que la guía enseñe y haga verificar cada punto).
 - **Verificación de planes:** por contenido documental (greps sobre docs/, estructura, conteos) — como ya lo hacían los planes de docs; nunca ejecutando la aplicación.
+- **D-18: README.md en la raíz del repo, como demo-cine** (`D:/Repos/demo-cine/README.md` es el formato de referencia): portada del proyecto educativo — qué es (recorrido documentado del ciclo de vida), la aplicación (Maura · Body Splash, PYME ficticia), el enfoque fase-a-fase con tabla de las 8 fases y estado, qué hace especial al material (ADRs honestos, API-first, guías senior→junior), stack y la frase clave "el código completo vive narrado en las guías", uso en clases y nota de ficción. Debe crear/actualizar la tabla de estado conforme avanza el ciclo.
 
 </decisions>
 
