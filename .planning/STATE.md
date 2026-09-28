@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 1
 current_phase_name: Fundaciones de dos tiers y catálogo
 status: executing
-stopped_at: Completed 01-02-PLAN.md (docs ciclo 01-03)
-last_updated: "2026-09-28T19:25:11.291Z"
+stopped_at: Completed 01-03-PLAN.md
+last_updated: "2026-09-28T19:58:55.620Z"
 last_activity: 2026-09-28
 last_activity_desc: Phase 1 execution started
-state_head: 94a16afa3a6eb209de7a8878fba065c5ea1fc088
+state_head: d188c28b660a92e13fba37f35d9cca36e12d5e44
 progress:
   total_phases: 5
   completed_phases: 0
   total_plans: 5
-  completed_plans: 2
+  completed_plans: 3
   percent: 0
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-09-28)
 ## Current Position
 
 Phase: 1 (Fundaciones de dos tiers y catálogo) — READY TO EXECUTE
-Plan: 3 of 7
+Plan: 4 of 7
 Status: Ready to execute
 Last activity: 2026-09-28 — Phase 1 execution started
 
@@ -58,6 +58,7 @@ Progress: [░░░░░░░░░░] 0%
 |------|----------|-------|-------|
 | Phase 01 P01-01 | 9min | 3 tasks | 22 files |
 | Phase 01 P01-02 | 12min | 3 tasks | 5 files |
+| Phase 01 P01-03 | 11min | 3 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -75,6 +76,9 @@ Recent decisions affecting current work:
 - [Phase 01]: Numeracion canonica del ciclo fijada en docs 01-02 (D1-D6/P1-P8/C1-C4/CS1-CS5 y RF-01..05/RNF/RN/HU-01..04): ADRs, contrato y guias la citan en cadena; renumerar rompe la trazabilidad (costly)
 - [Phase 01]: docs/README.md refleja el cierre de fase 1 por fase GSD (D-13): filas 1-4 OK, fila 5 parcial guias 1-4, filas 6-8 pendientes; P5-P8 del doc 02 quedan trazadas a las etapas 2/3/4 del roadmap
 - [Phase 01]: El repositorio es guide-only (D-17): solo guias, sin codigo de aplicacion en el repo — el codigo vive dentro de las guias como bloques que el alumno copia (modelo demo-cine). Codigo backend retirado en fc93522. — El usuario corrigio el alcance a mitad de la ejecucion de la fase 1: el producto es la guia documental, no la aplicacion construida por GSD. Afecta planes, verificaciones (docs-only) y decisiones D-08/D-09/D-10/D-11 reinterpretadas como contenido de guia.
+- [Phase 01]: Fase 1 cierra su arquitectura con 8 ADRs 001-008 (formato demo-cine); ADR-008 registra el invariant guide-only D-17/D-18 como decision de arquitectura y ADR-007 ancla contrato_api.yaml con cierre /docs = contrato
+- [Phase 01]: README raiz (D-18) es la portada viva del producto: tabla de 8 fases con estado real que avanza por fase GSD; el arbol de carpetas de 04_arquitectura se declara como el proyecto del alumno, no contenido del repo
+- [Phase 01]: Reglas de dependencia numeradas fijadas en 04_arquitectura (routers sin SQLAlchemy, repositories sin reglas, services sin HTTP, solo main.py arma la app, todo HTTP frontend por lib/api.ts, features sin imports cruzados) — las guias 01-04/01-05 las citan
 
 ### Pending Todos
 
@@ -97,6 +101,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-28T19:09:10.287Z
-Stopped at: Completed 01-02-PLAN.md (docs ciclo 01-03)
+Last session: 2026-09-28T19:58:27.012Z
+Stopped at: Completed 01-03-PLAN.md
 Resume file: None
