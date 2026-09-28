@@ -1,0 +1,203 @@
+# ============================================================================
+# Maura — Contrato de la API (OpenAPI 3.0)
+# Fase 1 · API-first (D-15 / ADR-007): este documento es la FUENTE DE LA
+# VERDAD de la interfaz. Se aprueba antes de codificar; el backend debe
+# implementarlo sin desviarse. Trazabilidad: cada operación cita el
+# requisito que la origina (.planning/REQUIREMENTS.md → docs/02_requerimientos.md).
+# Probarlo sin backend: importar este archivo en Swagger Editor o Postman.
+# ============================================================================
+openapi: 3.0.3
+
+info:
+  title: Maura API
+  version: 0.1.0
+  description: |
+    API del catálogo de la tienda Maura · Body Splash (tier servidor de los
+    dos tiers: la SPA React la consume; el backend solo expone JSON, jamás
+    plantillas HTML).
+
+    **Autenticación:** ninguna por ahora — los endpoints de la fase 1 son
+    públicos y de solo lectura. Las cuentas JWT llegan en la fase 2.
+
+    **Convención de errores:**
+
+    | Código | Significado | Estado |
+    |---|---|---|
+    | 200 | OK (listado, ficha, salud) | En uso (fase 1) |
+    | 400 | Regla de negocio violada | Reservado (fases 2+) |
+    | 401 | Sin sesión o credenciales incorrectas | Reservado (fases 2+) |
+    | 403 | Con sesión, pero sin permiso | Reservado (fases 2+) |
+    | 404 | Recurso inexistente | En uso (fase 1) |
+    | 409 | Conflicto | Reservado (fases 2+) |
+    | 422 | Datos mal formados (validación de esquema) | En uso (fase 1) |
+
+servers:
+  - url: http://localhost:8000
+    description: Desarrollo local
+  - url: https://TU-API.example.com
+    description: Producción (placeholder — se define en la fase 5 de despliegue)
+
+tags:
+  - name: Productos
+    description: Catálogo público con filtros (STORE-02, STORE-03)
+  - name: Operación
+    description: Chequeo del servicio
+
+# ---------------------------------------------------------------------------
+# Esquemas
+# ---------------------------------------------------------------------------
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        detail:
+          type: string
+          example: Producto no encontrado
+      required: [detail]
+
+    ProductoResumen:
+      type: object
+      description: Como aparece un producto en la grilla del catálogo (STORE-02)
+      properties:
+        id:
+          type: integer
+          example: 1
+        sku:
+          type: string
+          description: Clave natural del producto; el seed converge por upsert sobre ella (STORE-04)
+          example: citricas-01
+        nombre:
+          type: string
+          example: Brisa de Naranja
+        precio:
+          type: integer
+          description: Precio en pesos chilenos (CLP), entero sin decimales
+          example: 7990
+        familia:
+          type: string
+          description: Slug ASCII de la familia aromática — por el cable viaja sin acentos; la SPA muestra la etiqueta ("Cítricas")
+          enum: [citricas, florales, frutales, dulces]
+          example: citricas
+        imagen:
+          type: string
+          description: Ruta local de la foto (servida por el host del SPA); sin hotlinks externos (D-08)
+          example: /products/citricas-01.jpg
+      required: [id, sku, nombre, precio, familia, imagen]
+
+    ProductoDetalle:
+      allOf:
+        - $ref: '#/components/schemas/ProductoResumen'
+        - type: object
+          description: La ficha completa del producto (STORE-03)
+          properties:
+            descripcion:
+              type: string
+              description: 1-2 frases en español de Chile, tono cercano
+              example: Naranja recién pelada con un fondo de bergamota. Frescura luminosa para el día.
+            notas:
+              type: array
+              description: Notas aromáticas que componen la fragancia
+              items:
+                type: string
+              example: [naranja, bergamota, mandarina]
+            stock:
+              type: integer
+              description: Unidades disponibles para la venta
+              example: 14
+          required: [descripcion, notas, stock]
+
+# ---------------------------------------------------------------------------
+# Operaciones
+# ---------------------------------------------------------------------------
+paths:
+  /api/salud:
+    get:
+      tags: [Operación]
+      summary: Chequeo de vida del servicio
+      responses:
+        '200':
+          description: Servicio arriba
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  estado: { type: string, example: ok }
+
+  /api/productos:
+    get:
+      tags: [Productos]
+      summary: Listar el catálogo con filtros
+      description: |
+        STORE-02 · Público. Devuelve solo productos activos, orden estable por id.
+        Filtros combinables: familia, rango de precio (CLP entero, mínimo 0).
+        Filtro mal formado (familia fuera del enum o precio negativo) → 422,
+        producido por la validación declarativa (Pydantic), sin código manual.
+      parameters:
+        - name: familia
+          in: query
+          required: false
+          description: Slug ASCII de la familia aromática (sin acentos)
+          schema:
+            type: string
+            enum: [citricas, florales, frutales, dulces]
+          example: citricas
+        - name: precio_min
+          in: query
+          required: false
+          description: Precio mínimo incluyente (CLP entero)
+          schema:
+            type: integer
+            minimum: 0
+          example: 8000
+        - name: precio_max
+          in: query
+          required: false
+          description: Precio máximo incluyente (CLP entero)
+          schema:
+            type: integer
+            minimum: 0
+          example: 11000
+      responses:
+        '200':
+          description: Productos activos que cumplen los filtros
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProductoResumen'
+        '422':
+          description: Filtro mal formado (familia fuera del enum, precio negativo)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/productos/{producto_id}:
+    get:
+      tags: [Productos]
+      summary: Ver la ficha de un producto
+      description: |
+        STORE-03 · Público. Incluye descripción, notas aromáticas y stock
+        además de los campos del resumen.
+      parameters:
+        - name: producto_id
+          in: path
+          required: true
+          schema: { type: integer }
+          example: 1
+      responses:
+        '200':
+          description: La ficha completa
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductoDetalle'
+        '404':
+          description: Producto inexistente (o inactivo)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
