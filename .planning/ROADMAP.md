@@ -42,8 +42,17 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. Visitante abre la página de un producto y ve descripción, precio, familia aromática, notas y disponibilidad de stock (STORE-03)
   3. El seed idempotente deja datos demo reproducibles (re-ejecutable sin duplicar) para desarrollo y UAT (STORE-04)
   4. Un alumno que sigue la guía de esta fase paso a paso levanta desde cero los dos tiers con el catálogo funcionando; la fase documenta sus ADRs y el contrato de API inicial, y cada fase posterior actualiza ambos (GUIDE-02, GUIDE-03)
-**Plans**: TBD
+**Plans**: 7 plans
 **UI hint**: yes
+
+Plans:
+- [ ] 01-01-PLAN.md — Contrato OpenAPI API-first + backend FastAPI en capas + seed idempotente de 12 SKU
+- [ ] 01-02-PLAN.md — Docs del ciclo 01-03 (necesidad Maura, requerimientos, diseño) + docs/README
+- [ ] 01-03-PLAN.md — Frontend base: gate Node >= 22.22 + scaffold react-ts + tracer grilla + landing (STORE-01)
+- [ ] 01-04-PLAN.md — Arquitectura en una página + 7 ADRs fundacionales (GUIDE-02)
+- [ ] 01-05-PLAN.md — Catálogo completo: 12 fotos locales, filtros en URL, ficha y estados async (STORE-02/03)
+- [ ] 01-06-PLAN.md — 05_desarrollo README + guías 01-02 (proyecto backend, proyecto frontend)
+- [ ] 01-07-PLAN.md — Guías 03-04 (modelos y seed, catálogo) + verificación de cierre contrato ↔ /docs
 
 ### Phase 2: Cuentas de cliente y carro persistente
 **Goal**: Un visitante se convierte en cliente identificado: crea cuenta, inicia sesión con JWT que persiste entre recargas, arma un carro que sobrevive los full-page loads (los que impondrá la redirección de Webpay) y el checkout le exige sesión iniciada.
