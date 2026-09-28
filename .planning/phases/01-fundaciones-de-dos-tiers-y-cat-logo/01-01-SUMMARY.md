@@ -7,10 +7,7 @@ tags: [fastapi, sqlalchemy, sqlite, openapi, uv, pydantic-settings, seed]
 requires: []
 provides:
   - Contrato OpenAPI 3.0.3 API-first de la tienda (docs/04_arquitectura/contrato_api.yaml) con /api/salud, /api/productos (familia + precio_min/max) y /api/productos/{producto_id}
-  - Backend FastAPI 0.141.1 en capas (routers → services → repositories) sobre SQLAlchemy 2.1 + SQLite con CORS explícito desde Settings
-  - Tabla productos con FamiliaAromatica (enum slug ASCII), notas JSON y precio Integer CLP
-  - Seed idempotente por upsert de SKU con los 12 productos demo canónicos (datos fijados: nombres, precios, notas, stock)
-  - Settings (pydantic-settings): database_url y cors_origins sobreescribibles por entorno
+  - (CORRECCIÓN DE ALCANCE D-17: el backend y el seed fueron retirados del repo — ver nota en el cuerpo; ese contenido pasa a vivir dentro de las guías de desarrollo como bloques)
 affects: [01-02, 01-03, 01-04, 01-05, 01-06, 01-07, Phase 2, Phase 3, Phase 4, Phase 5]
 
 actuals:
@@ -21,7 +18,7 @@ actuals:
   plan_head_after: de0253e2fc774bfce4df028f0d7e04e284021f96
 
 tech-stack:
-  added: ["fastapi[standard] 0.141.1", "sqlalchemy 2.1.1", "pydantic-settings 2.15.0", "uv 0.9.3 (workflow D-10)", "SQLite (stdlib 3.12)"]
+  added: []  # CORRECCIÓN D-17: sin dependencias en el repo (guide-only); fastapi/sqlalchemy/uv viven como contenido de las guías
   patterns:
     - "API-first: contrato YAML aprobado antes del código; Pydantic espeja sus schemas"
     - "Capas routers → services → repositories con DI de FastAPI (sesión por request); routers sin importar sqlalchemy"
@@ -31,17 +28,6 @@ tech-stack:
 key-files:
   created:
     - docs/04_arquitectura/contrato_api.yaml
-    - backend/app/main.py
-    - backend/app/config.py
-    - backend/app/database.py
-    - backend/app/models/producto.py
-    - backend/app/schemas/producto.py
-    - backend/app/repositories/producto.py
-    - backend/app/services/catalogo.py
-    - backend/app/routers/productos.py
-    - backend/app/routers/salud.py
-    - backend/app/seed.py
-    - backend/pyproject.toml (+ uv.lock, .python-version, .gitignore, README.md)
   modified: []
 
 key-decisions:
@@ -57,7 +43,7 @@ patterns-established:
   - "Seed ejecutable agnóstico de terminal: uv run python -m app.seed, con marcas [+] / [=] por producto"
   - "create_all vive en el seed (no en main.py): schema y datos existen antes de cualquier verificación de endpoints"
 
-requirements-completed: [GUIDE-02, STORE-02, STORE-03, STORE-04]
+requirements-completed: [GUIDE-02]
 
 coverage:
   - id: D1
@@ -68,22 +54,9 @@ coverage:
         ref: "grep chain del plan (openapi 3.0.3, /api/salud, /api/productos/{producto_id}, ProductoResumen/ProductoDetalle, allOf, enum 4 slugs, precio_min) → contrato-ok; yaml.safe_load OK"
         status: pass
     human_judgment: false
-  - id: D2
-    description: "Backend FastAPI en capas que implementa el contrato: salud, listado con filtros validados, detalle, 404 y 422"
-    requirement: STORE-02
-    verification:
-      - kind: integration
-        ref: "TestClient (backend): /api/salud 200, familia=xyz 422, /api/productos/999 404, familia=citricas 3 items, precio 8000-11000 → 7 items todos en rango, todas las respuestas application/json"
-        status: pass
-    human_judgment: false
-  - id: D3
-    description: "Seed idempotente de 12 SKU demo con datos canónicos re-ejecutable sin duplicar"
-    requirement: STORE-04
-    verification:
-      - kind: integration
-        ref: "uv run python -m app.seed x2 → segunda corrida imprime doce [=] y cero [+]; count == 12; GET /api/productos == 12; ficha /1 con notas y stock → seed-ok-12"
-        status: pass
-    human_judgment: false
+  # D2 (backend en capas) y D3 (seed) RETIRADOS por la corrección de alcance D-17:
+  # el código fue eliminado del repo (commits fc93522 + limpieza de pyc). STORE-02/03/04
+  # pasan a entregarse vía las guías de desarrollo (planes replanificados docs-only).
 
 duration: 9min
 completed: 2026-09-28
@@ -91,6 +64,12 @@ status: complete
 ---
 
 # Phase 01 Plan 01-01: Contrato API-first y backend en capas Summary
+
+**Contrato OpenAPI 3.0.3 API-first de la tienda (docs/04_arquitectura/contrato_api.yaml) — el único artefacto que permanece en el repo tras la corrección de alcance D-17 (guide-only).**
+
+## CORRECCIÓN DE ALCANCE (D-17, 2026-09-28, post-completion)
+
+**El repositorio contiene SOLO las guías** (decisión del usuario, mismo modelo que demo-cine): el backend FastAPI y el seed ejecutados en Tasks 2-3 fueron **retirados del árbol** (commits `fc93522` + limpieza de pyc). Ese código NO se perdió: su contenido pasa a vivir dentro de las guías de desarrollo (docs/05_desarrollo) como bloques que el alumno copia, en los planes replanificados docs-only. Las secciones históricas de abajo describen lo que se ejecutó originalmente; los campos de frontmatter ya reflejan el estado corregido (entregable vigente: contrato_api.yaml).
 
 **Contrato OpenAPI 3.0.3 aprobado antes del código + backend FastAPI en capas (routers → services → repositories) sobre SQLite con seed idempotente de 12 SKU: la API sirve salud, catálogo filtrable y ficha con 404/422 de punta a punta.**
 
