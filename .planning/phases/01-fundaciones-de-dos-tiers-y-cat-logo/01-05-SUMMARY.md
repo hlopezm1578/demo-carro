@@ -138,4 +138,6 @@ None.
 - REQUIREMENTS.md: GUIDE-02, GUIDE-03, STORE-02, STORE-03, STORE-04 marcados completos (los 5 reportados ready por el shared-ID gate).
 - La cadena "Siguiente" apunta a la fase 2 (cuentas y carro): los bloqueos conocidos de fases posteriores siguen registrados en STATE.md (spike Webpay fase 3, ADR de órdenes, límites Gemini fase 4, plataforma de deploy fase 5).
 
-## Self-Check: PENDING
+## Self-Check: PASSED
+
+Archivos verificados en disco (5/5 FOUND) y commits verificados en `git log` (4/4 FOUND: 4b951c0, 66c6589, c472ce9, a8f9f93). Gate guide-only re-verificado: `git ls-files -- backend frontend` vacío.

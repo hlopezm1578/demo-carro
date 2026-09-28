@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 1
 current_phase_name: Fundaciones de dos tiers y catálogo
 status: executing
-stopped_at: Completed 01-04-PLAN.md
-last_updated: "2026-09-28T20:13:40.486Z"
+stopped_at: Completed 01-05-PLAN.md
+last_updated: "2026-09-28T20:30:51.134Z"
 last_activity: 2026-09-28
 last_activity_desc: Phase 1 execution started
-state_head: 17a4f7f893780264f78758a8cdcf8faab8ac1332
+state_head: a8f9f939ad079726a0d1859447f0494ea0a7ec08
 progress:
   total_phases: 5
   completed_phases: 0
   total_plans: 5
-  completed_plans: 4
+  completed_plans: 5
   percent: 0
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-09-28)
 ## Current Position
 
 Phase: 1 (Fundaciones de dos tiers y catálogo) — READY TO EXECUTE
-Plan: 5 of 7
+Plan: 6 of 7
 Status: Ready to execute
 Last activity: 2026-09-28 — Phase 1 execution started
 
@@ -60,6 +60,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01 P01-02 | 12min | 3 tasks | 5 files |
 | Phase 01 P01-03 | 11min | 3 tasks | 11 files |
 | Phase 01 P01-04 | 11min | 3 tasks | 3 files |
+| Phase 01 P01-05 | 6min | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -82,6 +83,8 @@ Recent decisions affecting current work:
 - [Phase 01]: Reglas de dependencia numeradas fijadas en 04_arquitectura (routers sin SQLAlchemy, repositories sin reglas, services sin HTTP, solo main.py arma la app, todo HTTP frontend por lib/api.ts, features sin imports cruzados) — las guias 01-04/01-05 las citan
 - [Phase 01]: Guias 01-02 de 05_desarrollo: estructura canonica fijada (blockquote/terminos/pasos con piensa+mini-verificacion/error evitado/cierre); guia-01 narra el backend verificado retirado (git 364dee6) y guia-02 ancla sus bloques en los patrones verificados de 01-RESEARCH + copies del UI-SPEC
 - [Phase 01]: Tabla del README de 05_desarrollo con estado honesto por fase (D-13): guia-03/04 pendientes hasta que 01-05 las escriba; el gate node >= 22.22 vive como paso 1 del alumno en guia-02 (D-17), no del pipeline
+- [Phase 01]: Guias 03-04 de 05_desarrollo cierran la fase: guia-03 narra el seed verificado (upsert 12 SKU, git de0253e) con el gotcha del Enum; guia-04 une los tiers y fija la convencion 'Gran verificacion final' (tabla numerada CS/RF + fila contrato <-> /docs, ADR-007) que replican las fases 2-5
+- [Phase 01]: Paso de descarga de fotos (D-08 reinterpretado): la guia ensena al alumno a bajar 12 fotos stock licencia libre a SU frontend/public/products/{sku}.jpg — unica seccion con URLs de terceros y gate negativo sin src https; fila 5 del ciclo queda en Parcial (guias 1-4 listas; continua en fases 2+)
 
 ### Pending Todos
 
@@ -104,6 +107,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-28T20:13:40.433Z
-Stopped at: Completed 01-04-PLAN.md
+Last session: 2026-09-28T20:30:51.084Z
+Stopped at: Completed 01-05-PLAN.md
 Resume file: None

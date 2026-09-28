@@ -10,15 +10,15 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Guía educativa
 
 - [ ] **GUIDE-01**: La guía documenta el ciclo de vida completo (necesidad del cliente → requerimientos → diseño → arquitectura con ADRs → desarrollo guiado paso a paso → pruebas → despliegue → mantenimiento) con trazabilidad entre fases al estilo demo-cine
-- [ ] **GUIDE-02**: Cada fase documenta sus ADRs y mantiene el contrato de API de la aplicación actualizado
-- [ ] **GUIDE-03**: Las guías de desarrollo son paso a paso — un alumno siguiéndolas en orden construye la aplicación operativa
+- [x] **GUIDE-02**: Cada fase documenta sus ADRs y mantiene el contrato de API de la aplicación actualizado
+- [x] **GUIDE-03**: Las guías de desarrollo son paso a paso — un alumno siguiéndolas en orden construye la aplicación operativa
 
 ### Tienda (storefront)
 
 - [x] **STORE-01**: Visitante ve una landing con identidad de marca de la PYME ficticia
-- [ ] **STORE-02**: Visitante navega el catálogo en grilla con filtros por familia aromática y rango de precio
-- [ ] **STORE-03**: Visitante ve la página de producto con descripción, precio, familia aromática, notas y disponibilidad de stock
-- [ ] **STORE-04**: El catálogo incluye datos demo sembrados (seed idempotente) para desarrollo y UAT
+- [x] **STORE-02**: Visitante navega el catálogo en grilla con filtros por familia aromática y rango de precio
+- [x] **STORE-03**: Visitante ve la página de producto con descripción, precio, familia aromática, notas y disponibilidad de stock
+- [x] **STORE-04**: El catálogo incluye datos demo sembrados (seed idempotente) para desarrollo y UAT
 
 ### Carro de compras
 
@@ -106,12 +106,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | GUIDE-01 | Phase 5 | Pending |
-| GUIDE-02 | Phase 1 | Pending |
-| GUIDE-03 | Phase 1 | Pending |
+| GUIDE-02 | Phase 1 | Complete |
+| GUIDE-03 | Phase 1 | Complete |
 | STORE-01 | Phase 1 | Complete |
-| STORE-02 | Phase 1 | Pending |
-| STORE-03 | Phase 1 | Pending |
-| STORE-04 | Phase 1 | Pending |
+| STORE-02 | Phase 1 | Complete |
+| STORE-03 | Phase 1 | Complete |
+| STORE-04 | Phase 1 | Complete |
 | CART-01 | Phase 2 | Pending |
 | CART-02 | Phase 2 | Pending |
 | CART-03 | Phase 3 | Pending |
