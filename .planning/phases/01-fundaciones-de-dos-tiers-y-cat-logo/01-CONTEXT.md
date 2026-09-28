@@ -6,7 +6,9 @@
 <domain>
 ## Phase Boundary
 
-Un visitante navega una tienda de dos tiers operativa: SPA React (TypeScript) que consume API FastAPI en capas (routers → services → repositories), sin plantillas en el servidor. La fase entrega landing con identidad de marca de la PYME ficticia, catálogo filtrable por familia aromática y rango de precio, páginas de producto y seed idempotente con datos demo. Además establece las convenciones documentales de la guía (ADRs, contrato de API API-first, guías paso a paso) que las fases siguientes mantienen.
+**CORRECCIÓN DE ALCANCE (2026-09-28, decisión del usuario): el repositorio contiene SOLO LAS GUÍAS — nunca código de aplicación.** El modelo es exactamente demo-cine: un repo docs-only donde el ciclo de vida se documenta y el código vive DENTRO de las guías de desarrollo como bloques que el alumno copia. Los "visitante ve/navega" de STORE-01..04 describen lo que el ALUMNO construye siguiendo la guía, no un artefacto de este repo.
+
+La fase 1 entrega, como documentos: docs/README (índice del ciclo), 01_necesidad, 02_requerimientos, 03_diseno, 04_arquitectura (documento + ADRs fundacionales + contrato_api.yaml API-first) y 05_desarrollo (guías paso a paso que enseñan a levantar los dos tiers con el catálogo — esqueleto backend FastAPI en capas, esqueleto frontend React/TS, modelos y seed, landing/catálogo/ficha — con mini-verificaciones ✅ que corre el alumno). La verificación de los planes es por contenido documental (greps/estructura), jamás ejecutando código.
 
 </domain>
 
@@ -40,10 +42,18 @@ Un visitante navega una tienda de dos tiers operativa: SPA React (TypeScript) qu
 ### Claude's Discretion
 - Nombres concretos, notas aromáticas y descripciones de los 12 productos (dentro de las 4 familias fijadas).
 - Selección concreta de las fotos stock (criterio: consistencia visual entre productos de una misma familia).
-- Qué ADRs fundacionales se numeran exactamente y su redacción (candidatos naturales: stack, arquitectura en capas, SQLite, TypeScript, uv, monorepo, API-first).
+- Qué ADRs fundacionales se numeran exactamente y su redacción (candidatos naturales: stack, arquitectura en capas, SQLite, TypeScript, uv, monorepo, API-first, guide-only).
 - Stock inicial por producto y valores exactos de precios dentro del rango fijado.
-- Paleta Tailwind concreta bajo la dirección fresco-luminosa (la formaliza `/gsd:ui-phase`).
+- Paleta Tailwind concreta bajo la dirección fresco-luminosa (ya formalizada en 01-UI-SPEC.md).
 - Rutas de la SPA, prefijos de API y detalles de estructura de carpetas (seguir la investigación de arquitectura).
+
+### Corrección de alcance (2026-09-28 — decisión del usuario, SUPERA lo anterior donde choquen)
+- **D-17: El repositorio es GUIDE-ONLY.** Este repo contiene únicamente documentación de la guía (docs/ + .planning); jamás se commitea código de aplicación (sin backend/, sin frontend/, sin .venv, sin dependencias instaladas). El código de la tienda vive exclusivamente como bloques dentro de las guías de desarrollo (docs/05_desarrollo) que el alumno copia y ejecuta en su máquina — **Reversibility:** one-way — es el contrato del producto entero; cada fase y cada verificación se diseña alrededor de esto.
+- **Reinterpretación de decisiones previas bajo D-17** (el texto original se mantiene como decisión de CONTENIDO de la guía, no de construcción en este repo):
+  - D-08 (fotos): la GUÍA instruye al alumno descargar las 12 fotos a su `frontend/public/products/`; nada se commitea acá.
+  - D-09/D-10/D-11/D-12 (TS, uv, monorepo, comandos agnósticos): describen lo que la guía ENSEÑA al alumno; el gate Node >=22.22 pasa a ser nota de prerrequisito en la guía, no un gate de ejecución del pipeline.
+  - STORE-01..04 y los success criteria "visitante..." del ROADMAP: describen lo que el alumno logra siguiendo la guía; en los planes se verifican como cobertura documental de las guías (que la guía enseñe y haga verificar cada punto).
+- **Verificación de planes:** por contenido documental (greps sobre docs/, estructura, conteos) — como ya lo hacían los planes de docs; nunca ejecutando la aplicación.
 
 </decisions>
 
@@ -70,15 +80,17 @@ Un visitante navega una tienda de dos tiers operativa: SPA React (TypeScript) qu
 ## Existing Code Insights
 
 ### Reusable Assets
-- Ninguno — repo greenfield (solo documentación de planificación). Todo el código de la fase es nuevo.
+- Ninguno de código — **el repo es guide-only (D-17)**: solo documentación (docs/, .planning/, AGENTS.md).
+- Ya entregado en esta fase: docs/README.md + 01_necesidad + 02_requerimientos + 03_diseno (plan 01-02, commits 0ba8eed..ab20e70) y docs/04_arquitectura/contrato_api.yaml (plan 01-01 Task 1, commit 1dc84d7).
 
 ### Established Patterns
-- Backend en capas routers → services → repositories con DI de FastAPI (objetivo pedagógico declarado; ver `.planning/research/ARCHITECTURE.md`).
-- Frontend organizado por `features/` (catalog, cart, …) con `lib/api` como único punto de salida HTTP.
-- Monorepo `backend/` + `frontend/` confirmado como estructura de la guía.
+- Formato demo-cine verificado (docs/README con tabla de fases y regla del proyecto; numeración trazable P/C/CS → RF/RNF/RN/HU → diseño → contrato → guías; guías con 🧠/✅/📝 por paso).
+- Trazabilidad numerada del ciclo ya fijada por 01-02: D1-D6 / P1-P8 / C1-C4 / CS1-CS5 / RF-01..05 / RNF-01..04 / RN-01..04 / HU-01..04 — los ADRs y guías DEBEN citar estos IDs.
+- 12 SKU canónicos fijados (nombres, precios $6.990–$12.990, notas, stocks) — docs y guías citan siempre los mismos valores.
 
 ### Integration Points
-- Esta fase crea los puntos de integración que las demás fases consumen: contrato API inicial (`contrato_api.yaml`), health check + CORS del backend, API client del frontend, seed idempotente y tabla `products`.
+- Los ADRs (04_arquitectura/adr/) citan RF/RN de 02_requerimientos y decisiones D de este CONTEXT.
+- Las guías (05_desarrollo) citan el contrato_api.yaml y el diseño de 03_diseno; contienen el código como bloques con mini-verificaciones ✅ del alumno.
 
 </code_context>
 
