@@ -218,6 +218,7 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter, Routes, Route } from "react-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
+import "./index.css";
 import Layout from "./components/Layout";
 import Landing from "./features/landing/Landing";
 import Catalogo from "./features/catalogo/Catalogo";
@@ -243,6 +244,12 @@ createRoot(document.getElementById("root")!).render(
   </StrictMode>
 );
 ```
+
+Fíjate en el `import "./index.css"`: es la línea que mantiene vivos los
+estilos del paso 5. El template la traía y un reemplazo descuidado la
+pierde — y su ausencia **no da ningún error**: la app compila, corre y se
+ve sin un solo estilo, sin que nadie te avise. Un CSS que ningún módulo
+importa simplemente no entra al bundle.
 
 Fíjate en las cuatro rutas de la tienda (docs/03_diseno.md §4): `/` la
 landing, `/productos` el catálogo, `/productos/:id` la ficha, y `*` la
@@ -280,9 +287,12 @@ npm run build
 ```
 
 Termina sin errores: TypeScript compiló el proyecto completo y el router
-encontró sus cinco componentes. (El build también valida lo que el dev
-server perdonaría — por eso lo corremos como verificación, no solo el
-`npm run dev`.)
+encontró sus cinco componentes. Y mira dentro de `dist/assets/`: debe
+existir un archivo `index-*.css` — es tu `index.css` (Tailwind + Nunito)
+empaquetado. Si no está, el `import "./index.css"` se perdió y tu app se
+vería sin estilos sin ningún error de por medio. (El build también valida
+lo que el dev server perdonaría — por eso lo corremos como verificación,
+no solo el `npm run dev`.)
 
 ---
 
