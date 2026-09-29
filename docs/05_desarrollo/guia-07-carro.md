@@ -398,10 +398,14 @@ producto. Y el `String(id)` no es decorativo: la ficha guarda el id del
 y `("producto", 1)` serían cachés DISTINTAS y la consulta se repetiría. En
 pantalla: el total del panel suma las líneas con la cantidad tapada (lo que
 no hay en stock no suma) y muestra un esqueleto mientras alguna fila carga —
-sin shift; y con 0 ítems la página COMPLETA se reemplaza por el estado
-vacío: un carro sin aromas no tiene filas que mostrar ni total que cobrar
-(HU-07). Sin envío en el desglose: la logística está fuera de alcance del
-proyecto — el total es la suma de las líneas y nada más.*
+sin shift. Y el tapado no es solo visual: al hidratar, si lo guardado supera
+el stock vigente, el ajuste se ESCRIBE de vuelta al store — el diseño lo
+promete así ("la cantidad guardada se ajusta sola", §4.7) y así el badge del
+navbar queda contando las mismas unidades que la fila muestra. Con 0 ítems
+la página COMPLETA se reemplaza por el estado vacío: un carro sin aromas no
+tiene filas que mostrar ni total que cobrar (HU-07). Sin envío en el
+desglose: la logística está fuera de alcance del proyecto — el total es la
+suma de las líneas y nada más.*
 
 Crea **`frontend/src/features/carro/Carro.tsx`**:
 
@@ -411,7 +415,7 @@ Crea **`frontend/src/features/carro/Carro.tsx`**:
 // resumen con el CTA hacia el checkout (D-28).
 import { useQueries } from "@tanstack/react-query";
 import { Link } from "react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { ApiError, apiGet } from "../../lib/api";
 import { useCarroStore } from "../../stores/useCarroStore";
@@ -426,6 +430,7 @@ const clp = new Intl.NumberFormat("es-CL", {
 export default function Carro() {
   const items = useCarroStore((s) => s.items);
   const vaciar = useCarroStore((s) => s.vaciar);
+  const cambiarCantidad = useCarroStore((s) => s.cambiarCantidad);
   const [confirmando, setConfirmando] = useState(false);
 
   // Hidratación por ítem (ADR-010): el MISMO queryKey de la ficha — con
@@ -439,6 +444,20 @@ export default function Carro() {
         apiGet<ProductoDetalle>(`api/productos/${item.producto_id}`),
     })),
   });
+
+  // El ajuste se ESCRIBE de vuelta (D-30/RN-09): si lo guardado supera el
+  // stock vigente, la hidratación corrige el store — así el badge del
+  // navbar y el localStorage cuentan las mismas unidades que la pantalla
+  // muestra. El efecto se calma solo: una vez tapado, la condición deja
+  // de disparar.
+  useEffect(() => {
+    resultados.forEach((r, i) => {
+      const item = items[i];
+      if (r.data && item && item.cantidad > r.data.stock) {
+        cambiarCantidad(item.producto_id, r.data.stock);
+      }
+    });
+  }, [resultados, items, cambiarCantidad]);
 
   // Empty state: con 0 ítems la página completa se reemplaza (HU-07).
   if (items.length === 0) {
@@ -725,8 +744,10 @@ carro es del navegador (ADR-010).
 botón se deshabilita con el helper). En `/carro`, el "+" de su fila está
 deshabilitado — el stock vigente manda (RN-09). Ahora castigo el tapado:
 con la fila en 2, EDITA `maura-carro` en DevTools cambiando su cantidad a 5,
-guarda y recarga: la fila muestra **2** — lo guardado (5) se tapó al stock
-vigente (2), el total cobra 2 × el precio. La pantalla nunca prometió las 5.
+guarda y recarga: la fila muestra **2**, el total cobra 2 × el precio Y el
+ajuste se guardó — al llegar la hidratación, `maura-carro` vuelve a valer 2
+y el badge del navbar corrige a **2**: pantalla, store y badge dicen lo
+mismo. La pantalla nunca prometió las 5 — y ahora tampoco las guarda.
 
 ✅ **Mini-verificación (la fila degradada):** en DevTools → Local Storage →
 `maura-carro`, agrega a mano un ítem imposible —
@@ -840,9 +861,10 @@ Con ambos servidores corriendo y el seed hecho:
 - La hidratación tolerante: fila esqueleto sin shift, fila degradada por 404
   (reusando el `ApiError` de la guía 4) y badge "Agotado" sin stepper — el
   resto del carro sigue operando
-- El tapado al stock en pantalla (D-30/RN-09): `Math.min(cantidad, stock)`
-  en el stepper y en el total — primera barrera hoy, segunda barrera en el
-  backend de la etapa 3
+- El tapado al stock (D-30/RN-09): `Math.min(cantidad, stock)` en el
+  stepper y en el total, y el ajuste escrito de vuelta al store al hidratar
+  — pantalla, badge y `localStorage` dicen lo mismo; primera barrera hoy,
+  segunda barrera en el backend de la etapa 3
 - La confirmación destructiva en dos pasos inline: el patrón que las
   acciones futuras replican, sin modal ni `window.confirm`
 - El badge que cuenta unidades totales (no ítems), oculto en 0 y anunciado
