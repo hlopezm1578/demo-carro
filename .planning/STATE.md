@@ -3,17 +3,17 @@ gsd_state_version: "1.0"
 current_phase: 2
 current_phase_name: Cuentas de cliente y carro persistente
 current_plan: 5
-status: executing
-stopped_at: Completed 02-04-PLAN.md
-last_updated: "2026-09-29T17:46:05.649Z"
+status: verifying
+stopped_at: Completed 02-05-PLAN.md — fase 2 completa (5/5 planes)
+last_updated: "2026-09-29T17:52:34.116Z"
 last_activity: 2026-09-29
 last_activity_desc: Phase 01 complete, transitioned to Phase 2
-state_head: 2a4cd9e7926a40605ff8408434ea69bf45baf844
+state_head: 4cbb1a7ccd72aa1d6cc6be872557b1da0b39fbbb
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 11
-  completed_plans: 10
+  completed_plans: 11
   percent: 20
 ---
 
@@ -31,7 +31,7 @@ See: .planning/PROJECT.md (updated 2026-09-29)
 Phase: 2 (Cuentas de cliente y carro persistente) — EXECUTING
 Current Plan: 5
 Total Plans in Phase: 5
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-09-29 — Completed 02-03-PLAN.md (guías 05-06)
 
 Progress: [██░░░░░░░░] 20%
@@ -68,6 +68,7 @@ Progress: [██░░░░░░░░] 20%
 | Phase 02 P02 | 8 min | 2 tasks | 2 files |
 | Phase 02 P03 | 16 min | 2 tasks | 2 files |
 | Phase 02 P04 | 13 min | 2 tasks | 2 files |
+| Phase 02 P05 | 3 min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -113,6 +114,10 @@ Recent decisions affecting current work:
 - [Phase 02]: [02-04] Tapado D-30 narrado con tres valores con nombre (guardada/vigente/enPantalla=min(cantidad, stock)) aplicado a stepper, línea y Total; stock 0 degrada la fila con badge Agotado sin stepper ni total (nada comprable, nada que suma)
 - [Phase 02]: [02-04] Primera acción destructiva del sistema como patrón: 'Vaciar carro' confirma en dos pasos inline (booleano de estado, sin modal ni window.confirm) y 'Quitar' no confirma — la asimetría por impacto
 - [Phase 02]: [02-04] Gran verificación final de la fase 2: 12 filas con Origen de la etapa 2 y fila final contrato 0.2.0 ↔ /docs con el botón Authorize probado con las cuentas del seed — el pago pedagógico del login form-encoded; la replican las fases 3-5
+- [Phase 02]: [02-05] Cierre de fase 2 en los índices: fila 5 queda en Parcial (guias 1-8 listas; continua en fases 3+) en docs/README y README raiz — D-13/D-18 honrados sin marcar el desarrollo completo
+- [Phase 02]: [02-05] El Siguiente de guia-04 enlaza guia-05 por nombre de archivo (misma forma que los demas Siguiente): la cadena 04->05->06->07->08->fase 3 quedo grep-verificada sin eslabones sueltos
+- [Phase 02]: [02-05] Portadas cuentan 11 ADRs (= numero real del directorio 001-011) y el stack del README raiz agrega cuentas JWT y Zustand en tono telegrafico
+- [Phase 02]: [02-05] Gate de cierre de fase documental replicable (fases 3-5): greps de estado + conteo de guias + invariant guide-only (git ls-files vacio para backend/frontend, D-17/ADR-008)
 
 ### Pending Todos
 
@@ -135,6 +140,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-29T17:46:05.522Z
-Stopped at: Completed 02-04-PLAN.md
+Last session: 2026-09-29T17:52:34.030Z
+Stopped at: Completed 02-05-PLAN.md — fase 2 completa (5/5 planes)
 Resume file: None

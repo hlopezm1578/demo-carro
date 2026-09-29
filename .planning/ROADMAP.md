@@ -76,7 +76,7 @@ Plans:
   3. Visitante agrega productos al carro, edita cantidades y puede vaciarlo; el carro persiste en localStorage y sobrevive un full-page load (CART-01, CART-02)
   4. El checkout exige sesión iniciada: un visitante sin sesión que intenta finalizar compra es llevado al login y vuelve al checkout al autenticarse (AUTH-04)
 
-**Plans**: 4/5 plans executed *(planeados 2026-09-29 — orden API-first D-15: contrato y ADRs aprobados antes de las guías; docs 02/03 en paralelo con el contrato por ser independientes en archivos)*
+**Plans**: 5/5 plans executed *(planeados 2026-09-29 — orden API-first D-15: contrato y ADRs aprobados antes de las guías; docs 02/03 en paralelo con el contrato por ser independientes en archivos)*
 **UI hint**: yes
 
 Plans:
@@ -91,7 +91,7 @@ Plans:
 - [x] 02-04-PLAN.md — Guías 07-08: carro persistente (store sin precios, /carro, badge) y checkout protegido + Gran verificación final fase 2 con fila contrato ↔ /docs (CART-01/02, AUTH-04)
 
 **Wave 4** *(blocked on Wave 3)*
-- [ ] 02-05-PLAN.md — Cierre de fase: READMEs de estado (guías 1-8, 11 ADRs), eslabón guia-04→05 y verificación guide-only (D-13/D-18)
+- [x] 02-05-PLAN.md — Cierre de fase: READMEs de estado (guías 1-8, 11 ADRs), eslabón guia-04→05 y verificación guide-only (D-13/D-18)
 
 ### Phase 3: Checkout Webpay y órdenes
 
@@ -145,7 +145,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Fundaciones de dos tiers y catálogo | 6/6 | Complete    | 2026-09-29 |
-| 2. Cuentas de cliente y carro persistente | 4/5 | In Progress|  |
+| 2. Cuentas de cliente y carro persistente | 5/5 | In Progress|  |
 | 3. Checkout Webpay y órdenes | 0/TBD | Not started | - |
 | 4. Panel de administración y asistente IA | 0/TBD | Not started | - |
 | 5. Despliegue y cierre de la guía | 0/TBD | Not started | - |
