@@ -188,9 +188,13 @@ Porque un 401 significa "sesión inválida": recargar la app de un golpe
 también deja en blanco la caché de queries — honesto y simple. ¿Y por qué
 SOLO llamadas con Bearer? Porque el propio login responde 401 con
 credenciales incorrectas — y ese 401 lo muestra el FORMULARIO con su banner
-rojo, no el centinela (Pitfall 5). El login se envía sin token (la pantalla
-redirige si ya hay sesión, paso 6), así que su 401 nunca lleva Bearer y
-nunca entra acá. Una cosa más: `apiPostForm` manda el cuerpo como FormData
+rojo, no el centinela (Pitfall 5). ¿Y cómo garantiza `pedir` que el login
+nunca lleve Bearer? Por construcción, no por contexto: `apiPostForm` marca
+la llamada como `sinAuth`, así que el login viaja SIN `Authorization`
+aunque el store todavía tenga un token viejo — puede pasar: si `verificar`
+falló por error de red, el formulario se muestra con el token aún guardado,
+y sin la marca ese login fallido dispararía la expulsión. Su 401 nunca
+entra acá. Una cosa más: `apiPostForm` manda el cuerpo como FormData
 SIN tocar `Content-Type` — el navegador escribe solo el `boundary` que
 separa los campos; setearlo a mano lo destruye y el backend no puede
 parsear el formulario.*
@@ -215,19 +219,29 @@ export class ApiError extends Error {
 
 const base = import.meta.env.VITE_API_URL ?? "";
 
-async function pedir<T>(ruta: string, init: RequestInit = {}): Promise<T> {
+async function pedir<T>(
+  ruta: string,
+  init: RequestInit = {},
+  { sinAuth = false }: { sinAuth?: boolean } = {}
+): Promise<T> {
   // getState(): leer el store FUERA de React — API pública de Zustand.
   const token = useAuthStore.getState().token;
   const headers = new Headers(init.headers); // p. ej. el Content-Type del JSON
-  if (token) headers.set("Authorization", `Bearer ${token}`);
+  // sinAuth (Pitfall 5): esta llamada JAMÁS lleva Bearer — el login la usa
+  // para que su 401 (credenciales incorrectas) lo muestre el formulario
+  // con su banner, aunque el store todavía tenga un token viejo (pasa si
+  // `verificar` falló por error de red y el formulario se muestra con la
+  // sesión a medio caer).
+  const llevaBearer = token !== null && !sinAuth;
+  if (llevaBearer) headers.set("Authorization", `Bearer ${token}`);
 
   const res = await fetch(`${base}/${ruta}`, { ...init, headers });
 
   if (!res.ok) {
-    // Interceptor 401 (D-22): SOLO en llamadas que llevaban Bearer. El
-    // login se envía sin token, así que su 401 lo maneja el formulario
+    // Interceptor 401 (D-22): SOLO llamadas que llevaban Bearer. Las
+    // sinAuth (como el login) muestran su 401 en el propio formulario
     // con su banner — jamás esta redirección (Pitfall 5).
-    if (res.status === 401 && token) {
+    if (res.status === 401 && llevaBearer) {
       useAuthStore.getState().cerrarSesion(); // borra token+usuario (y el localStorage del persist)
       window.location.assign("/login?expirada=1"); // carga completa: caché de queries en blanco
     }
@@ -251,7 +265,9 @@ export async function apiGet<T>(ruta: string): Promise<T> {
 // (username transporta el email). SIN Content-Type manual: el navegador
 // agrega el boundary — setearlo a mano rompe el parseo del backend.
 export async function apiPostForm<T>(ruta: string, form: FormData): Promise<T> {
-  return pedir<T>(ruta, { method: "POST", body: form });
+  // sinAuth: el login jamás lleva Bearer (Pitfall 5) — ni siquiera con un
+  // token viejo todavía en el store.
+  return pedir<T>(ruta, { method: "POST", body: form }, { sinAuth: true });
 }
 
 // El registro SÍ es JSON: aquí el Content-Type se declara explícito.
@@ -873,14 +889,18 @@ hace mejor solo.
 // /login?expirada=1 — el banner rojo del formulario nunca se ve
 if (res.status === 401) { cerrarSesion(); window.location.assign("/login?expirada=1"); }
 
-// ✅ SOLO llamadas que llevaban Bearer: el 401 del login (sin token
-// adjunto) lo maneja el formulario con su banner (Pitfall 5)
-if (res.status === 401 && token) { ... }
+// ✅ SOLO llamadas que llevaban Bearer: el login viaja marcado sinAuth
+// (sin Authorization adjunta), así su 401 lo maneja el formulario con
+// su banner (Pitfall 5)
+if (res.status === 401 && llevaBearer) { ... }
 ```
 
-Sin la condición `&& token`, el login se convierte en una expulsión
-permanente: escribes mal la clave y en vez del banner rojo te recibe el
-aviso ámbar de "sesión expirada" — que además miente: nunca hubo sesión.
+Sin la marca `sinAuth`, la condición `&& token` no basta: el formulario del
+login puede estar visible CON un token viejo aún en el store (si `verificar`
+falló por error de red) — y ese login con credenciales incorrectas
+dispararía la expulsión: escribes mal la clave y en vez del banner rojo te
+recibe el aviso ámbar de "sesión expirada" — que además miente: nunca hubo
+sesión.
 
 ---
 
