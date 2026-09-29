@@ -24,7 +24,7 @@ despliegue al final.
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Fundaciones de dos tiers y catálogo** - Esqueleto SPA React + API FastAPI en capas con guía paso a paso, ADRs fundacionales, contrato de API, landing, catálogo filtrable y páginas de producto con seed demo.
+- [x] **Phase 1: Fundaciones de dos tiers y catálogo** - Esqueleto SPA React + API FastAPI en capas con guía paso a paso, ADRs fundacionales, contrato de API, landing, catálogo filtrable y páginas de producto con seed demo. (completed 2026-09-29)
 - [ ] **Phase 2: Cuentas de cliente y carro persistente** - Registro/login JWT con roles desde el primer token, carro en localStorage que sobrevive full-page loads y checkout protegido por sesión.
 - [ ] **Phase 3: Checkout Webpay y órdenes** - Spike de retorno, form POST a Webpay Plus sandbox, 4 flujos de retorno, voucher propio, idempotencia, stock atómico e historial de pedidos.
 - [ ] **Phase 4: Panel de administración y asistente IA** - CRUD de productos, stock con alertas, pedidos con máquina de estados y métricas para la dueña; asistente Gemini con mini-RAG y API key solo en backend.
@@ -44,7 +44,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. El seed idempotente deja datos demo reproducibles (re-ejecutable sin duplicar) para desarrollo y UAT (STORE-04)
   4. Un alumno que sigue la guía de esta fase paso a paso levanta desde cero los dos tiers con el catálogo funcionando; la fase documenta sus ADRs y el contrato de API inicial, y cada fase posterior actualiza ambos (GUIDE-02, GUIDE-03)
 
-**Plans**: 6/6 plans executed (5 executed + 1 gap closure from UAT) *(replanned 2026-09-28 — corrección de alcance D-17 guide-only: los planes 01-03..01-07 originales, que construían código de aplicación, fueron reemplazados por planes docs-only)*
+**Plans**: 6/6 plans complete (5 executed + 1 gap closure from UAT) *(replanned 2026-09-28 — corrección de alcance D-17 guide-only: los planes 01-03..01-07 originales, que construían código de aplicación, fueron reemplazados por planes docs-only)*
 **UI hint**: yes
 
 Plans:
@@ -130,7 +130,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Fundaciones de dos tiers y catálogo | 6/6 | In Progress|  |
+| 1. Fundaciones de dos tiers y catálogo | 6/6 | Complete    | 2026-09-29 |
 | 2. Cuentas de cliente y carro persistente | 0/TBD | Not started | - |
 | 3. Checkout Webpay y órdenes | 0/TBD | Not started | - |
 | 4. Panel de administración y asistente IA | 0/TBD | Not started | - |

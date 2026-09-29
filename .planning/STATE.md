@@ -1,43 +1,43 @@
 ---
 gsd_state_version: "1.0"
-current_phase: 01
-current_phase_name: Fundaciones de dos tiers y catálogo
-status: executing
-stopped_at: Completed 01-06-PLAN.md (cierre de gaps G-01-1/G-01-4)
-last_updated: "2026-09-29T12:07:53.356Z"
+current_phase: 2
+current_phase_name: Cuentas de cliente y carro persistente
+status: planning
+stopped_at: Phase 01 complete, ready to plan Phase 2
+last_updated: "2026-09-29T12:57:30.962Z"
 last_activity: 2026-09-29
-last_activity_desc: Phase 01 execution started
-state_head: 7d8ca85aa4269d87347f1e89eb18d15aff704459
+last_activity_desc: Phase 01 complete, transitioned to Phase 2
+state_head: 9676cb108874a37ab6d36ccf67275fcfafdb0a28
 progress:
   total_phases: 5
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 6
   completed_plans: 6
-  percent: 0
+  percent: 20
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-09-28)
+See: .planning/PROJECT.md (updated 2026-09-29)
 
 **Core value:** La guía documenta el ciclo de vida completo y, siguiéndola en orden, la aplicación queda construida y operativa: tienda con catálogo, carro, checkout Webpay sandbox, cuentas JWT, panel admin y asistente IA sobre el catálogo real.
-**Current focus:** Phase 01 — Fundaciones de dos tiers y catálogo
+**Current focus:** Phase 2 — Cuentas de cliente y carro persistente
 
 ## Current Position
 
-Phase: 01 (Fundaciones de dos tiers y catálogo) — EXECUTING
-Plan: 2 of 6
-Status: Ready to execute
-Last activity: 2026-09-29 — Phase 01 execution started
+Phase: 2 — Cuentas de cliente y carro persistente
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-09-29 — Phase 01 complete, transitioned to Phase 2
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [██░░░░░░░░] 20%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 0
+- Total plans completed: 6
 - Average duration: -
 - Total execution time: -
 
@@ -45,7 +45,7 @@ Progress: [░░░░░░░░░░] 0%
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| - | - | - | - |
+| 01 | 6 | - | - |
 
 **Recent Trend:**
 - Last 5 plans: -
@@ -89,6 +89,8 @@ Recent decisions affecting current work:
 - [Phase 01]: [Phase 01 P06] G-01-4 cerrado por Opcion A (declarar el 404 en responses del router) y no por Opcion B (nota que normaliza el desvio): la fila 11 existe para detectar drift; cuatro lineas declarativas ensenan un concepto real de FastAPI
 - [Phase 01]: [Phase 01 P06] Direccion del fix guia -> contrato: contrato_api.yaml intacto y WR-01/WR-02 abiertos; prohibido declarar el 422 en responses de guia-04
 - [Phase 01]: [Phase 01 P06] Bloque de contenido del .gitignore de guia-01 byte-identico (el gap era quien crea el archivo); menciones de guia-03 quedan validas sin editarla
+- [Phase 01 cierre]: UAT delegado al agente (instrucción persistida en AGENTS.md): las verificaciones runtime se ejecutan construyendo/modificando D:/Repos/maura-uat siguiendo las guías; sesión 01-UAT 4/4 PASS (re-ejecuciones G-01-1 en maura-uat/refix y G-01-4 sobre el backend existente)
+- [Phase 01 cierre]: Seguridad verificada en 01-SECURITY.md (19 amenazas, threats_open 0, ASVS 1, registro de plan-time); ui-review omitido con causa (repo guide-only D-17: sin código frontend que auditar)
 
 ### Pending Todos
 
@@ -111,6 +113,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-29T12:07:53.260Z
-Stopped at: Completed 01-06-PLAN.md (cierre de gaps G-01-1/G-01-4)
+Last session: 2026-09-29
+Stopped at: Phase 01 complete, ready to plan Phase 2
 Resume file: None
