@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 2
 current_phase_name: Cuentas de cliente y carro persistente
 status: executing
-stopped_at: Completed 02-01-PLAN.md
-last_updated: "2026-09-29T16:52:21.196Z"
+stopped_at: Completed 02-02-PLAN.md
+last_updated: "2026-09-29T17:08:07.530Z"
 last_activity: 2026-09-29
 last_activity_desc: Phase 01 complete, transitioned to Phase 2
-state_head: 9d5e55b739c5f44f8e857501d8c221c33ea016bb
+state_head: 031617af123c8e4069e1dba9e1ab44e495c8d078
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 11
-  completed_plans: 7
+  completed_plans: 8
   percent: 20
 ---
 
@@ -63,6 +63,7 @@ Progress: [██░░░░░░░░] 20%
 | Phase 01 P01-05 | 6min | 3 tasks | 7 files |
 | Phase 01 P06 | 4min | 2 tasks | 2 files |
 | Phase 02 P01 | 15 min | 3 tasks | 5 files |
+| Phase 02 P02 | 8 min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -95,6 +96,11 @@ Recent decisions affecting current work:
 - [Phase 02]: Login form-urlencoded OAuth2 (username=email) en el contrato 0.2.0: habilita Authorize en /docs con las cuentas del seed y calza con el tutorial oficial de FastAPI
 - [Phase 02]: Copies locked D-26 grabados como example.detail del 409/401 en el contrato; sin endpoint de renovacion (D-19) y bearerAuth type http + scheme bearer
 - [Phase 02]: [02-01] ADRs 009-011 con negativas honestas (XSS dicha por D-21); arbol del alumno extendido con rutas completas manteniendo fase 1 byte-intacta
+- [Phase 02]: docs/02 extiende sus series sin renumerar: etapa 2 = RF-06..RF-11 (AUTH-01..04 + CART-01/02, origen P5), RNF-05/06, RN-05..RN-09, HU-05..HU-08; actores Clienta (con cuenta) y Admin (dueña); P5 mapeada en §13 y CART-03/PAY-01..04 explícitos para etapa 3
+- [Phase 02]: RN-05 fija contraseña mínimo 8 SIN composición obligatoria citando NIST longitud-sobre-complejidad (D-25) y RN-06 la asimetría 401 genérico/409 claro con su porqué (D-26) — ambas como reglas de requerimiento antes de las guías
+- [Phase 02]: docs/03: USUARIO con email único como clave del upsert (D-23/D-24) y hash que jamás cruza la frontera (RN-07); almacén A2 localStorage documentado como decisión de diseño, no de tecnología
+- [Phase 02]: Pantallas 4-7 con copys locked del UI-SPEC (avisos login, 409 registro, vaciado en dos pasos, CTA pago deshabilitado D-31) y ficha gana 'Agregar al carro' como variante (D-29)
+- [Phase 02]: Decisiones de diseño §2.3 de docs/03 continúan la serie (7-10) y citan ADR-009/010/011: la cadena P5 → RF-06+ → HU-05+ → pantalla 4+ → ADR-009+ queda continua
 
 ### Pending Todos
 
@@ -117,6 +123,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-29T16:52:21.114Z
-Stopped at: Completed 02-01-PLAN.md
+Last session: 2026-09-29T17:08:07.458Z
+Stopped at: Completed 02-02-PLAN.md
 Resume file: None
