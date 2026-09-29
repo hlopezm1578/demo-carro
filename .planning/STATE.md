@@ -4,16 +4,16 @@ current_phase: 2
 current_phase_name: Cuentas de cliente y carro persistente
 current_plan: 5
 status: executing
-stopped_at: Completed 02-03-PLAN.md
-last_updated: "2026-09-29T17:29:00.201Z"
+stopped_at: Completed 02-04-PLAN.md
+last_updated: "2026-09-29T17:46:05.649Z"
 last_activity: 2026-09-29
 last_activity_desc: Phase 01 complete, transitioned to Phase 2
-state_head: e4ed5e9b27102b46dbba2273713133cbeaf56d54
+state_head: 2a4cd9e7926a40605ff8408434ea69bf45baf844
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 11
-  completed_plans: 9
+  completed_plans: 10
   percent: 20
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-09-29)
 ## Current Position
 
 Phase: 2 (Cuentas de cliente y carro persistente) — EXECUTING
-Current Plan: 4
+Current Plan: 5
 Total Plans in Phase: 5
 Status: Ready to execute
 Last activity: 2026-09-29 — Completed 02-03-PLAN.md (guías 05-06)
@@ -67,6 +67,7 @@ Progress: [██░░░░░░░░] 20%
 | Phase 02 P01 | 15 min | 3 tasks | 5 files |
 | Phase 02 P02 | 8 min | 2 tasks | 2 files |
 | Phase 02 P03 | 16 min | 2 tasks | 2 files |
+| Phase 02 P04 | 13 min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -108,6 +109,10 @@ Recent decisions affecting current work:
 - [Phase 02]: [02-03] Settings gana SettingsConfigDict(env_file=.env): sin env_file pydantic-settings jamas lee el archivo — una linea que hace real al .env de guia-01 y habilita el fail-fast de secret_key
 - [Phase 02]: [02-03] Login de guia-06 consulta /api/auth/perfil en dos tiempos (token primero, usuario despues) y comprueba la sesion guardada al entrar: vuelve observable al interceptor 401 (D-22) con un token corrupto sin esperar a guia-08
 - [Phase 02]: [02-03] Espejo de validacion honesto: login valida solo email (el backend no valida forma de contrasena ahi); registro valida las dos reglas del 422 (RN-05). /api/admin/estado reusa CatalogService: cero SQL en el router
+- [Phase 02]: [02-04] useQueries hidrata los N ítems variables del carro (regla de hooks veta useQuery en loop de largo variable) con el queryKey de la ficha PERO String(id): ("producto", 1) y ("producto", "1") son cachés distintas — gotcha narrado como error-evitado
+- [Phase 02]: [02-04] Tapado D-30 narrado con tres valores con nombre (guardada/vigente/enPantalla=min(cantidad, stock)) aplicado a stepper, línea y Total; stock 0 degrada la fila con badge Agotado sin stepper ni total (nada comprable, nada que suma)
+- [Phase 02]: [02-04] Primera acción destructiva del sistema como patrón: 'Vaciar carro' confirma en dos pasos inline (booleano de estado, sin modal ni window.confirm) y 'Quitar' no confirma — la asimetría por impacto
+- [Phase 02]: [02-04] Gran verificación final de la fase 2: 12 filas con Origen de la etapa 2 y fila final contrato 0.2.0 ↔ /docs con el botón Authorize probado con las cuentas del seed — el pago pedagógico del login form-encoded; la replican las fases 3-5
 
 ### Pending Todos
 
@@ -130,6 +135,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-29T17:29:00.123Z
-Stopped at: Completed 02-03-PLAN.md
+Last session: 2026-09-29T17:46:05.522Z
+Stopped at: Completed 02-04-PLAN.md
 Resume file: None

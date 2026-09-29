@@ -22,8 +22,8 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Carro de compras
 
-- [ ] **CART-01**: Visitante agrega productos al carro, edita cantidades y puede vaciarlo
-- [ ] **CART-02**: El carro persiste en el navegador (localStorage) y sobrevive los full-page loads que impone la redirección de Webpay
+- [x] **CART-01**: Visitante agrega productos al carro, edita cantidades y puede vaciarlo
+- [x] **CART-02**: El carro persiste en el navegador (localStorage) y sobrevive los full-page loads que impone la redirección de Webpay
 - [ ] **CART-03**: El backend recalcula y valida precios y stock del carro al crear la orden — nunca confía en los valores del cliente
 
 ### Cuentas
@@ -31,7 +31,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **AUTH-01**: Cliente puede crear cuenta con email y contraseña
 - [x] **AUTH-02**: Cliente puede iniciar sesión y mantener la sesión (JWT) entre recargas de la SPA
 - [x] **AUTH-03**: Usuarios con rol admin acceden a endpoints y vistas de administración protegidas (claim de rol desde el primer token emitido)
-- [ ] **AUTH-04**: El checkout requiere sesión iniciada (v1 sin guest checkout)
+- [x] **AUTH-04**: El checkout requiere sesión iniciada (v1 sin guest checkout)
 
 ### Checkout y pago (Webpay sandbox)
 
@@ -112,13 +112,13 @@ Which phases cover which requirements. Updated during roadmap creation.
 | STORE-02 | Phase 1 | Complete |
 | STORE-03 | Phase 1 | Complete |
 | STORE-04 | Phase 1 | Complete |
-| CART-01 | Phase 2 | Pending |
-| CART-02 | Phase 2 | Pending |
+| CART-01 | Phase 2 | Complete |
+| CART-02 | Phase 2 | Complete |
 | CART-03 | Phase 3 | Pending |
 | AUTH-01 | Phase 2 | Complete |
 | AUTH-02 | Phase 2 | Complete |
 | AUTH-03 | Phase 2 | Complete |
-| AUTH-04 | Phase 2 | Pending |
+| AUTH-04 | Phase 2 | Complete |
 | PAY-01 | Phase 3 | Pending |
 | PAY-02 | Phase 3 | Pending |
 | PAY-03 | Phase 3 | Pending |
