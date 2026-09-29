@@ -1,5 +1,5 @@
 ---
-status: complete
+status: diagnosed
 phase: 01-fundaciones-de-dos-tiers-y-cat-logo
 source: [01-VERIFICATION.md]
 started: 2026-09-28
@@ -55,13 +55,25 @@ blocked: 0
   reason: "Agent-executed run (user-delegated, uv 0.9.3): `--vcs none` NO genera `.gitignore` — el archivo no existe tras el Paso 1 y el Paso 5 presuponía encontrarlo ya generado; hubo que crearlo manualmente con el contenido que la propia guía muestra"
   severity: minor
   test: 1
-  artifacts: []
-  missing: []
+  artifacts:
+    - path: "docs/05_desarrollo/guia-01-proyecto-backend.md"
+      issue: "Paso 1 lista '.gitignore' entre los archivos que genera uv init; Paso 5 pide 'revisar el backend/.gitignore que generó uv. Déjalo así'"
+  missing:
+    - "Corregir Paso 1: quitar .gitignore de la lista de archivos generados por 'uv init --vcs none'"
+    - "Corregir Paso 5: cambiar 'revisa el .gitignore que generó uv' por 'crea backend/.gitignore con este contenido' (el contenido ya está en la guía)"
+  root_cause: "uv init solo genera .gitignore cuando crea el VCS: con --vcs none el archivo no existe (verificado empíricamente con uv 0.9.3 en dos puntos de la ejecución)"
+  debug_session: ""
 - gap_id: G-01-4
   truth: "La fila 11 de la Gran Verificación Final de guia-04 (contrato ↔ /docs) debería mostrar solo los desvíos ya conocidos (WR-01/WR-02), pero el contrato declara respuesta 404 para /api/productos/{producto_id} y el panel /docs generado siguiendo la guía no la documenta"
   status: failed
   reason: "Agent-executed run (user-delegated): el router del Paso 3 de guia-04 hace raise HTTPException(404) sin declarar responses={404}; FastAPI no documenta en OpenAPI las excepciones lanzadas a runtime, por lo que /docs lista solo 200+422 para {producto_id}. El 404 funciona en runtime (verificado por curl), pero el alumno que compara fila 11 encuentra un tercer desvío no advertido por la guía ni por la nota WR del review"
   severity: minor
   test: 4
-  artifacts: []
-  missing: []
+  artifacts:
+    - path: "docs/05_desarrollo/guia-04-catalogo.md"
+      issue: "Paso 3: obtener_producto hace raise HTTPException(status_code=404) sin declarar responses={404} en el decorator; la fila 11 de la Gran Verificación compara contra contrato_api.yaml que sí declara la respuesta 404 para ese path"
+  missing:
+    - "Opción A (recomendada, pedagógica): enseñar en el Paso 3 a declarar la respuesta 404 en el decorator (responses={404: {'description': 'Producto inexistente', 'model': Error}}) para que /docs la documente y la fila 11 cierre sin este desvío"
+    - "Opción B (mínima): agregar a la nota de la fila 11 (junto a la advertencia WR-01/WR-02 del review) que el 404 declarado en el contrato no aparece en /docs y por qué"
+  root_cause: "FastAPI no documenta en OpenAPI las HTTPException lanzadas a runtime si el endpoint no declara la respuesta vía el parámetro responses del decorator (verificado contra openapi.json vivo: responses de {id} = ['200','422'])"
+  debug_session: ""
