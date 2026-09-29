@@ -38,8 +38,8 @@ sin aprobar la anterior.
 | 1 | Necesidad del cliente | [`docs/01_necesidad_del_cliente.md`](docs/01_necesidad_del_cliente.md) | ✅ Listo |
 | 2 | Análisis de requerimientos | [`docs/02_requerimientos.md`](docs/02_requerimientos.md) | ✅ Listo |
 | 3 | Diseño (datos, procesos, pantallas) | [`docs/03_diseno.md`](docs/03_diseno.md) | ✅ Listo |
-| 4 | Arquitectura + 8 ADRs + contrato OpenAPI | [`docs/04_arquitectura/`](docs/04_arquitectura) | ✅ Listo |
-| 5 | Desarrollo (guías 1–4 paso a paso) | [`05_desarrollo/`](docs/05_desarrollo) | 🚧 Parcial (guías 1-4 listas; continúa en fases 2+) |
+| 4 | Arquitectura + 11 ADRs + contrato OpenAPI | [`docs/04_arquitectura/`](docs/04_arquitectura) | ✅ Listo |
+| 5 | Desarrollo (guías 1–8 paso a paso) | [`05_desarrollo/`](docs/05_desarrollo) | 🚧 Parcial (guías 1-8 listas; continúa en fases 3+) |
 | 6 | Pruebas | `06_pruebas.md` | ⏳ Pendiente |
 | 7 | Despliegue | `07_despliegue.md` | ⏳ Pendiente |
 | 8 | Mantenimiento | `08_mantenimiento.md` | ⏳ Pendiente |
@@ -51,7 +51,7 @@ construye de verdad, fase por fase. El índice detallado del ciclo vive en
 
 ## Qué hace especial a este material
 
-- **ADRs con consecuencias honestas**: las 8 decisiones de arquitectura
+- **ADRs con consecuencias honestas**: las 11 decisiones de arquitectura
   (`docs/04_arquitectura/adr/`) registran contexto, opciones descartadas,
   ventajas **y desventajas**, más preguntas para discutir en clase.
 - **API-first de verdad**: el contrato OpenAPI
@@ -68,8 +68,9 @@ construye de verdad, fase por fase. El índice detallado del ciclo vive en
 ## Stack y cómo construir la aplicación
 
 React 19 + TypeScript + Vite 8 + Tailwind CSS 4 (SPA) · FastAPI + SQLAlchemy
-2.1 + SQLite (API en capas) · uv como gestor del proyecto Python · Webpay Plus
-en ambiente de integración (fase 3) · Google Gemini (fase 4).
+2.1 + SQLite (API en capas con cuentas JWT) · Zustand como estado de cliente
+(sesión y carro persistentes) · uv como gestor del proyecto Python · Webpay
+Plus en ambiente de integración (fase 3) · Google Gemini (fase 4).
 
 El código completo del proyecto vive **narrado en las guías**: este repositorio
 contiene solo la guía. Siguiendo las guías de [`docs/05_desarrollo/`](docs/05_desarrollo)

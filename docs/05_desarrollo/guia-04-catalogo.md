@@ -1027,6 +1027,7 @@ desvíos) y respeta los 8 ADRs de la fase 4."
 - La ficha completa: regla de stock como componente, notas como chips, `navigate(-1)` que preserva filtros y el 404 distinguido con `ApiError`
 - La verificación de cierre de fase: contrato ↔ `/docs`, el mecanismo que detecta el drift (GUIDE-02)
 
-**Siguiente:** fase 2 — cuentas y carro. Sobre esta base: clientas con JWT,
-el carro que guarda tus aromas y las órdenes que un día descontarán stock. El
-catálogo que acabas de terminar es el cimiento que esas fases extienden.
+**Siguiente:** guia-05-cuentas-backend.md — las cuentas: el registro, el login
+que emite un JWT de larga vida y el primer rol admin. El catálogo que acabas
+de terminar es el cimiento que la fase 2 extiende: clientas con JWT, el carro
+que guarda tus aromas y las órdenes que un día descontarán stock.
