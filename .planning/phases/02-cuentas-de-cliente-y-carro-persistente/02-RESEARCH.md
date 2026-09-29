@@ -734,15 +734,17 @@ class Settings(BaseSettings):
 | A12 | `security.py` como módulo transversal (password hash + jwt + dependencias) fuera de las 4 capas | Project Structure | Bajo — respetar "routers sin SQLAlchemy" es lo innegociable; la ubicación exacta es planner |
 | A13 | La fase NO crea tabla de carros en BD ni endpoints de carro (100% client-side hasta fase 3) | Todo | Nulo — locked D-27 + ROADMAP (CART-03 backend en fase 3) |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **¿El contrato expone `format: email` (requiere `email-validator`, ya en `fastapi[standard]`) o valida email a mano?**
    - What we know: `EmailStr` de Pydantic valida formato y `email-validator` ya viene en `[standard]` (STACK verificado).
    - What's unclear: nada técnico — es copy del contrato.
    - Recommendation: usar `format: email` en el contrato + `EmailStr` en el schema (coherente con validación declarativa de fase 1).
+   - Resolution: (RESOLVED) adoptada la Recommendation — `format: email` declarado en el contrato 0.2.0 (02-01-PLAN Task 1: RegistroCreate/UsuarioPublico con email format email) y `EmailStr` espejo en el schema de guia-05 (02-03-PLAN Task 1).
 2. **¿Mini-verificación del token con jwt.io (sitio externo) o one-liner Python offline?**
    - What we know: D-20 menciona jwt.io; Python decode con `options={"verify_signature": False}` muestra los claims igual sin enviar el token a terceros.
    - Recommendation: one-liner Python como paso de la guía (D-12 agnóstico + no comparte el token con un sitio); jwt.io como mención opcional para el alumno curioso. Decisión del planner al escribir la guía.
+   - Resolution: (RESOLVED) adoptada la Recommendation — decodificación offline con one-liner Python como mini-verificación de guia-05 (02-03-PLAN Task 1, paso 10: claims sub/rol/exp/iat legibles SIN enviar el token a sitios externos); jwt.io queda como mención opcional para el alumno curioso. Lo locked de D-20 (exp a 7 días) no cambia.
 
 ## Environment Availability
 
