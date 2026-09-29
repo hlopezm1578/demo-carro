@@ -2,17 +2,18 @@
 gsd_state_version: "1.0"
 current_phase: 2
 current_phase_name: Cuentas de cliente y carro persistente
+current_plan: 5
 status: executing
-stopped_at: Completed 02-02-PLAN.md
-last_updated: "2026-09-29T17:08:07.530Z"
+stopped_at: Completed 02-03-PLAN.md
+last_updated: "2026-09-29T17:29:00.201Z"
 last_activity: 2026-09-29
 last_activity_desc: Phase 01 complete, transitioned to Phase 2
-state_head: 031617af123c8e4069e1dba9e1ab44e495c8d078
+state_head: e4ed5e9b27102b46dbba2273713133cbeaf56d54
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 11
-  completed_plans: 8
+  completed_plans: 9
   percent: 20
 ---
 
@@ -27,10 +28,11 @@ See: .planning/PROJECT.md (updated 2026-09-29)
 
 ## Current Position
 
-Phase: 2 (Cuentas de cliente y carro persistente) — READY TO EXECUTE
-Plan: Not started
+Phase: 2 (Cuentas de cliente y carro persistente) — EXECUTING
+Current Plan: 4
+Total Plans in Phase: 5
 Status: Ready to execute
-Last activity: 2026-09-29 — Phase 01 complete, transitioned to Phase 2
+Last activity: 2026-09-29 — Completed 02-03-PLAN.md (guías 05-06)
 
 Progress: [██░░░░░░░░] 20%
 
@@ -64,6 +66,7 @@ Progress: [██░░░░░░░░] 20%
 | Phase 01 P06 | 4min | 2 tasks | 2 files |
 | Phase 02 P01 | 15 min | 3 tasks | 5 files |
 | Phase 02 P02 | 8 min | 2 tasks | 2 files |
+| Phase 02 P03 | 16 min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -101,6 +104,10 @@ Recent decisions affecting current work:
 - [Phase 02]: docs/03: USUARIO con email único como clave del upsert (D-23/D-24) y hash que jamás cruza la frontera (RN-07); almacén A2 localStorage documentado como decisión de diseño, no de tecnología
 - [Phase 02]: Pantallas 4-7 con copys locked del UI-SPEC (avisos login, 409 registro, vaciado en dos pasos, CTA pago deshabilitado D-31) y ficha gana 'Agregar al carro' como variante (D-29)
 - [Phase 02]: Decisiones de diseño §2.3 de docs/03 continúan la serie (7-10) y citan ADR-009/010/011: la cadena P5 → RF-06+ → HU-05+ → pantalla 4+ → ADR-009+ queda continua
+- [Phase 02]: [02-03] Orden de pasos de guia-05 reordenado por dependencia de imports (models->schemas->repository->security->services->routers, como guia-04): security.py importa UsuarioRepository y el orden literal del plan reventaria con ImportError
+- [Phase 02]: [02-03] Settings gana SettingsConfigDict(env_file=.env): sin env_file pydantic-settings jamas lee el archivo — una linea que hace real al .env de guia-01 y habilita el fail-fast de secret_key
+- [Phase 02]: [02-03] Login de guia-06 consulta /api/auth/perfil en dos tiempos (token primero, usuario despues) y comprueba la sesion guardada al entrar: vuelve observable al interceptor 401 (D-22) con un token corrupto sin esperar a guia-08
+- [Phase 02]: [02-03] Espejo de validacion honesto: login valida solo email (el backend no valida forma de contrasena ahi); registro valida las dos reglas del 422 (RN-05). /api/admin/estado reusa CatalogService: cero SQL en el router
 
 ### Pending Todos
 
@@ -123,6 +130,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-29T17:08:07.458Z
-Stopped at: Completed 02-02-PLAN.md
+Last session: 2026-09-29T17:29:00.123Z
+Stopped at: Completed 02-03-PLAN.md
 Resume file: None

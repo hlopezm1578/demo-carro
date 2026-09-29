@@ -28,9 +28,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Cuentas
 
-- [ ] **AUTH-01**: Cliente puede crear cuenta con email y contraseña
-- [ ] **AUTH-02**: Cliente puede iniciar sesión y mantener la sesión (JWT) entre recargas de la SPA
-- [ ] **AUTH-03**: Usuarios con rol admin acceden a endpoints y vistas de administración protegidas (claim de rol desde el primer token emitido)
+- [x] **AUTH-01**: Cliente puede crear cuenta con email y contraseña
+- [x] **AUTH-02**: Cliente puede iniciar sesión y mantener la sesión (JWT) entre recargas de la SPA
+- [x] **AUTH-03**: Usuarios con rol admin acceden a endpoints y vistas de administración protegidas (claim de rol desde el primer token emitido)
 - [ ] **AUTH-04**: El checkout requiere sesión iniciada (v1 sin guest checkout)
 
 ### Checkout y pago (Webpay sandbox)
@@ -115,9 +115,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CART-01 | Phase 2 | Pending |
 | CART-02 | Phase 2 | Pending |
 | CART-03 | Phase 3 | Pending |
-| AUTH-01 | Phase 2 | Pending |
-| AUTH-02 | Phase 2 | Pending |
-| AUTH-03 | Phase 2 | Pending |
+| AUTH-01 | Phase 2 | Complete |
+| AUTH-02 | Phase 2 | Complete |
+| AUTH-03 | Phase 2 | Complete |
 | AUTH-04 | Phase 2 | Pending |
 | PAY-01 | Phase 3 | Pending |
 | PAY-02 | Phase 3 | Pending |
