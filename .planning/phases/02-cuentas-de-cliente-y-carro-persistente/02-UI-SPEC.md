@@ -1,7 +1,8 @@
 ---
 phase: "2"
 slug: "cuentas-de-cliente-y-carro-persistente"
-status: draft
+status: approved
+reviewed_at: "2026-09-29"
 shadcn_initialized: false
 preset: none
 created: "2026-09-29"
@@ -287,12 +288,12 @@ registro de terceros que vetar; sin fuentes ni íconos nuevos.
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS
-- [ ] Dimension 2 Visuals: PASS
-- [ ] Dimension 3 Color: PASS
-- [ ] Dimension 4 Typography: PASS
-- [ ] Dimension 5 Spacing: PASS
-- [ ] Dimension 6 Registry Safety: PASS
-- [ ] Dimension 7 Inventory Provenance: PASS
+- [x] Dimension 1 Copywriting: PASS
+- [x] Dimension 2 Visuals: PASS
+- [x] Dimension 3 Color: PASS
+- [x] Dimension 4 Typography: PASS *(FLAG no bloqueante: presupuesto tipográfico heredado del amendment de fase 1 — 6 tamaños / 3 pesos, congelado para fases futuras; la tabla de roles omite el token de precio `text-lg` que la sección contrata — ver recomendación del checker 2026-09-29)*
+- [x] Dimension 5 Spacing: PASS
+- [x] Dimension 6 Registry Safety: PASS
+- [x] Dimension 7 Inventory Provenance: PASS
 
-**Approval:** pending
+**Approval:** approved (2026-09-29 — gsd-ui-checker, 6 PASS + 1 FLAG no bloqueante)
