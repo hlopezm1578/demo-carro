@@ -10,25 +10,28 @@ openapi: 3.0.3
 
 info:
   title: Maura API
-  version: 0.1.0
+  version: 0.2.0
   description: |
     API del catálogo de la tienda Maura · Body Splash (tier servidor de los
     dos tiers: la SPA React la consume; el backend solo expone JSON, jamás
     plantillas HTML).
 
-    **Autenticación:** ninguna por ahora — los endpoints de la fase 1 son
-    públicos y de solo lectura. Las cuentas JWT llegan en la fase 2.
+    **Autenticación:** sesión JWT Bearer — `/api/auth/perfil` y
+    `/api/admin/estado` piden token (`Authorization: Bearer`); el registro y
+    el login son públicos. El token lo emite `/api/auth/login` y vive 7 días
+    (D-20); no existe endpoint de renovación (D-19).
 
     **Convención de errores:**
 
     | Código | Significado | Estado |
     |---|---|---|
     | 200 | OK (listado, ficha, salud) | En uso (fase 1) |
+    | 201 | Creado (registro de una cuenta) | En uso (fase 2) |
     | 400 | Regla de negocio violada | Reservado (fases 2+) |
-    | 401 | Sin sesión o credenciales incorrectas | Reservado (fases 2+) |
-    | 403 | Con sesión, pero sin permiso | Reservado (fases 2+) |
+    | 401 | Sin sesión o credenciales incorrectas | En uso (fase 2) |
+    | 403 | Con sesión, pero sin permiso | En uso (fase 2) |
     | 404 | Recurso inexistente | En uso (fase 1) |
-    | 409 | Conflicto | Reservado (fases 2+) |
+    | 409 | Conflicto (email ya registrado) | En uso (fase 2) |
     | 422 | Datos mal formados (validación de esquema) | En uso (fase 1) |
 
 servers:
@@ -40,6 +43,10 @@ servers:
 tags:
   - name: Productos
     description: Catálogo público con filtros (STORE-02, STORE-03)
+  - name: Autenticación
+    description: Cuentas de clienta con JWT — registro, login, sesión y claim de rol (AUTH-01, AUTH-02, AUTH-03)
+  - name: Administración
+    description: Endpoints protegidos por rol admin (AUTH-03, D-33)
   - name: Operación
     description: Chequeo del servicio
 
@@ -47,6 +54,16 @@ tags:
 # Esquemas
 # ---------------------------------------------------------------------------
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        JWT de larga vida (7 días, D-20) que emite `/api/auth/login`. Viaja en
+        la cabecera `Authorization: Bearer <token>`. No existe endpoint de
+        renovación (D-19). Declarado como `type: http` + `scheme: bearer`,
+        la forma correcta de OpenAPI 3.0 para un JWT — no un esquema de API key.
   schemas:
     Error:
       type: object
@@ -106,6 +123,55 @@ components:
               description: Unidades disponibles para la venta
               example: 14
           required: [descripcion, notas, stock]
+
+    UsuarioPublico:
+      type: object
+      description: La cuenta tal como la ve el mundo — id, email y rol; el hash de la contraseña jamás cruza esta frontera (AUTH-01, AUTH-02)
+      properties:
+        id:
+          type: integer
+          example: 2
+        email:
+          type: string
+          format: email
+          description: Correo de la clienta; único en el sistema y clave del upsert del seed de cuentas (D-23, D-24)
+          example: clienta@maura.cl
+        rol:
+          type: string
+          description: Rol que viaja como claim en el token desde que se emite (AUTH-03)
+          enum: [cliente, admin]
+          example: cliente
+      required: [id, email, rol]
+
+    Token:
+      type: object
+      description: El JWT que abre los endpoints protegidos; lo devuelve el login (AUTH-02)
+      properties:
+        access_token:
+          type: string
+          description: Token firmado HS256 con los claims sub, rol, exp e iat; expira a los 7 días (D-20)
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyIiwicm9sIjoiY2xpZW50ZSJ9.firmado-por-el-backend
+        token_type:
+          type: string
+          description: Tipo de token para la cabecera Authorization
+          example: bearer
+      required: [access_token, token_type]
+
+    RegistroCreate:
+      type: object
+      description: Lo que envía el formulario de registro — email y contraseña de la nueva cuenta (AUTH-01)
+      properties:
+        email:
+          type: string
+          format: email
+          description: Correo de la clienta; si ya tiene cuenta, el registro responde 409 (D-26)
+          example: clienta@maura.cl
+        password:
+          type: string
+          minLength: 8
+          description: Largo mínimo 8 y sin reglas de composición — longitud sobre complejidad (D-25)
+          example: una-clave-larga
+      required: [email, password]
 
 # ---------------------------------------------------------------------------
 # Operaciones
@@ -201,3 +267,159 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+
+  /api/auth/registro:
+    post:
+      tags: [Autenticación]
+      summary: Crear una cuenta de clienta
+      description: |
+        AUTH-01 · Público. Recibe el email y la contraseña de la nueva cuenta;
+        la contraseña se guarda hasheada (Argon2) en el backend y jamás vuelve
+        en ninguna respuesta. Un email ya registrado responde 409 con un
+        mensaje que invita a iniciar sesión en vez de adivinar otra clave (D-26).
+        Email sin formato o contraseña menor a 8 caracteres → 422, producido
+        por la validación declarativa (Pydantic), sin código manual.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegistroCreate'
+      responses:
+        '201':
+          description: Cuenta creada — la clienta tal como la ve el mundo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsuarioPublico'
+        '409':
+          description: El email ya tiene cuenta
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                detail: Ese email ya tiene cuenta, inicia sesión
+        '422':
+          description: Cuerpo mal formado (email sin formato, contraseña menor a 8 caracteres)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/auth/login:
+    post:
+      tags: [Autenticación]
+      summary: Iniciar sesión y recibir el token
+      description: |
+        AUTH-02 · Público. Formulario OAuth2 (application/x-www-form-urlencoded):
+        el campo `username` transporta el email de la clienta — así el botón
+        Authorize de `/docs` funciona con las cuentas del seed y el flujo
+        calza con el tutorial oficial de FastAPI. Ante cualquier falla
+        responde 401 genérico, sin revelar si el email existe (D-26).
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  format: email
+                  description: El email de la clienta (OAuth2 llama username a este campo)
+                  example: clienta@maura.cl
+                password:
+                  type: string
+                  description: Contraseña en texto plano; viaja una sola vez y se verifica contra el hash en el backend
+                  example: una-clave-larga
+              required: [username, password]
+      responses:
+        '200':
+          description: Sesión iniciada — el token de larga vida (7 días, D-20)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Token'
+        '401':
+          description: Email o contraseña incorrectos — mensaje genérico deliberado (D-26)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                detail: Credenciales incorrectas
+
+  /api/auth/perfil:
+    get:
+      tags: [Autenticación]
+      summary: Ver el perfil de la sesión actual
+      description: |
+        AUTH-02 · Requiere sesión (Bearer). Devuelve la cuenta que vive dentro
+        del token: con token válido la clienta ve su propio perfil; con token
+        ausente, inválido o expirado → 401.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: La cuenta de la sesión
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsuarioPublico'
+        '401':
+          description: Sin sesión, o token inválido/expirado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                detail: Credenciales incorrectas
+
+  /api/admin/estado:
+    get:
+      tags: [Administración]
+      summary: Conteos del catálogo (endpoint demo protegido por rol)
+      description: |
+        AUTH-03, D-33 · Requiere sesión con rol admin (Bearer). Endpoint demo
+        con conteos triviales del catálogo para enseñar la dependencia de
+        seguridad por rol: el token de la clienta es válido, pero su claim de
+        rol no alcanza → 403. El panel real de administración llega en la
+        fase 4; este endpoint existe para que el 403 sea verificable ya.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Conteos del catálogo
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  productos:
+                    type: integer
+                    description: Productos activos en el catálogo
+                    example: 12
+                  familias:
+                    type: integer
+                    description: Familias aromáticas con al menos un producto activo
+                    example: 4
+                required: [productos, familias]
+        '401':
+          description: Sin sesión, o token inválido/expirado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                detail: Credenciales incorrectas
+        '403':
+          description: Con sesión, pero sin rol admin
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                detail: Requiere rol admin
