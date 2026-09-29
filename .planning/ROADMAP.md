@@ -76,8 +76,22 @@ Plans:
   3. Visitante agrega productos al carro, edita cantidades y puede vaciarlo; el carro persiste en localStorage y sobrevive un full-page load (CART-01, CART-02)
   4. El checkout exige sesión iniciada: un visitante sin sesión que intenta finalizar compra es llevado al login y vuelve al checkout al autenticarse (AUTH-04)
 
-**Plans**: TBD
+**Plans**: 5 plans *(planeados 2026-09-29 — orden API-first D-15: contrato y ADRs aprobados antes de las guías; docs 02/03 en paralelo con el contrato por ser independientes en archivos)*
 **UI hint**: yes
+
+Plans:
+**Wave 1** *(paralelos — sin solape de archivos)*
+- [ ] 02-01-PLAN.md — TRACER API-first: contrato 0.2.0 (bearerAuth, /api/auth/*, /api/admin/estado) + ADRs 009-011 + README de arquitectura (AUTH-01/02/03)
+- [ ] 02-02-PLAN.md — Especificación de la etapa 2: docs 02 (RF-06..11, RN-05..09, HU-05..08, actores, P5) + docs 03 (USUARIO, procesos 5.0-8.0, pantallas 4-7)
+
+**Wave 2** *(blocked on Wave 1)*
+- [ ] 02-03-PLAN.md — Guías 05-06: backend de cuentas (security Argon2+JWT, capas, seed de usuarios) y sesión frontend (store persist, interceptor 401, RequireAuth, login/registro, navbar) (AUTH-01/02/03)
+
+**Wave 3** *(blocked on Wave 2)*
+- [ ] 02-04-PLAN.md — Guías 07-08: carro persistente (store sin precios, /carro, badge) y checkout protegido + Gran verificación final fase 2 con fila contrato ↔ /docs (CART-01/02, AUTH-04)
+
+**Wave 4** *(blocked on Wave 3)*
+- [ ] 02-05-PLAN.md — Cierre de fase: READMEs de estado (guías 1-8, 11 ADRs), eslabón guia-04→05 y verificación guide-only (D-13/D-18)
 
 ### Phase 3: Checkout Webpay y órdenes
 
@@ -131,7 +145,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Fundaciones de dos tiers y catálogo | 6/6 | Complete    | 2026-09-29 |
-| 2. Cuentas de cliente y carro persistente | 0/TBD | Not started | - |
+| 2. Cuentas de cliente y carro persistente | 0/5 | Not started | - |
 | 3. Checkout Webpay y órdenes | 0/TBD | Not started | - |
 | 4. Panel de administración y asistente IA | 0/TBD | Not started | - |
 | 5. Despliegue y cierre de la guía | 0/TBD | Not started | - |
