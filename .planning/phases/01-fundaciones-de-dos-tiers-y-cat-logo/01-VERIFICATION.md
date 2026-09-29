@@ -1,8 +1,8 @@
 ---
 phase: 01-fundaciones-de-dos-tiers-y-cat-logo
-verified: 2026-09-29T12:35:13Z
+verified: 2026-09-29T14:42:56Z
 status: passed
-score: 9/10 must-haves verified
+score: 10/10 must-haves verified
 covered_files:
   - .planning/phases/01-fundaciones-de-dos-tiers-y-cat-logo/01-01-PLAN.md
   - .planning/phases/01-fundaciones-de-dos-tiers-y-cat-logo/01-02-PLAN.md
@@ -37,163 +37,162 @@ covered_files:
   - docs/05_desarrollo/guia-03-modelos-y-seed.md
   - docs/05_desarrollo/guia-04-catalogo.md
 
-covered_digest: "v2:sha256:b6da9d2cfd65fb3336e98c9d7d1c9c678528798a5295685477d904fa01f7c42e"
-behavior_unverified: 1
-behavior_unverified_items:
-  - truth: "Un alumno que sigue las guias paso a paso levanta desde cero los dos tiers con el catalogo funcionando (SC 4 primera clausula / GUIDE-03): el recorrido completo YA fue ejercitado por el UAT (agent-executed, user-delegated, 2026-09-29 en D:/Repos/maura-uat) — tests 2 y 3 pass, tests 1 y 4 con todo lo funcional OK y solo los 2 desvios de texto diagnosticados — y esos 2 gaps (G-01-1, G-01-4) estan cerrados en el texto de las guias (commits 7d28520/7d8ca85). Lo que NINGUNA ejecucion ha ejercitado todavia son los PASOS CORREGIDOS: el Paso 5 de guia-01 creando el .gitignore a mano, y el decorator responses={404} nuevo de guia-04 Paso 3 (ese codigo jamas corrio en ningun ambiente)"
-    test: "Re-ejecutar los tests 1 y 4 del UAT post-fix en el taller (D:/Repos/maura-uat, uv 0.9.x + Node >= 22.22): (a) test 1 — uv init backend --vcs none --app, ls backend/ SIN .gitignore y la guia ya no lo promete, crear el archivo en el Paso 5 con el contenido entregado; (b) test 4 — re-ejecutar Paso 3 de guia-04, abrir http://localhost:8000/docs y desplegar GET /api/productos/{producto_id}"
-    expected: "(a) backend/ contiene pyproject.toml, .python-version, README.md, main.py y NINGUN .gitignore tras el init; tras el Paso 5 el archivo existe con las lineas entregadas (__pycache__/, *.pyc, *.pyo, .venv/, *.db, .env) y la mini-verificacion 'que acabas de crear' valida; (b) /docs documenta 200, 404 (descripcion 'Producto inexistente (o inactivo)', esquema Error con detail string) y 422 para {producto_id}; la fila 11 encuentra solo los desvios ya advertidos WR-01/WR-02"
-    why_human: "El repo es guide-only (D-17): nada de esto corre en el repo de la guia. La sintaxis de los bloques corregidos esta probada (ast.parse de 5 y 6 bloques python en verde), pero si FastAPI documenta el 404 via responses={404: {model: Error}} es comportamiento runtime que grep no puede ver, y el UAT se ejecuto ANTES del fix (openapi.json vivo mostraba responses = ['200','422'])"
+covered_digest: "v2:sha256:198cd24e6967fd4eec45075b8663ed42b9106a24cf00d44f4429d925b56564ae"
+behavior_unverified: 0
 overrides_applied: 0
 re_verification:
-  previous_status: human_needed
-  previous_score: 7/8
-  gaps_closed:
-    - "G-01-1: guia-01 Paso 1 ya no afirma que uv init --vcs none genera .gitignore; Paso 5 instruye CREAR backend/.gitignore con el contenido entregado (commit 7d28520)"
-    - "G-01-4: guia-04 declara la respuesta 404 del contrato en el router (responses con description palabra por palabra y model Error), schema Error en Paso 1, prosa docente e item 5 de mini-verificacion (commit 7d8ca85)"
+  previous_status: passed
+  previous_score: 9/10
+  previous_digest: "v2:sha256:b6da9d2cfd65fb3336e98c9d7d1c9c678528798a5295685477d904fa01f7c42e"
+  reason: "digest stale (#4682) — 2 commits tocaron archivos cubiertos DESPUES de la canonizacion a passed (83f3e8e, 2026-09-29 10:00 local): 38b0db3 (fix guia-02 main.tsx conserva import index.css) y be72d9e (lift de diseno: guia-02 272 lineas, guia-04 75 lineas)"
+  gaps_closed: []
   gaps_remaining: []
   regressions: []
-human_verification:
-  - test: "Re-ejecutar test 1 del UAT (guia-01 post-fix, en D:/Repos/maura-uat con Python 3.12 + uv 0.9.x): correr 'uv init backend --vcs none --app' en un directorio nuevo, hacer 'ls -a backend/' y confirmar que NO aparece .gitignore; seguir la guia corregida — el Paso 1 promete solo pyproject.toml, .python-version, README.md y main.py con la nota '¿Y el .gitignore? No viene' — y ejecutar el Paso 5: crear backend/.gitignore con el bloque que la guia entrega"
-    expected: "Tras el init: 4 archivos, sin .gitignore (la guia ya no lo promete — el desvio G-01-1 desaparecio del lado del texto). Tras el Paso 5: el archivo existe con __pycache__/, *.pyc, *.pyo, .venv/, *.db, .env; la mini-verificacion 'El backend/.gitignore que acabas de crear menciona .env y *.db' es verificable; el resto del test 1 (dependencias, /api/salud {\"estado\":\"ok\"}, /docs Swagger) ya paso en el UAT y no necesita re-ejecucion"
-    why_human: "El fix es texto de guia; el comportamiento 'uv no genera el archivo y el alumno lo crea' vive en la maquina del alumno — en este repo no hay nada ejecutable (D-17)"
-  - test: "Re-ejecutar el Paso 3 de guia-04 post-fix (en el taller UAT): pegar el router corregido (import con Error, decorator multilinea con responses={404}), reiniciar la API y abrir http://localhost:8000/docs; desplegar GET /api/productos/{producto_id} y verificar las respuestas documentadas; despues ejecutar la fila 11 de la Gran Verificacion Final (comparar /docs contra docs/04_arquitectura/contrato_api.yaml)"
-    expected: "/docs lista 200, 404 y 422 para {producto_id}: la 404 con descripcion 'Producto inexistente (o inactivo)' y esquema Error (detail string) — el tercer desvio del UAT desaparece. La fila 11 queda solo con los desvios YA ADVERTIDOS: WR-01 (422 de {id} no declarado en el contrato) y WR-02 (Error.detail string vs array real del 422), ambos abiertos en 01-REVIEW-DISPOSITION.md. El 404 runtime (curl /api/productos/999) sigue funcionando igual"
-    why_human: "Que FastAPI suba el responses={404: {model: Error}} del decorator al OpenAPI generado es comportamiento runtime — el UAT se ejecuto ANTES del fix y el decorator nuevo jamas corrio; en este repo el codigo solo existe como bloque markdown (D-17)"
 ---
 
 # Phase 1: Fundaciones de dos tiers y catálogo Verification Report
 
 **Phase Goal:** Un visitante navega una tienda de dos tiers operativa (SPA React que consume API FastAPI en capas, sin plantillas en el servidor) con landing de marca, catálogo filtrable y páginas de producto sobre datos demo sembrados; la guía de esta fase es paso a paso y establece las convenciones de ADRs y contrato de API que las fases siguientes mantienen.
-**Verified:** 2026-09-29T12:35:13Z
-**Status:** human_needed
-**Re-verification:** Yes — after gap closure (plan 01-06 cerró G-01-1 y G-01-4 diagnosticados por el UAT)
+**Verified:** 2026-09-29T14:42:56Z
+**Status:** passed
+**Re-verification:** Yes — digest refresh (#4682): regeneración contra el estado ACTUAL de las fuentes cubiertas tras 2 commits post-canonicalización
 
 ## Scope frame (D-17, gobierna esta verificación)
 
-Repositorio **guide-only** (decisión del usuario registrada en 01-CONTEXT.md, ADR-008 y STATE.md): los entregables son DOCUMENTOS — el código de la aplicación vive como bloques dentro de las guías que el alumno copia. Verificación por contenido (greps, parseo, conteos, diffs git, provenance) sobre docs/ y README.md. Nada se ejecuta ni instala en este repo. El UAT de la fase (01-UAT.md, agent-executed user-delegated) SÍ ejecutó el recorrido completo en un taller externo (D:/Repos/maura-uat) — su evidencia se usa como evidencia conductual donde corresponde.
+Repositorio **guide-only** (decisión registrada en 01-CONTEXT.md, ADR-008 y STATE.md): los entregables son DOCUMENTOS — el código de la aplicación vive como bloques dentro de las guías que el alumno copia. Verificación por contenido (greps, parseo ast/yaml, conteos, diffs git, comparación con el taller) sobre docs/ y README.md. Nada se ejecuta ni instala en este repo. La evidencia runtime delegada vive en el taller externo `D:/Repos/maura-uat` (UAT agent-executed, user-delegated, per instrucción persistida en AGENTS.md) — esta ronda la verificó materialmente: el taller NO es repo git, pero sus archivos y su build son inspeccionables.
+
+## Qué cambió desde la verificación anterior (causa del digest stale)
+
+Diff `83f3e8e..HEAD` sobre archivos cubiertos — exactamente 2 guías:
+
+| Commit | Archivo | Cambio | Naturaleza |
+|--------|---------|--------|------------|
+| 38b0db3 (10:22 local) | guia-02 | +13/−3 | **fix**: el bloque de reemplazo de main.tsx omitía `import "./index.css"` (fallo silencioso: sin estilos y sin error); agrega la línea, prosa del modo de fallo y extiende la mini-verificación del Paso 6 (dist/assets debe contener `index-*.css`) |
+| be72d9e (11:02 local) | guia-02 (+226/−84) y guia-04 (+59/−16) | **lift de diseño moderado** (feedback del usuario "muy básico"): paleta Maura en `@theme` (crema/terracota), Navbar backdrop-blur + logo-dot, Footer 3 piezas, Landing reescrita (hero 2 columnas, anillos CSS con chips flotantes, cards de familia como Link con kicker y hover lift), ProductCard group-hover, guia-04: hero con foto real + fotos en cards de familia, ficha más ancha con jerarquía mayor. Desviaciones registradas en amendment de 01-UI-SPEC.md |
+
+Todo lo demás (docs 01-04, contrato, 8 ADRs, READMEs, guia-01, guia-03, PLANs/SUMMARYs) — intacto (diff vacío).
 
 ## MVP Mode — User Flow Coverage
 
-**Discrepancia de formato (heredada, no bloqueante):** el goal del ROADMAP sigue sin validar como User Story canónica (`As a..., I want to..., so that...`); la versión canónica validada vive en los PLANs. Recomendación mantenida: `/gsd mvp-phase 1`.
+**Nota heredada (no bloqueante):** el goal del ROADMAP no valida como User Story canónica; la versión canónica vive en los PLANs. Recomendación mantenida: `/gsd mvp-phase 1`.
 
-Novedad de esta ronda: el recorrido del usuario **fue ejecutado** por el UAT (agent-executed, 2026-09-29) — la cobertura ya no es solo documental.
+El recorrido del usuario fue ejecutado por el UAT delegado (4/4 PASS, 01-UAT.md) y los deltas post-lift fueron aplicados y compilados en el mismo taller antes de aterrizar en las guías (verificado materialmente esta ronda).
 
 | Step | Expected | Evidence | Status |
 |------|----------|----------|--------|
-| Abrir la landing | Identidad de marca: eyebrow, tagline, persona, CTA, familias | guia-02 (regression OK) + **UAT test 2: pass** — landing renderizada y estilizada verificada con Edge headless (hero, tagline, párrafo 1ª persona, CTA, 4 cards) | ✓ |
-| Navegar el catálogo filtrando | Grilla con filtros familia + precio, compartible por URL | guia-04 filtros (regression OK) + **UAT test 4: TODO el funcional pasó** — 12 productos con fotos, filtros en URL compartibles, back/forward, Limpiar filtros | ✓ |
-| Abrir la ficha de un producto | Descripción, precio, familia, notas, disponibilidad | guia-04 ficha (regression OK) + **UAT test 4** — badge ámbar "¡Últimas 2 unidades!", verde "Disponible", notas chips, navigate(-1) preserva filtros | ✓ |
-| Datos demo sembrados | Catálogo con 12 SKU reproducibles | guia-03 (regression OK) + **UAT test 3: pass** — corrida 1 doce [+], corrida 2 doce [=], 12 filas sin duplicados, byte-a-byte como la guía promete | ✓ |
-| Outcome: explorar sin cuenta | Recorrido completo solo-lectura sin autenticación | UAT completo ejecutado: 2 pass + 2 issues menores de TEXTO de guía (G-01-1, G-01-4), ambos corregidos en las guías (commits 7d28520/7d8ca85). Pendiente: re-ejecución de los pasos corregidos | ✓ ejecutado; pasos corregidos → Human Verification |
+| Abrir la landing | Identidad de marca: eyebrow, tagline, persona, CTA, familias | guia-02 POST-LIFT verificado en contenido (l.582-598, l.633): eyebrow, tagline, párrafo 1ª persona, CTA "Ver catálogo" + CTA secundario, "Nuestras familias" con 4 links — y aplicado+compilado en maura-uat (Landing.tsx, build 11:01) | ✓ |
+| Navegar el catálogo filtrando | Grilla con filtros familia + precio, compartible por URL | Contrato intacto (enum 4 slugs, precio_min/max ≥ 0); useSearchParams ×3 en guia-04; barra de filtros solo cambió cosméticamente (w-28→w-32); UAT test 4 funcional completo | ✓ |
+| Abrir la ficha de un producto | Descripción, precio, familia, notas, disponibilidad | Diff del lift leído completo: los 5 elementos persisten (solo estilos: max-w-5xl, precio 2xl terracota, leading-relaxed); UAT test 4 verificó badges/chips/navigate(-1) | ✓ |
+| Datos demo sembrados | 12 SKU reproducibles, seed idempotente | guia-03 intacta; UAT test 3 pass (doce [+] → doce [=]); 6/6 bloques python ast.parse OK | ✓ |
+| Outcome: explorar sin cuenta | Recorrido completo solo-lectura sin autenticación | UAT 4/4 PASS (incluye re-ejecución post-fix de tests 1 y 4); deltas post-lift aplicados en el taller con build exitoso inmediatamente antes del commit | ✓ |
 
 ## Goal Achievement
 
 ### Observable Truths
 
-Verdades 1-8 heredadas de la verificación inicial (2026-09-28, 7/8) + 2 verdades de cierre de gap (G-01-1, G-01-4) del plan 01-06. Las verdades heredadas pasaron regression check (existencia + sanidad); las de cierre de gap recibieron verificación completa de 3 niveles.
+Verdades 1-10 heredadas de la ronda anterior (9 VERIFIED + 1 behavior-unverified que el UAT 4/4 cerró). Esta ronda: verdades 1, 6, 7 y 10 recibieron verificación COMPLETA (sus soportes cambiaron); el resto regression check (existencia + sanidad + diff vacío).
 
 | # | Truth | Status | Evidence |
 |---|-------|--------|----------|
-| 1 | La guía enseña y hace verificar la landing con identidad de marca (SC1/STORE-01) | ✓ VERIFIED | Regression: guia-02 intacta (sin cambios desde b4a8f04); UAT test 2 pass confirma el comportamiento real |
-| 2 | La guía enseña y hace verificar la grilla con filtros familia + precio (SC1/STORE-02) | ✓ VERIFIED | Regression: contrato enum 4 slugs + precio_min/max minimum 0 intactos; UAT test 4 funcional completo |
-| 3 | La guía enseña y hace verificar la ficha con descripción, precio, familia, notas y disponibilidad (SC2/STORE-03) | ✓ VERIFIED | Regression + UAT test 4: badge/chips/navigate(-1) verificados en runtime |
-| 4 | La guía enseña y hace verificar el seed idempotente (SC3/STORE-04) | ✓ VERIFIED | Regression: guia-03 intacta; UAT test 3 pass (doce [+] → doce [=]) |
-| 5 | La fase documenta ADRs y contrato con mecanismo de cierre (SC4/GUIDE-02) | ✓ VERIFIED | Regression: 8 ADRs presentes, contrato parsea (3 paths/3 schemas/404 'Producto inexistente (o inactivo)'); guia-04 fila 11 intacta |
-| 6 | Las guías son paso a paso encadenadas con mini-verificaciones (SC4/GUIDE-03, D-16) | ✓ VERIFIED | Regression: conteos piensa 7/9/5/7, mini 7/10/6/7 — idénticos a la ronda anterior (los fixes editaron mini-verificaciones existentes, no agregaron) |
-| 7 | Un alumno que sigue las guías levanta desde cero los dos tiers con el catálogo funcionando (SC4) | ⚠️ PRESENT_BEHAVIOR_UNVERIFIED | AVANCE SUSTANCIAL: el UAT ejecutó el walkthrough completo (tests 2/3 pass; tests 1/4 funcional OK salvo 2 desvíos de texto). Los desvíos están cerrados en texto (verdades 9-10), pero los pasos corregidos no se han re-ejecutado: el decorator responses={404} de guia-04 jamás corrió. Ver Human Verification |
-| 8 | Invariant guide-only: cero código de aplicación en el repo (D-17) | ✓ VERIFIED | Regression: `git ls-files -- backend frontend` vacío; sin dirs backend/ frontend/ .venv/ node_modules/; working tree docs/ limpio |
-| 9 | (G-01-1) guia-01 ya no atribuye el .gitignore a uv; el alumno lo crea en el Paso 5 con el contenido entregado | ✓ VERIFIED | Ausencias confirmadas: cero 'un `.gitignore` y un', cero 'que generó uv'. Presencias: l.76 nota 'uv solo lo genera cuando inicializa el VCS', l.300 'crea el archivo **`backend/.gitignore`**', l.321 'que acabas de crear'. Bloque de contenido byte-idéntico en única ocurrencia exacta (assert python). Enumeración Paso 1 = 4 archivos reales. guia-03 intacta y sus 2 menciones (l.553, l.612) siguen ciertas. Commit 7d28520 (15+/10-, solo guia-01) |
-| 10 | (G-01-4) guia-04 declara el 404 del contrato en el router con description y cuerpo Error idénticos, sin tocar el contrato | ✓ VERIFIED | l.81 `class Error(BaseModel):` con detail: str + oración de anclaje al contrato; l.252 import alfabético con Error; l.271-279 decorator multilínea `responses={404: {"description": "Producto inexistente (o inactivo)", "model": Error}}` — description palabra por palabra del contrato l.199, model = schema Error (detail string) del contrato l.51-57; prosa docente (l.283-290) + item 5 de mini-verificación (l.333-337) + bullet extendido (l.980). Único `responses={` de la guía; cero `422: {` (prohibición WR-01). contrato_api.yaml sin cambios (git diff --stat b4a8f04..HEAD vacío). Commit 7d8ca85 (37+/3-, solo guia-04). Evidencia runtime del efecto en /docs: pendiente (truth 7) |
+| 1 | La guía enseña y hace verificar la landing con identidad de marca (SC1/STORE-01) | ✓ VERIFIED | RE-CHECK COMPLETO post-lift: eyebrow "Maura · Body Splash" l.582 (uppercase tracking-widest terracota), tagline "Frescura que te acompaña" l.585, párrafo 1ª persona l.588-593, CTA "Ver catálogo" l.598, "Nuestras familias" l.633 con 4 links `/productos?familia={slug}` l.554-569. La mini-verificación se actualizó EN el mismo commit que los bloques (cero drift código↔verificación). UAT test 2 pass (pre-lift) + lift aplicado y compilado en maura-uat |
+| 2 | La guía enseña y hace verificar la grilla con filtros familia + precio (SC1/STORE-02) | ✓ VERIFIED | Contrato intacto (yaml parsea: enum [citricas, florales, frutales, dulces], precio_min/max); useSearchParams ×3; diff del lift sobre la barra de filtros es solo cosmético; fila 11 intacta (l.988); UAT test 4 funcional completo |
+| 3 | La guía enseña y hace verificar la ficha con descripción, precio, familia, notas y disponibilidad (SC2/STORE-03) | ✓ VERIFIED | Diff del lift leído hunk a hunk: descripcion/precio/familia (badge)/notas (chips)/disponibilidad (BadgeDisponibilidad) todos presentes — el cambio es de jerarquía visual (max-w-5xl, precio 2xl extrabold terracota), no de contenido; UAT test 4 verificó el runtime |
+| 4 | La guía enseña y hace verificar el seed idempotente (SC3/STORE-04) | ✓ VERIFIED | Regression: guia-03 sin cambios desde la ronda verificada (diff 83f3e8e..HEAD vacío); 6/6 bloques python ast.parse OK; UAT test 3 pass |
+| 5 | La fase documenta ADRs y contrato con mecanismo de cierre (SC4/GUIDE-02) | ✓ VERIFIED | Regression: 8 ADRs 001-008 existen; contrato parsea (3 paths, 3 schemas Error/ProductoResumen/ProductoDetalle, 404 "Producto inexistente (o inactivo)"); fila 11 de guia-04 intacta l.988 con (200, 404, 422) |
+| 6 | Las guías son paso a paso encadenadas con mini-verificaciones (SC4/GUIDE-03, D-16) | ✓ VERIFIED | RE-COUNT post-cambios: piensa 7/9/5/7 — IDÉNTICO a la ronda anterior; mini 7/10/6/8 — guia-04 ganó exactamente 1 (nueva subsección "Las fotos también visten la landing", aditiva, con mini-verificación accionable); pasos 7/12/6/8; main.tsx fix EXTENDIÓ la mini-verificación existente del Paso 6 de guia-02 (dist/assets index-*.css) |
+| 7 | Un alumno que sigue las guías levanta desde cero los dos tiers con el catálogo funcionando (SC4) | ✓ VERIFIED | Evidencia runtime delegada en 2 capas: (a) UAT 4/4 PASS (01-UAT.md, agent user-delegated) — incluye re-ejecución post-fix de tests 1 y 4 (scratch limpio refix/, /docs documenta 200/404(Error)/422, runtime 12 productos + 404 en 999); (b) deltas POST-UAT (fix main.tsx + lift) aplicados y compilados en el MISMO taller antes de aterrizar: main.tsx con `import "./index.css"` (mtime 10:12), index.css con la paleta @theme idéntica al bloque de la guía (mtime 10:46), Landing.tsx con hero 2 columnas + PROMESAS + foto citricas-01 con ring-8 (bloques nuevos de guia-04 comparados contra el taller: coincidencia exacta normalizada), 12 fotos en public/products/, y build de producción exitoso — dist/assets contiene `index-DA871MnQ.css` (mtime 11:01, un minuto ANTES del commit 11:02:59 — "verificado antes de aterrizar" confirmado materialmente). Ese CSS en dist es exactamente el chequeo que el fix 38b0db3 agregó a la mini-verificación del Paso 6. Amendment de 01-UI-SPEC.md (l.286-289) registra "Verificado visualmente y con npm run build en el workspace de UAT el 2026-09-29" |
+| 8 | Invariant guide-only: cero código de aplicación en el repo (D-17) | ✓ VERIFIED | `git ls-files -- backend frontend` → 0; sin dirs backend/ frontend/ .venv/ node_modules/ en disco; working tree docs/ limpio |
+| 9 | (G-01-1) guia-01 ya no atribuye el .gitignore a uv; el alumno lo crea en el Paso 5 con el contenido entregado | ✓ VERIFIED | Regression: guia-01 sin cambios desde el fix 7d28520 (diff 83f3e8e..HEAD vacío); 5/5 bloques python ast.parse OK; UAT test 1 re-ejecutado post-fix en scratch limpio: PASS (uv init generó exactamente los 4 archivos, sin .gitignore; Paso 5 lo crea con el contenido de la guía) |
+| 10 | (G-01-4) guia-04 declara el 404 del contrato en el router con description y cuerpo Error idénticos, sin tocar el contrato | ✓ VERIFIED | RE-CHECK COMPLETO post-lift: `class Error(BaseModel):` l.81; decorator `responses={404: {"description": "Producto inexistente (o inactivo)", "model": Error}}` l.275-278 (description palabra por palabra del contrato); mini-verificación Paso 3 ítem 5 presente l.334-339 con referencia explícita a la fila 11; único `responses={` de la guía; cero `422: {` (prohibición WR-01); contrato_api.yaml SIN cambios (diff vacío); 6/6 bloques python ast.parse OK. Runtime confirmado por UAT test 4 (openapi documenta 200/404(Error)/422) y el router del taller conserva la declaración (productos.py l.36-39) |
 
-**Score:** 9/10 truths verified (1 present, behavior-unverified)
+**Score:** 10/10 truths verified (0 present, behavior-unverified)
 
 ### Deferred Items
 
-Ninguno. Los 17 findings del review (WR-01..08, IN-01..09) son filas de triage del developer con disposition:open en 01-REVIEW-DISPOSITION.md — no son gaps de esta verificación (ninguno pisa un must-have; ver Anti-Patterns).
+Ninguno. Los findings del review (WR-01..08, IN-01..09) con disposition:open en 01-REVIEW-DISPOSITION.md siguen siendo triage del developer — ninguno pisa un must-have.
 
 ### Required Artifacts
 
-Regression: todos los artefactos de la ronda inicial existen y están intactos salvo las 2 guías editadas por el fix (verificado con git diff --stat b4a8f04..HEAD sobre docs/: SOLO guia-01 y guia-04 cambian).
+Regression global: diff `83f3e8e..HEAD` sobre docs/ toca SOLO guia-02 y guia-04; los 32 archivos cubiertos existen (fingerprint: 0 missing).
 
 | Artifact | Expected | Status | Details |
 |----------|-----------|--------|---------|
-| docs/05_desarrollo/guia-01-proyecto-backend.md | Fix G-01-1: .gitignore creado a mano | ✓ VERIFIED | 3 ediciones presentes y leídas in situ; 5 bloques python ast.parse OK; solo 3 menciones a .gitignore, todas coherentes |
-| docs/05_desarrollo/guia-04-catalogo.md | Fix G-01-4: 404 declarado + schema Error | ✓ VERIFIED | 5 ediciones presentes y leídas in situ; 6 bloques python ast.parse OK; fila 11 intacta (l.945) |
-| docs/04_arquitectura/contrato_api.yaml | NO tocado (prohibición del plan 01-06) | ✓ VERIFIED | git diff --stat b4a8f04..HEAD vacío; parsea YAML, 3 paths, 3 schemas |
-| docs/05_desarrollo/guia-02/03, READMEs, docs 01-04, ADRs | NO tocados (prohibición) | ✓ VERIFIED | git diff b4a8f04..HEAD solo lista guia-01 y guia-04 |
+| docs/05_desarrollo/guia-02-proyecto-frontend.md | Landing de marca + fix main.tsx post-lift | ✓ VERIFIED | Elementos de marca completos (truth 1); fix del import l.237 + mini-verificación extendida l.307; FAMILIA_BADGES sigue definido (l.358) y cableado en ProductCard (l.781/799) tras quitarse del import de Landing — sin huérfanos |
+| docs/05_desarrollo/guia-04-catalogo.md | 404 del contrato + lift visual (fotos en landing, ficha) | ✓ VERIFIED | Truth 10 íntegro post-lift; nueva subsección de fotos con 2 bloques tsx aplicados en el taller; filtros/fila 11 intactos |
+| docs/04_arquitectura/contrato_api.yaml | NO tocado | ✓ VERIFIED | diff 83f3e8e..HEAD vacío; parsea YAML: 3 paths, 3 schemas, 404 correcta |
+| docs/05_desarrollo/guia-01, guia-03, docs 01-04, ADRs 001-008, READMEs | NO tocados | ✓ VERIFIED | diff vacío; existencia + sanidad OK |
 
 ### Key Link Verification
 
 | From | To | Via | Status | Details |
 |------|----|----|--------|---------|
-| guia-04 Paso 3 (decorator obtener_producto) | contrato_api.yaml (respuesta 404 de /api/productos/{producto_id}, l.198-203) | description y model Error palabra por palabra; dirección guía → contrato | ✓ WIRED | Ambos lados leídos: description idéntica; model Error = schema Error del contrato (detail string, example "Producto no encontrado") |
-| guia-04 Paso 3 (responses) | fila 11 Gran Verificación Final (l.945) | con el 404 declarado, el eje 404 de la comparación cierra | ✓ WIRED | Fila 11 intacta compara códigos 200/404/422; item 5 de mini-verificación referencia explícita a la fila 11 |
-| guia-01 Paso 5 (creación .gitignore) | guia-03 (menciones l.553, l.612) | alumno llega a guia-03 con el archivo creado | ✓ WIRED | guia-03 intacta (diff vacío); ambas menciones siguen ciertas bajo el flujo corregido |
-| Resto de links de la ronda inicial | — | — | ✓ WIRED | Regression: sin cambios en los archivos involucrados |
+| guia-04 Paso 3 (decorator obtener_producto) | contrato_api.yaml (404 de /api/productos/{producto_id}) | description y model Error palabra por palabra | ✓ WIRED | Ambos lados verificados post-lift: description idéntica; model Error = schema Error (detail string); contrato intacto |
+| guia-04 nueva subsección de fotos → Landing de guia-02 | reemplazo de los anillos CSS por foto real | pasos encadenados entre guías | ✓ WIRED | guia-02 enseña los anillos (inset-0/6/14); guia-04 los reemplaza por la foto (mismo círculo, ring blanco); taller tiene la versión final (foto citricas-01 + chips) |
+| guia-02 Paso 6 (main.tsx con import index.css) | mini-verificación Paso 6 (dist/assets index-*.css) | el import perdido = CSS ausente en el bundle | ✓ WIRED | Bloque l.237 con import; chequeo l.307; evidencia de ejecución: dist/assets del taller contiene index-*.css (build 11:01) |
+| Resto de links de rondas anteriores | — | — | ✓ WIRED | Archivos involucrados sin cambios (diff vacío) |
 
 ### Data-Flow Trace (Level 4 — equivalente documental)
 
 | Dato | Fuente canónica | Consumidores | Status |
 |------|----------------|--------------|--------|
-| Description 404 "Producto inexistente (o inactivo)" | contrato_api.yaml l.199 | guia-04 decorator l.277 (palabra por palabra) | ✓ FLOWING |
-| Schema Error (detail: str) | contrato_api.yaml l.51-57 | guia-04 Paso 1 l.81-85 (class Error) + model en responses l.278 | ✓ FLOWING |
-| Contenido .gitignore | guia-01 bloque Paso 5 | alumno lo crea a mano; guia-03 l.553/612 confían en él | ✓ FLOWING (bloque byte-idéntico, única ocurrencia) |
-| 4 slugs familia / 12 SKU / schemas | (regression ronda inicial) | intactos | ✓ FLOWING |
+| Paleta Maura (#fbf4ea…#b03a0c) | guia-02 bloque @theme (Paso 5) | Componentes vía orange-*; idéntica aplicada en maura-uat/frontend/src/index.css | ✓ FLOWING |
+| Description 404 "Producto inexistente (o inactivo)" | contrato_api.yaml | guia-04 decorator l.277 palabra por palabra | ✓ FLOWING |
+| 4 slugs familia / 12 SKU / schemas | contrato + guia-03 | guia-02/04, taller (12 fotos, catálogo) | ✓ FLOWING |
+| Bloques tsx nuevos del lift (hero foto, cards con foto) | guia-04 nueva subsección | taller: aplicados con coincidencia exacta normalizada | ✓ FLOWING |
 
 ### Behavioral Spot-Checks
 
 | Behavior | Command | Result | Status |
 |----------|---------|--------|--------|
-| Gates G-01-1 del plan 01-06 | greps ausencias/presencias + assert bloque único | 'un `.gitignore` y un' ausente, 'que generó uv' ausente, 4 presencias en l.76/300/302/321; bloque 1 ocurrencia | ✓ PASS |
-| Gates G-01-4 del plan 01-06 | greps + conteo + git diff contrato | class Error / "model": Error / description contrato / esquema `Error` presentes; responses={ == 1; 422: { ausente; contrato sin diff | ✓ PASS |
-| Bloques python sintácticamente válidos | ast.parse sobre bloques de ambas guías | guia-01: 5/5; guia-04: 6/6 | ✓ PASS |
-| Contrato OpenAPI válido | python yaml.safe_load | 3 paths, 3 schemas, 404 description correcta | ✓ PASS |
-| Commits del plan 01-06 | git show --stat | 7d28520 (guia-01, 15+/10-), 7d8ca85 (guia-04, 37+/3-), a8eadc5 (metadata: ROADMAP/STATE/WINDOWS/SUMMARY) | ✓ PASS |
-| Invariant guide-only | git ls-files + dirs en disco | vacío / inexistentes | ✓ PASS |
-| Re-ejecución runtime de pasos corregidos (tests 1 y 4 post-fix) | — | no ejecutable en este repo (D-17); UAT se ejecutó PRE-fix | ? SKIP → Human Verification |
+| Elementos de marca en guia-02 post-lift | greps exactos | eyebrow l.582, tagline l.585, "Soy Maura" l.588, CTA l.598, familias l.633, 4 hrefs l.554-569 | ✓ PASS |
+| Gates de truth 10 post-lift | greps + conteo + diff | class Error l.81; responses={ ×1 con description del contrato; 422: { ×0; contrato sin diff | ✓ PASS |
+| Bloques python sintácticamente válidos | ast.parse | guia-01: 5/5; guia-03: 6/6; guia-04: 6/6 | ✓ PASS |
+| Contrato OpenAPI válido | python yaml.safe_load | 3 paths, 3 schemas, enum 4 slugs, 404 correcta | ✓ PASS |
+| Bloques tsx nuevos de guia-04 = código aplicado en taller | comparación normalizada | hero y familia: APLICADO EN MAURA-UAT | ✓ PASS |
+| Evidencia del build del taller (mini-verificación extendida del fix) | ls dist/assets | index-DA871MnQ.css + js + 5 woff2 (mtime 11:01, previo al commit 11:02:59) | ✓ PASS |
+| Router del taller declara el 404 | grep productos.py | responses={404} con Error, l.36-39 | ✓ PASS |
+| Invariant guide-only | git ls-files + dirs | vacío / inexistentes | ✓ PASS |
+| Scope de los commits post-canonicalización | git show --stat | 38b0db3: solo guia-02 (13+/3−); be72d9e: guia-02, guia-04, 01-UI-SPEC (planning, no cubierto) | ✓ PASS |
+| Recorrido runtime completo | (delegado) | UAT 4/4 PASS registrado en 01-UAT.md con notas de evidencia por test | ✓ PASS (delegado) |
 
 ### Probe Execution
 
-SKIPPED — sin probes declarados en PLAN/SUMMARY; las verificaciones de los planes son gates de contenido documental, re-ejecutados arriba.
+SKIPPED — sin probes declarados en PLAN/SUMMARY; las gates de los planes son de contenido documental y fueron re-ejecutadas arriba (greps, ast.parse, yaml, diffs, comparación contra el taller).
 
 ## Requirements Coverage
 
 | Requirement | Source Plan | Description | Status | Evidence |
 |-------------|------------|-------------|--------|----------|
-| GUIDE-02 | 01-01, 01-03, 01-05, 01-06 | ADRs por fase + contrato actualizado | ✓ SATISFIED | 8 ADRs + contrato válido + fila 11; el fix G-01-4 REFUERZA el mecanismo de cierre (el /docs del alumno ahora documentará el 404 que el contrato promete) |
-| GUIDE-03 | 01-04, 01-05, 01-06 | Guías paso a paso que construyen la app operativa | ✓ SATISFIED | 4 guías encadenadas; UAT ejecutó el recorrido (2 pass, 2 issues de texto corregidos); re-ejecución post-fix → human items |
-| STORE-01 | 01-02, 01-04 | Landing con identidad de marca | ✓ SATISFIED | guia-02 + UAT test 2 pass (render verificado) |
-| STORE-02 | 01-01, 01-02, 01-05 | Grilla con filtros familia + precio | ✓ SATISFIED | contrato + guia-04 + UAT test 4 funcional |
-| STORE-03 | 01-01, 01-02, 01-05 | Ficha completa con notas y stock | ✓ SATISFIED | contrato + guia-04 + UAT test 4 |
-| STORE-04 | 01-01, 01-02, 01-05 | Seed idempotente 12 SKU | ✓ SATISFIED | guia-03 + UAT test 3 pass (doce [=] en re corrida) |
+| GUIDE-02 | 01-01, 01-03, 01-05, 01-06 | ADRs por fase + contrato actualizado | ✓ SATISFIED | 8 ADRs + contrato válido + fila 11; truth 10 íntegro post-lift |
+| GUIDE-03 | 01-04, 01-05, 01-06 | Guías paso a paso que construyen la app operativa | ✓ SATISFIED | 4 guías encadenadas (conteos truth 6); UAT 4/4 + lift aplicado/compilado en el taller |
+| STORE-01 | 01-02, 01-04 | Landing con identidad de marca | ✓ SATISFIED | Truth 1 re-verificada post-lift: eyebrow/tagline/persona/CTA/familias presentes |
+| STORE-02 | 01-01, 01-02, 01-05 | Grilla con filtros familia + precio | ✓ SATISFIED | Contrato + guia-04 (filtros intactos) + UAT test 4 |
+| STORE-03 | 01-01, 01-02, 01-05 | Ficha completa con notas y stock | ✓ SATISFIED | Diff del lift conserva los 5 elementos + UAT test 4 |
+| STORE-04 | 01-01, 01-02, 01-05 | Seed idempotente 12 SKU | ✓ SATISFIED | guia-03 intacta + UAT test 3 pass |
 
-Orphans: ninguno — REQUIREMENTS.md mapea exactamente GUIDE-02/03 + STORE-01..04 a Phase 1, los 6 declarados; los 6 están [x] Complete. Nota: REQUIREMENTS.md aún no refleja el fix 01-06, pero GUIDE-02/03 ya estaban Complete y el fix no cambia el estado.
+Orphans: ninguno — REQUIREMENTS.md mapea exactamente GUIDE-02/03 + STORE-01..04 a Phase 1; los 6 están [x] Complete y cada ID aparece en el campo `requirements` de al menos un plan (unión de los 6 planes = los 6 IDs).
 
 ### Anti-Patterns Found
 
 | File | Line | Pattern | Severity | Impact |
 |------|------|---------|----------|--------|
-| guia-01 l.190 | — | "TODO lo configurable" (español, docstring del código verificado) | ℹ️ Info | Falso positivo conocido, heredado de la ronda inicial |
-| guia-01, guia-04 (texto nuevo del fix) | — | Review post-fix: IN-09 (.venv/ existe desde Paso 3, .gitignore se crea en Paso 5 — ventana sin cobertura) y WR-08 (fila 11 no compara el schema Error) | ⚠️ Warning | Nuevos findings del review sobre el texto del fix; disposition:open en 01-REVIEW-DISPOSITION.md, triage del developer. Ninguno bloquea un must-have: IN-09 es info de orden de pasos; WR-08 es mejora aditiva al mecanismo de cierre que sigue funcionando |
-| (heredados) WR-01..07, IN-01..08 | — | Contrato 422/Error.detail, 422 vs catálogo, trazabilidad, nombres | ⚠️ Warning | 15 filas disposition:open en 01-REVIEW-DISPOSITION.md — WR-01/WR-02 siguen siendo los prioritarios (contaminan la fila 11 con 2 desvíos advertidos); fuera del pass/fail de esta verificación |
+| guia-01 l.190, guia-02 l.385 | — | "TODO lo configurable" / "TODO el HTTP" (español, énfasis en mayúsculas) | ℹ️ Info | Falsos positivos conocidos, heredados |
+| guia-04 l.584, l.593 | — | `placeholder="$ mínimo/máximo"` | ℹ️ Info | Atributo HTML legítimo de los inputs, no un stub |
+| (heredados) WR-01..08, IN-01..09 | — | Findings del review con disposition:open | ⚠️ Warning | 17 filas en 01-REVIEW-DISPOSITION.md, triage del developer; WR-01/WR-02 siguen siendo los prioritarios (desvíos advertidos en fila 11); fuera del pass/fail de esta verificación |
 
-Sin TBD/FIXME/XXX en los archivos modificados. Sin placeholders. Sin stubs.
+Sin TBD/FIXME/XXX reales (scan con word boundaries: solo los 2 falsos positivos españoles). Sin placeholders de implementación. Sin stubs.
 
 ## Human Verification Required
 
-2 items (detallados en frontmatter). Contexto: el UAT inicial (agent-executed, user-delegated) ya ejecutó los 4 walkthroughs — tests 2 y 3 PASS definitivos; tests 1 y 4 pasaron todo lo funcional y solo tropezaron con los 2 desvíos de texto que el plan 01-06 corrigió. Los 2 items siguientes cubren ÚNICAMENTE la re-ejecución de los pasos corregidos (lo que el SUMMARY 01-06 registra como pendiente unrun-verify):
-
-1. **Test 1 re-ejecución (guia-01, G-01-1):** `uv init backend --vcs none --app` en directorio limpio → `ls -a backend/` NO muestra .gitignore (la guía ya no lo promete); Paso 5 → crear backend/.gitignore con el bloque entregado (`__pycache__/`, `*.pyc`, `*.pyo`, `.venv/`, `*.db`, `.env`); mini-verificación "que acabas de crear" valida `.env` y `*.db`.
-2. **Test 4 re-ejecución (guia-04, G-01-4):** pegar el router corregido (import con Error + decorator con responses={404}), reiniciar, abrir http://localhost:8000/docs → GET /api/productos/{producto_id} documenta 200, 404 (descripción "Producto inexistente (o inactivo)", esquema Error) y 422; fila 11 queda solo con WR-01/WR-02 (advertidos).
+Ninguno. Los 2 items de la ronda anterior (re-ejecución post-fix de tests 1 y 4 del UAT) quedaron cerrados por el propio UAT (01-UAT.md: test 1 re-ejecutado en scratch limpio refix/ — PASS; test 4 re-ejecutado con openapi documentando 200/404(Error)/422 — PASS; total 4/4, 0 issues). Los deltas post-UAT (fix main.tsx + lift de diseño) tienen evidencia delegada material verificada esta ronda (código aplicado en el taller + build exitoso + amendment del UI-SPEC que registra la verificación visual y con npm run build, 2026-09-29, bajo el esquema de UAT delegado persistido en AGENTS.md).
 
 ## Gaps Summary
 
-Sin gaps. Los 2 gaps diagnosticados por el UAT (G-01-1, G-01-4) están cerrados y verificados a nivel de contenido con evidencia completa (greps de ausencia/presencia, lectura in situ de las 3+5 ediciones, bloque .gitignore byte-idéntico en única ocurrencia, description/model palabra por palabra del contrato, prohibiciones respetadas — contrato intacto, guia-03 intacta, cero 422 declarado —, commits 7d28520/7d8ca85 con scope exacto, bloques python ast.parse 5/5 y 6/6). Sin regresiones: las 8 verdades heredadas pasan regression check y el invariant guide-only se mantiene.
+Sin gaps. La regeneración contra el estado actual confirma: (a) los 2 commits que invalidaron el digest (fix del import de main.tsx y lift de diseño) no rompieron ningún must-have — el lift conservó todos los elementos de identidad de marca (truth 1), los 5 elementos de la ficha (truth 3) y el 404 del contrato (truth 10), y actualizó las mini-verificaciones en los mismos commits que el código (cero drift); (b) el fix del import es conductualmente positivo — agrega detección de un fallo silencioso y su chequeo ya se ejecutó con éxito en el taller (CSS presente en dist); (c) sin regresiones: conteos piensa idénticos, mini +1 aditivo, contrato y guia-01/03 intactos, invariante guide-only sostenido, prohibiciones respetadas; (d) requirements 6/6 satisfechos sin huérfanos.
 
-Lo único que impide `passed` es la dimensión runtime de la verdad 7: los pasos corregidos no se han re-ejecutado en el taller (el UAT corrió PRE-fix). Son 2 chequeos acotados, listados arriba. Adicionalmente (no bloqueante): (a) el goal del ROADMAP sigue sin formato User Story canónico; (b) 17 filas de review disposition:open esperan triage del developer — WR-01/WR-02 siguen contaminando la fila 11 con desvíos advertidos, y el fix dejó 2 findings nuevos (WR-08, IN-09) también abiertos.
+Notas informativas (no bloqueantes): la verificación visual del lift quedó registrada en el amendment de 01-UI-SPEC.md (l.286-289) en vez de como test numerado en 01-UAT.md — asimetría de bookkeeping cuya evidencia material esta ronda confirmó de todos modos (código aplicado + build + timeline 11:01→11:02:59); el goal del ROADMAP sigue sin formato User Story canónico; 17 filas de review siguen open para triage del developer.
 
 ---
 
-_Verified: 2026-09-29T12:35:13Z_
+_Verified: 2026-09-29T14:42:56Z_
 _Verifier: Claude (gsd-verifier)_
