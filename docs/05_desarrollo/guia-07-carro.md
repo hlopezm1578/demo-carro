@@ -145,12 +145,11 @@ del store junto a los existentes:
 import { useCarroStore } from "../../stores/useCarroStore";
 ```
 
-Dentro del componente, junto a los otros hooks (arriba, antes de los
-`return` — los hooks van siempre primero):
+Dentro del componente, DEBAJO de los `useParams`/`useNavigate` que ya
+tienes desde la guía 4 (no los copies otra vez: redeclararlos rompe el
+build), agrega solo las líneas nuevas:
 
 ```tsx
-  const { id } = useParams();
-  const navigate = useNavigate();
   const agregar = useCarroStore((s) => s.agregar);
   // ¿Cuántas unidades de ESTE aroma ya van en el carro? Para el tope (D-30).
   // Number(id): el id del useParams es un string; el store guarda número.
