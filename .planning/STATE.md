@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 2
 current_phase_name: Cuentas de cliente y carro persistente
 status: executing
-stopped_at: Phase 2 UI-SPEC approved
-last_updated: "2026-09-29T16:31:04.467Z"
+stopped_at: Completed 02-01-PLAN.md
+last_updated: "2026-09-29T16:52:21.196Z"
 last_activity: 2026-09-29
 last_activity_desc: Phase 01 complete, transitioned to Phase 2
-state_head: fca717e8bf1cf4afef75dae82963c87a603cd29b
+state_head: 9d5e55b739c5f44f8e857501d8c221c33ea016bb
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 11
-  completed_plans: 6
+  completed_plans: 7
   percent: 20
 ---
 
@@ -62,6 +62,7 @@ Progress: [██░░░░░░░░] 20%
 | Phase 01 P01-04 | 11min | 3 tasks | 3 files |
 | Phase 01 P01-05 | 6min | 3 tasks | 7 files |
 | Phase 01 P06 | 4min | 2 tasks | 2 files |
+| Phase 02 P01 | 15 min | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -91,6 +92,9 @@ Recent decisions affecting current work:
 - [Phase 01]: [Phase 01 P06] Bloque de contenido del .gitignore de guia-01 byte-identico (el gap era quien crea el archivo); menciones de guia-03 quedan validas sin editarla
 - [Phase 01 cierre]: UAT delegado al agente (instrucción persistida en AGENTS.md): las verificaciones runtime se ejecutan construyendo/modificando D:/Repos/maura-uat siguiendo las guías; sesión 01-UAT 4/4 PASS (re-ejecuciones G-01-1 en maura-uat/refix y G-01-4 sobre el backend existente)
 - [Phase 01 cierre]: Seguridad verificada en 01-SECURITY.md (19 amenazas, threats_open 0, ASVS 1, registro de plan-time); ui-review omitido con causa (repo guide-only D-17: sin código frontend que auditar)
+- [Phase 02]: Login form-urlencoded OAuth2 (username=email) en el contrato 0.2.0: habilita Authorize en /docs con las cuentas del seed y calza con el tutorial oficial de FastAPI
+- [Phase 02]: Copies locked D-26 grabados como example.detail del 409/401 en el contrato; sin endpoint de renovacion (D-19) y bearerAuth type http + scheme bearer
+- [Phase 02]: [02-01] ADRs 009-011 con negativas honestas (XSS dicha por D-21); arbol del alumno extendido con rutas completas manteniendo fase 1 byte-intacta
 
 ### Pending Todos
 
@@ -113,6 +117,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-29T15:38:18.702Z
-Stopped at: Phase 2 UI-SPEC approved
-Resume file: .planning/phases/02-cuentas-de-cliente-y-carro-persistente/02-UI-SPEC.md
+Last session: 2026-09-29T16:52:21.114Z
+Stopped at: Completed 02-01-PLAN.md
+Resume file: None
