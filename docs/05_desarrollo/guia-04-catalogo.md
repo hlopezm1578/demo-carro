@@ -372,7 +372,10 @@ Criterios de consistencia visual (la grilla se ve profesional cuando las fotos
    cítricas bien iluminadas, las dulces cálidas) — el badge de familia
    refuerza la lectura, no la corrige.
 2. **Entre familias:** mismo estilo fotográfico (todas de producto o todas de
-   "ambiente", sin mezclas).
+   "ambiente", sin mezclas) — y clima de tienda de belleza: frascos, sprays,
+   ingredientes en primer plano y fondos claros; evita fotos de comida
+   servida o platos armados, que se leen como restaurante y no como marca
+   de cuidado personal.
 3. **Formato:** cualquier proporción sirve — la card recorta con
    `object-cover` — pero prefiere sujetos centrados. Si la descarga viene en
    `.png` o `.webp`, conviértela o descarga otra: el nombre debe terminar en
@@ -388,6 +391,44 @@ tu proyecto es buena práctica profesional.)
 (`citricas-01.jpg` … `dulces-03.jpg`). Con `npm run dev` corriendo, abre
 **http://localhost:5173/products/citricas-01.jpg**: la foto se sirve desde tu
 propio proyecto — local, sin salir a internet.
+
+### Las fotos también visten la landing
+
+La landing de la guía 2 vistió su hero con anillos concéntricos en CSS — era
+lo honesto: cuando la construiste, no existían fotos. Ahora existen, y el
+círculo se convierte en la foto de tu producto. En
+**`frontend/src/features/landing/Landing.tsx`**, dentro del hero, reemplaza
+los tres `div` de los anillos (los que llevan `rounded-full` con `inset-0`,
+`inset-6` e `inset-14`) por tu primera foto cítrica:
+
+```tsx
+<img
+  src="/products/citricas-01.jpg"
+  alt="Body splash artesanal de Maura"
+  className="absolute inset-0 aspect-square w-full rounded-full object-cover shadow-xl ring-8 ring-white"
+/>
+```
+
+Los tres chips flotantes ("Hecho a mano", "Lotes pequeños", "Sin
+intermediarios") se quedan: ahora flotan sobre la foto — mismo círculo,
+mismo anillo blanco, pero con contenido real adentro.
+
+Y en la sección de familias, agrega la foto de cada familia como primera
+hija de la card (justo antes del kicker "Familia 0X"):
+
+```tsx
+<img
+  src={`/products/${f.slug}-01.jpg`}
+  alt={`Aroma de la familia ${FAMILIA_LABELS[f.slug]}`}
+  className="aspect-[4/3] w-full rounded-xl object-cover"
+/>
+```
+
+✅ **Mini-verificación:** recarga `http://localhost:5173/`: el hero muestra
+la foto dentro del círculo con su anillo blanco, los chips flotan sobre la
+imagen, y cada card de familia abre con su foto. La ruta sigue siendo 100 %
+local — el hero no volvió a los hotlinks: usa las imágenes que ya
+descargaste a TU proyecto.
 
 ---
 
@@ -509,9 +550,11 @@ export default function Catalogo() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
-      <h1 className="text-xl font-bold text-neutral-900">Nuestros aromas</h1>
+      <h1 className="text-2xl md:text-3xl font-extrabold text-neutral-900">
+        Nuestros aromas
+      </h1>
 
-      <div className="mt-4 bg-orange-50 rounded-2xl p-4 flex flex-wrap gap-4 items-center">
+      <div className="mt-5 bg-orange-50 rounded-2xl p-4 flex flex-wrap gap-4 items-center">
         <div className="flex flex-wrap gap-2">
           {chips.map((chip) => (
             <button
@@ -540,7 +583,7 @@ export default function Catalogo() {
             defaultValue={params.get("precio_min") ?? ""}
             placeholder="$ mínimo"
             aria-label="Precio mínimo"
-            className="w-28 rounded-lg border border-orange-200 px-4 py-2 focus-visible:ring-2 focus-visible:ring-orange-600 focus:outline-none"
+            className="w-32 rounded-lg border border-orange-200 px-4 py-2 focus-visible:ring-2 focus-visible:ring-orange-600 focus:outline-none"
           />
           <input
             type="number"
@@ -549,7 +592,7 @@ export default function Catalogo() {
             defaultValue={params.get("precio_max") ?? ""}
             placeholder="$ máximo"
             aria-label="Precio máximo"
-            className="w-28 rounded-lg border border-orange-200 px-4 py-2 focus-visible:ring-2 focus-visible:ring-orange-600 focus:outline-none"
+            className="w-32 rounded-lg border border-orange-200 px-4 py-2 focus-visible:ring-2 focus-visible:ring-orange-600 focus:outline-none"
           />
           <button
             type="submit"
@@ -569,7 +612,7 @@ export default function Catalogo() {
         )}
       </div>
 
-      <p className="mt-4 text-sm text-neutral-600">
+      <p className="mt-4 text-sm font-semibold text-neutral-500">
         {total} {total === 1 ? "aroma" : "aromas"}
       </p>
 
@@ -779,8 +822,8 @@ export default function FichaProducto() {
 
   if (query.isPending) {
     return (
-      <div className="max-w-3xl mx-auto p-6 grid md:grid-cols-2 gap-8">
-        <div className="aspect-square animate-pulse bg-neutral-200 rounded-2xl" />
+      <div className="max-w-5xl mx-auto px-4 py-10 grid md:grid-cols-2 gap-10">
+        <div className="aspect-square animate-pulse bg-neutral-200 rounded-3xl" />
         <div className="space-y-4">
           <div className="h-6 w-24 animate-pulse bg-neutral-200 rounded-full" />
           <div className="h-8 w-3/4 animate-pulse bg-neutral-200 rounded-2xl" />
@@ -836,7 +879,7 @@ export default function FichaProducto() {
   const producto = query.data;
 
   return (
-    <div className="max-w-3xl mx-auto p-6">
+    <div className="max-w-5xl mx-auto px-4 py-10">
       <button
         onClick={() => navigate(-1)}
         className="text-sm text-orange-600 min-h-11 flex items-center focus-visible:ring-2 focus-visible:ring-orange-600 focus:outline-none"
@@ -844,11 +887,11 @@ export default function FichaProducto() {
         ← Volver al catálogo
       </button>
 
-      <div className="mt-4 grid md:grid-cols-2 gap-8">
+      <div className="mt-4 grid md:grid-cols-2 gap-10">
         <img
           src={producto.imagen}
           alt={producto.nombre}
-          className="rounded-2xl aspect-square object-cover bg-neutral-200 w-full"
+          className="rounded-3xl aspect-square object-cover bg-neutral-200 w-full shadow-md"
         />
         <div>
           <div className="flex flex-wrap gap-2">
@@ -859,17 +902,17 @@ export default function FichaProducto() {
             </span>
             <BadgeDisponibilidad stock={producto.stock} />
           </div>
-          <h1 className="mt-2 text-xl font-bold text-neutral-900">
+          <h1 className="mt-3 text-2xl md:text-3xl font-extrabold text-neutral-900">
             {producto.nombre}
           </h1>
-          <p className="mt-1 text-xl font-bold text-neutral-900">
+          <p className="mt-1 text-2xl font-extrabold text-orange-700">
             {clp.format(producto.precio)}
           </p>
-          <p className="mt-4 text-base text-neutral-600">
+          <p className="mt-5 text-base leading-relaxed text-neutral-600">
             {producto.descripcion}
           </p>
           {producto.notas.length > 0 && (
-            <div className="mt-4">
+            <div className="mt-6">
               <p className="text-sm font-bold text-neutral-900">
                 Notas aromáticas
               </p>
@@ -885,7 +928,7 @@ export default function FichaProducto() {
               </div>
             </div>
           )}
-          <p className="mt-4 text-sm text-neutral-600">
+          <p className="mt-6 text-sm font-semibold text-neutral-600">
             {producto.stock === 0
               ? "Agotado"
               : `${producto.stock} ${producto.stock === 1 ? "unidad" : "unidades"} disponibles`}

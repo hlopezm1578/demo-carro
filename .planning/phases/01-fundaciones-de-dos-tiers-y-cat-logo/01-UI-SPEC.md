@@ -260,3 +260,30 @@ Applicable state considerations resolved: **12 covered, 0 backstop, 0 unresolved
 - [x] Dimension 7 Inventory Provenance: PASS
 
 **Approval:** approved (gsd-ui-checker, round 2 — 2026-09-28)
+
+---
+
+## Amendment 2026-09-29 — Design lift (post-UAT, feedback del usuario)
+
+El usuario evaluó el diseño implementado como "muy básico y poco profesional" y aprobó un
+**lift de diseño moderado**. Este amendment registra las desviaciones respecto del contrato
+original; todo lo no mencionado sigue vigente (tokens de forma `rounded-full`, contraste
+60/30/10, navegación, estados, accesibilidad).
+
+| Ámbito | Contrato original | Amendment |
+|--------|-------------------|-----------|
+| Paleta | Default de Tailwind (`orange-*` genérico) | Escala `orange-*` sobrescrita en `@theme` (crema cálido `#fbf4ea`/`#f5e5ce`/`#ebd0ac`, terracota `#d9480f`/`#b03a0c`) — sigue cero `tailwind.config`, los componentes siguen escribiendo `orange-*` |
+| Hero landing | Una columna centrada, `text-4xl` | Dos columnas (`md:grid-cols-2`), `text-4xl md:text-6xl` extrabold, visual de anillos concéntricos CSS + 3 chips flotantes con promesas; en guia-04 el círculo se convierte en foto (`citricas-01.jpg`) con `ring-8 ring-white` |
+| Cards de familia (landing) | Texto con badge de familia + título duplicado | Card `Link` completa con kicker numerado ("Familia 0X"), hover lift (`hover:-translate-y-1 hover:shadow-lg`), flecha deslizante; foto `aspect-[4/3]` agregada en guia-04 |
+| Navbar | `bg-orange-50` sólida, `py-2` | `bg-orange-50/90 backdrop-blur` + logo-dot terracota + `z-10` |
+| Footer | Una línea | Tres piezas (marca con dot, promesa, proyecto) |
+| Tipografía de sección | `text-xl font-bold` | `text-2xl md:text-3xl font-extrabold` (h1 catálogo, ficha y familias) |
+| Precio | `text-base`/`text-xl font-bold` neutro | `text-lg`/`text-2xl font-extrabold text-orange-700` (card y ficha) |
+| ProductCard | `hover:shadow-md` | Hover lift + zoom de imagen (`group-hover:scale-105`), nombre `text-base` |
+| Ficha | `max-w-3xl p-6`, imagen `rounded-2xl` | `max-w-5xl px-4 py-10 gap-10`, imagen `rounded-3xl shadow-md`, descripción `leading-relaxed` |
+| Inputs de precio | `w-28` (placeholder truncado) | `w-32` |
+
+Justificación pedagógica: el lift enseña dos conceptos reales de Tailwind 4 (theming vía
+`@theme` y `group-hover`/transiciones) sin introducir `tailwind.config` ni tokens fuera del
+sistema de utilidades. Verificado visualmente y con `npm run build` en el workspace de UAT
+(`maura-uat`) el 2026-09-29.

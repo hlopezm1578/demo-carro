@@ -171,9 +171,9 @@ página (`es`) y el título con la marca:
 
 Y reemplaza **`frontend/src/index.css`** completo — aquí vive el contrato
 visual base: Tailwind importado como una línea, la fuente Nunito self-hosted
-importada del paquete npm, y el bloque `@theme` que declara la tipografía de
-la marca (dirección visual: fresco y luminoso, tipografía redondeada —
-docs/03_diseno.md §4.1):
+importada del paquete npm, y el bloque `@theme` que declara la identidad de
+la marca: tipografía redondeada y paleta propia (dirección visual: fresco y
+luminoso, crema cálido y terracota — docs/03_diseno.md §4.1):
 
 ```css
 @import "tailwindcss";
@@ -181,17 +181,33 @@ docs/03_diseno.md §4.1):
 
 @theme {
   --font-sans: "Nunito Variable", system-ui, sans-serif;
+
+  /* Paleta de la marca: sobrescribe la escala naranja de Tailwind.
+     Los componentes siguen usando orange-*; el tono de Maura vive aquí. */
+  --color-orange-50: #fbf4ea;
+  --color-orange-100: #f5e5ce;
+  --color-orange-200: #ebd0ac;
+  --color-orange-600: #d9480f;
+  --color-orange-700: #b03a0c;
 }
 ```
 
 Eso es toda la configuración de estilos del proyecto: Tailwind 4 no tiene
 `tailwind.config.js` — el `@theme` reemplaza al archivo de configuración de
-las versiones anteriores.
+las versiones anteriores. Y fíjate en las cinco líneas comentadas: Tailwind 4
+deja SOBREESCRIBIR cualquier variable de su paleta desde `@theme`. Todos los
+componentes de esta guía seguirán escribiendo `orange-600` — pero el naranja
+que pintan ya no es el genérico del framework, sino el terracota de Maura.
+Cambiar el color de TODA la tienda será siempre editar esas cinco líneas: un
+solo lugar, cero componentes tocados (la misma idea que `config.py` en la
+guía 1, pero para el diseño).
 
 ✅ **Mini-verificación:** `npm run dev` arranca sin errores y
 `http://localhost:5173` sigue mostrando la página del template — ahora
 escrita con la tipografía redondeada Nunito (compárala con la fuente del
-sistema: se nota en la página de bienvenida de Vite).
+sistema: se nota en la página de bienvenida de Vite). La paleta nueva se
+verá en cuanto construyamos nuestros propios componentes: el template no
+usa nuestros tonos.
 
 ---
 
@@ -425,12 +441,16 @@ const estiloLink = ({ isActive }: { isActive: boolean }) =>
 
 export default function Navbar() {
   return (
-    <header className="sticky top-0 bg-orange-50 border-b border-orange-100">
-      <nav className="max-w-6xl mx-auto flex items-center justify-between gap-4 px-4 py-2">
+    <header className="sticky top-0 z-10 bg-orange-50/90 backdrop-blur border-b border-orange-100">
+      <nav className="max-w-6xl mx-auto flex items-center justify-between gap-4 px-4 py-3">
         <Link
           to="/"
-          className="text-xl font-bold text-neutral-900 truncate focus-visible:ring-2 focus-visible:ring-orange-600 focus:outline-none"
+          className="flex items-center gap-2 text-xl font-bold text-neutral-900 truncate focus-visible:ring-2 focus-visible:ring-orange-600 focus:outline-none"
         >
+          <span
+            aria-hidden="true"
+            className="h-2.5 w-2.5 rounded-full bg-orange-600"
+          />
           Maura · Body Splash
         </Link>
         <div className="flex gap-4">
@@ -452,10 +472,17 @@ Crea **`frontend/src/components/Footer.tsx`**:
 ```tsx
 export default function Footer() {
   return (
-    <footer className="bg-orange-50">
-      <p className="max-w-6xl mx-auto px-4 py-4 text-sm text-neutral-600">
-        Maura · Body Splash — proyecto educativo · 2026
-      </p>
+    <footer className="bg-orange-50 border-t border-orange-100">
+      <div className="max-w-6xl mx-auto px-4 py-8 flex flex-wrap items-center justify-between gap-4">
+        <p className="text-sm font-bold text-neutral-900">
+          <span aria-hidden="true" className="mr-2 inline-block h-2 w-2 rounded-full bg-orange-600 align-middle" />
+          Maura · Body Splash
+        </p>
+        <p className="text-sm text-neutral-600">
+          Hecho a mano en lotes pequeños · Chile
+        </p>
+        <p className="text-sm text-neutral-500">Proyecto educativo · 2026</p>
+      </div>
     </footer>
   );
 }
@@ -484,10 +511,12 @@ export default function Layout() {
 ```
 
 ✅ **Mini-verificación:** `npm run dev` y abre
-`http://localhost:5173/productos` (el stub): la barra naranja pálida con
-**Maura · Body Splash** y los links Inicio/Catálogo aparece arriba — pegada
-al borde si haces scroll — y el footer con la línea de proyecto educativo
-aparece abajo, **en cualquier ruta**. Ese es el trabajo de la ruta layout.
+`http://localhost:5173/productos` (el stub): la barra crema con el punto
+terracota, **Maura · Body Splash** y los links Inicio/Catálogo aparece
+arriba — pegada al borde si haces scroll, con el contenido deslizándose por
+debajo como vidrio esmerilado (`backdrop-blur` sobre un fondo al 90 %) — y
+el footer en tres piezas (marca, promesa, proyecto) aparece abajo, **en
+cualquier ruta**. Ese es el trabajo de la ruta layout.
 
 ---
 
@@ -496,21 +525,27 @@ aparece abajo, **en cualquier ruta**. Ese es el trabajo de la ruta layout.
 🧠 **El desarrollador piensa:** *la landing es la identidad de la marca hecha
 pantalla (docs/01_necesidad: quién es Maura; docs/03_diseno.md §4.2: cómo se
 ve). Tres decisiones de copy ya están tomadas y no se negocian en código: el
-**eyebrow** presenta la marca, el título es el tagline exacto —"Frescura que
-te acompaña"— y el párrafo es Maura hablando en primera persona (esa misma
-voz la heredará la asistente de IA en una fase próxima). El botón principal
-usa el naranja de acento — la paleta es blanco dominante, naranja pálido de
-fondo, acento naranja — y la sección de familias muestra las cuatro
-categorías aromáticas del catálogo (RN-01), cada una con su link hacia el
-catálogo filtrado. Las cards repiten el patrón de badge + nombre +
-descripción que usará el catálogo: componentes que enseñan un patrón que
-vuelve.*
+**eyebrow** presenta la marca en mayúsculas espaciadas, el título es el
+tagline exacto —"Frescura que te acompaña"— en el tamaño más grande del
+sitio, y el párrafo es Maura hablando en primera persona (esa misma voz la
+heredará la asistente de IA en una fase próxima). El hero va a dos columnas:
+el texto a la izquierda, y a la derecha un visual de **anillos concéntricos
+en CSS puro** — la paleta de la marca desplegada como una mancha de frescor.
+¿Por qué CSS y no una foto? Porque la foto de producto llega en la guía 4,
+cuando el alumno descargue las 12 imágenes: hoy el anillo es honesto, y en
+la guía 4 se convierte EN la foto (mismo círculo, mismo anillo blanco). Sobre
+los anillos flotan tres chips con las promesas de Maura — `absolute`
+posicionado a mano, la primera vez que salimos del flujo del documento. La
+sección de familias muestra las cuatro categorías aromáticas (RN-01), cada
+card convertida entera en un Link (más clic, más hover) con un kicker
+numerado — el patrón badge + nombre que usará el catálogo vive en
+`ProductCard`, el paso siguiente.*
 
 Reemplaza el stub de **`frontend/src/features/landing/Landing.tsx`**:
 
 ```tsx
 import { Link } from "react-router";
-import { FAMILIA_BADGES, FAMILIA_LABELS, type Familia } from "../../types/api";
+import { FAMILIA_LABELS, type Familia } from "../../types/api";
 
 const FAMILIAS: { slug: Familia; descripcion: string; href: string }[] = [
   {
@@ -535,59 +570,104 @@ const FAMILIAS: { slug: Familia; descripcion: string; href: string }[] = [
   },
 ];
 
+const PROMESAS = ["Hecho a mano", "Lotes pequeños", "Sin intermediarios"];
+
 export default function Landing() {
   return (
     <div>
-      <section className="bg-orange-50 py-16">
-        <div className="max-w-xl mx-auto px-4 text-center">
-          <p className="text-sm tracking-wide text-neutral-600">
-            Maura · Body Splash
-          </p>
-          <h1 className="text-4xl font-bold tracking-tight text-neutral-900">
-            Frescura que te acompaña
-          </h1>
-          <p className="text-base leading-normal text-neutral-600">
-            Soy Maura. Hago body splash a mano, en lotes pequeños, con
-            esencias frescas que elijo una por una. Esta tienda nace para que
-            encuentres tu aroma desde cualquier parte de Chile, sin
-            intermediarios.
-          </p>
-          <Link
-            to="/productos"
-            className="mt-6 inline-block bg-orange-600 text-white font-bold rounded-full px-6 py-2 min-h-11 hover:bg-orange-700 focus-visible:ring-2 focus-visible:ring-orange-600 focus:outline-none"
-          >
-            Ver catálogo
-          </Link>
+      <section className="bg-orange-50 overflow-hidden">
+        <div className="max-w-6xl mx-auto px-4 py-16 md:py-24 grid md:grid-cols-2 gap-12 items-center">
+          <div className="text-center md:text-left">
+            <p className="text-sm font-bold tracking-widest uppercase text-orange-600">
+              Maura · Body Splash
+            </p>
+            <h1 className="mt-4 text-4xl md:text-6xl font-extrabold tracking-tight leading-tight text-neutral-900">
+              Frescura que te acompaña
+            </h1>
+            <p className="mt-5 text-base md:text-lg leading-relaxed text-neutral-600 max-w-md mx-auto md:mx-0">
+              Soy Maura. Hago body splash a mano, en lotes pequeños, con
+              esencias frescas que elijo una por una. Esta tienda nace para que
+              encuentres tu aroma desde cualquier parte de Chile, sin
+              intermediarios.
+            </p>
+            <div className="mt-8 flex flex-wrap gap-3 justify-center md:justify-start">
+              <Link
+                to="/productos"
+                className="inline-flex items-center bg-orange-600 text-white font-bold rounded-full px-7 py-3 min-h-11 hover:bg-orange-700 focus-visible:ring-2 focus-visible:ring-orange-600 focus:outline-none"
+              >
+                Ver catálogo
+              </Link>
+              <a
+                href="#familias"
+                className="inline-flex items-center px-4 text-sm font-bold text-orange-700 min-h-11 focus-visible:ring-2 focus-visible:ring-orange-600 focus:outline-none"
+              >
+                Conoce las familias ↓
+              </a>
+            </div>
+          </div>
+
+          <div className="relative hidden md:block" aria-hidden="true">
+            <div className="relative aspect-square w-full max-w-sm mx-auto">
+              <div className="absolute inset-0 rounded-full bg-orange-200/70" />
+              <div className="absolute inset-6 rounded-full bg-orange-100" />
+              <div className="absolute inset-14 rounded-full bg-white shadow-xl" />
+              <span className="absolute top-2 left-2 bg-white shadow-md rounded-full px-4 py-2 text-sm font-bold text-neutral-700">
+                {PROMESAS[0]}
+              </span>
+              <span className="absolute bottom-6 -left-4 bg-white shadow-md rounded-full px-4 py-2 text-sm font-bold text-neutral-700">
+                {PROMESAS[1]}
+              </span>
+              <span className="absolute bottom-16 -right-6 bg-white shadow-md rounded-full px-4 py-2 text-sm font-bold text-neutral-700">
+                {PROMESAS[2]}
+              </span>
+            </div>
+          </div>
         </div>
       </section>
 
-      <section className="py-12">
+      <section id="familias" className="scroll-mt-20 py-16 md:py-20">
         <div className="max-w-6xl mx-auto px-4">
-          <h2 className="text-xl font-bold text-neutral-900">
-            Nuestras familias
-          </h2>
-          <div className="mt-6 grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {FAMILIAS.map((f) => (
-              <div
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <h2 className="text-2xl md:text-3xl font-extrabold text-neutral-900">
+                Nuestras familias
+              </h2>
+              <p className="mt-2 text-neutral-600">
+                Cuatro direcciones aromáticas: elige por cómo quieres
+                sentirte.
+              </p>
+            </div>
+            <Link
+              to="/productos"
+              className="text-sm font-bold text-orange-600 min-h-11 flex items-center focus-visible:ring-2 focus-visible:ring-orange-600 focus:outline-none"
+            >
+              Ver todo el catálogo →
+            </Link>
+          </div>
+          <div className="mt-8 grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {FAMILIAS.map((f, i) => (
+              <Link
                 key={f.slug}
-                className="bg-white rounded-2xl border border-orange-100 p-6"
+                to={f.href}
+                className="group bg-white rounded-2xl border border-orange-100 p-6 hover:border-orange-200 hover:shadow-lg hover:-translate-y-1 transition focus-visible:ring-2 focus-visible:ring-orange-600 focus:outline-none"
               >
-                <span
-                  className={`text-sm rounded-full px-2 py-1 ${FAMILIA_BADGES[f.slug]}`}
-                >
-                  {FAMILIA_LABELS[f.slug]}
-                </span>
-                <p className="mt-2 text-xl font-bold text-neutral-900">
+                <p className="text-xs font-bold uppercase tracking-widest text-orange-600">
+                  Familia 0{i + 1}
+                </p>
+                <p className="mt-2 text-xl font-extrabold text-neutral-900">
                   {FAMILIA_LABELS[f.slug]}
                 </p>
-                <p className="text-sm text-neutral-600">{f.descripcion}</p>
-                <Link
-                  to={f.href}
-                  className="mt-2 inline-block text-sm text-orange-600 min-h-11 flex items-center focus-visible:ring-2 focus-visible:ring-orange-600 focus:outline-none"
-                >
-                  Ver aromas →
-                </Link>
-              </div>
+                <p className="mt-1 text-sm text-neutral-600">{f.descripcion}</p>
+                <p className="mt-4 flex items-center gap-1 text-sm font-bold text-orange-600">
+                  Ver aromas
+                  <span
+                    aria-hidden="true"
+                    className="inline-block transition-transform group-hover:translate-x-1"
+                  >
+                    →
+                  </span>
+                </p>
+              </Link>
             ))}
           </div>
         </div>
@@ -597,17 +677,21 @@ export default function Landing() {
 }
 ```
 
-Nota el patrón `FAMILIA_LABELS[f.slug]`: el badge y el título muestran la
-**etiqueta** con acento, pero el `href` viaja con el **slug** sin acentos —
-la RN-01 funcionando en una sola card.
+Nota el patrón `FAMILIA_LABELS[f.slug]`: el título muestra la **etiqueta**
+con acento, pero el `href` viaja con el **slug** sin acentos — la RN-01
+funcionando en una sola card. (El patrón badge + nombre que verás en el
+catálogo vive en `ProductCard`, el paso siguiente.)
 
-✅ **Mini-verificación:** abre `http://localhost:5173/` — el hero muestra el
-eyebrow "Maura · Body Splash", el tagline "Frescura que te acompaña" en
-grande, el párrafo de Maura en primera persona y el botón naranja "Ver
-catálogo" (clic: te lleva al catálogo). Abajo, "Nuestras familias" con las
-cuatro cards y sus links "Ver aromas →" — cada uno lleva al catálogo con el
-filtro de su familia ya escrito en la dirección (lo verás trabajar en la
-guía 4, cuando existan productos que filtrar).
+✅ **Mini-verificación:** abre `http://localhost:5173/` — el hero ocupa dos
+columnas: a la izquierda el eyebrow "MAURA · BODY SPLASH" en terracota y
+mayúsculas, el tagline "Frescura que te acompaña" ENorme, el párrafo de
+Maura en primera persona y los dos CTAs ("Ver catálogo" naranjo + el link
+suave que baja a las familias); a la derecha los anillos concéntricos con
+los tres chips flotando. Abajo, "Nuestras familias" con las cuatro cards —
+pasa el cursor sobre una: se eleva, gana sombra y la flecha "Ver aromas →"
+se desliza — y cada una lleva al catálogo con el filtro de su familia ya
+escrito en la dirección (lo verás trabajar en la guía 4, cuando existan
+productos que filtrar).
 
 ---
 
@@ -674,8 +758,10 @@ export default function Catalogo() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
-      <h1 className="text-xl font-bold text-neutral-900">Nuestros aromas</h1>
-      <p className="mt-1 text-sm text-neutral-600">
+      <h1 className="text-2xl md:text-3xl font-extrabold text-neutral-900">
+        Nuestros aromas
+      </h1>
+      <p className="mt-1 text-sm font-semibold text-neutral-500">
         {query.data.length} aromas
       </p>
       <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -700,13 +786,13 @@ export default function ProductCard({ producto }: { producto: ProductoResumen })
   return (
     <Link
       to={`/productos/${producto.id}`}
-      className="block bg-white rounded-2xl border border-orange-100 overflow-hidden hover:shadow-md transition-shadow focus-visible:ring-2 focus-visible:ring-orange-600 focus:outline-none"
+      className="group block bg-white rounded-2xl border border-orange-100 overflow-hidden hover:shadow-lg hover:-translate-y-1 transition focus-visible:ring-2 focus-visible:ring-orange-600 focus:outline-none"
     >
       <img
         src={producto.imagen}
         alt={producto.nombre}
         loading="lazy"
-        className="aspect-square w-full object-cover bg-neutral-200"
+        className="aspect-square w-full object-cover bg-neutral-200 transition-transform duration-300 group-hover:scale-105"
       />
       <div className="p-4">
         <span
@@ -714,10 +800,10 @@ export default function ProductCard({ producto }: { producto: ProductoResumen })
         >
           {FAMILIA_LABELS[producto.familia]}
         </span>
-        <p className="mt-2 text-xl font-bold text-neutral-900 line-clamp-2">
+        <p className="mt-2 text-base font-bold text-neutral-900 line-clamp-2">
           {producto.nombre}
         </p>
-        <p className="mt-1 text-base font-bold text-neutral-900">
+        <p className="mt-1 text-lg font-extrabold text-orange-700">
           {clp.format(producto.precio)}
         </p>
       </div>
