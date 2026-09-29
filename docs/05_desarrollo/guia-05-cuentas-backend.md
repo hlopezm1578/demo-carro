@@ -605,7 +605,8 @@ from sqlalchemy.orm import Session
 from app.database import get_session
 from app.models.usuario import Usuario
 from app.repositories.usuario import UsuarioRepository
-from app.schemas.usuario import Error, RegistroCreate, Token, UsuarioPublico
+from app.schemas.producto import Error  # el cuerpo de error vive en schemas/producto desde la guía 4
+from app.schemas.usuario import RegistroCreate, Token, UsuarioPublico
 from app.security import create_access_token, get_current_user
 from app.services.cuentas import CuentasService
 
@@ -702,7 +703,7 @@ from sqlalchemy.orm import Session
 from app.database import get_session
 from app.models.usuario import Usuario
 from app.repositories.producto import ProductoRepository
-from app.schemas.usuario import Error
+from app.schemas.producto import Error  # el cuerpo de error vive en schemas/producto desde la guía 4
 from app.security import get_current_admin
 from app.services.catalogo import CatalogService
 
