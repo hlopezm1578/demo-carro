@@ -580,7 +580,7 @@ export default function Carro() {
 siguiente — si quieres verla ya, adelántate un paso y vuelve: con ítems en
 el carro verás las filas con su precio `c/u` hidratado, el total de línea en
 terracota y el panel con el Total que calza con la suma (compárala a mano:
-2 × $7.990 + 1 × $10.990 = $26.980).
+2 × $7.990 + 1 × $10.990 = $26.970).
 
 ---
 

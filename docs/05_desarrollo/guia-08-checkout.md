@@ -321,7 +321,7 @@ vacía el carro (dos pasos en `/carro`) y abre **/checkout**: terminas en
 `/carro` — la dirección cambió sola (`replace`: el atrás no vuelve al
 checkout vacío). Vuelve a llenar el carro, entra al checkout y compara:
 mismas líneas, mismas cantidades tapadas y el MISMO total que el panel de
-`/carro` — al peso (2 × $7.990 + 1 × $10.990 = $26.980 en ambos lados).
+`/carro` — al peso (2 × $7.990 + 1 × $10.990 = $26.970 en ambos lados).
 
 ---
 

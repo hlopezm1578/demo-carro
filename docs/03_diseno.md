@@ -610,7 +610,7 @@ catálogo que reemplaza toda la página)
 │  │                   [ Sí, vaciar ] [ Cancelar ]    │  │
 │  └──────────────────────────────────────────────────┘  │
 │                ┌────────────────────────┐              │
-│                │ Total          $26.980 │              │
+│                │ Total          $26.970 │              │
 │                │ [  Finalizar compra  ] │              │
 │                └────────────────────────┘              │
 └────────────────────────────────────────────────────────┘
@@ -653,7 +653,7 @@ resumen sin líneas no existe) / carga (esqueletos de líneas) / error de carga
 │  │ Brisa de Naranja                × 2      $15.980 │  │
 │  │ Rosa de Río                     × 1      $10.990 │  │
 │  │ ──────────────────────────────────────────────── │  │
-│  │ Total                                    $26.980 │  │
+│  │ Total                                    $26.970 │  │
 │  │                                                  │  │
 │  │ [    Pagar con Webpay    ]  (deshabilitado)      │  │
 │  │  El pago llega en la etapa siguiente.            │  │
