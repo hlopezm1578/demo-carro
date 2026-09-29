@@ -106,11 +106,15 @@ Versiones del stack autoritativo del proyecto (AGENTS.md / `.planning/research/S
 | Routing | **React Router 8.4.0** (library mode) | Rutas de la SPA (`/`, `/productos`, `/productos/:id`); filtros en URL search params compartibles |
 | Server state | **TanStack Query 5.104** | Caché, reintentos y estados de carga/error/vacío del diseño §4.1 sin fetch manual |
 | Estilos | **Tailwind CSS 4.3.3** | La dirección fresco-luminosa de la marca con utilidades; v4 sin archivo de configuración |
+| Estado de cliente | **zustand 5.0** (con `persist`) | Stores de sesión y carro que sobreviven recargas y full-page loads en el `localStorage` ([ADR-009](adr/009-jwt-larga-vida-localstorage.md), [ADR-010](adr/010-carro-client-side.md)) |
 | Runtime frontend | **Node ≥ 22.22** (o 24) | Techo de react-router 8 — prerrequisito que la guía 2 de desarrollo hace verificar (`node -v`) |
 | Framework del API | **FastAPI 0.141.1** | Validación declarativa (422 automático), inyección de dependencias y `/docs` autogenerado para comparar con el contrato ([ADR-001](adr/001-arquitectura-en-capas.md), [ADR-007](adr/007-api-first.md)) |
 | ORM | **SQLAlchemy 2.1.1** | Modelos declarativos; el mismo código para SQLite y un futuro Postgres ([ADR-005](adr/005-sqlite-y-create-all.md)) |
 | Base de datos | **SQLite** (fase 1) | Cero instalación, archivo local; BD demo desechable con seed idempotente ([ADR-005](adr/005-sqlite-y-create-all.md)) |
 | Configuración | **pydantic-settings 2.15** | `DATABASE_URL` y orígenes CORS como variables de entorno tipadas — sin secretos en código |
+| Tokens de sesión | **pyjwt 2.15** | Emisión y verificación del JWT (`HS256`, claim de rol desde el primer token); la librería que usa hoy el tutorial oficial de FastAPI ([ADR-009](adr/009-jwt-larga-vida-localstorage.md)) |
+| Hash de contraseñas | **pwdlib[argon2] 0.3** | Argon2 con `PasswordHash.recommended()`; reemplaza a la librería legada sin mantenimiento ([ADR-009](adr/009-jwt-larga-vida-localstorage.md), [ADR-011](adr/011-roles-desde-el-primer-token.md)) |
+| Formularios HTTP | **python-multipart 0.0.32** | Parseo del form de login (`OAuth2PasswordRequestForm`) que exige el `/api/auth/login` del contrato 0.2.0; ya viene dentro de `fastapi[standard]` |
 | Gestor Python | **uv** (pyproject + uv.lock) | El flujo que enseña hoy la documentación oficial de FastAPI ([ADR-006](adr/006-uv-como-gestor.md)) |
 | Lenguaje backend | **Python 3.12** | Techo declarado por `transbank-sdk` (fase 3); fijado con `requires-python ">=3.12,<3.13"` ([ADR-006](adr/006-uv-como-gestor.md)) |
 | Pago (fase 3) | **Webpay Plus, ambiente de integración** | Pasarela real chilena en sandbox con credenciales públicas — llega en su fase |
@@ -135,11 +139,18 @@ maura/                          ← raíz del proyecto del alumno (D-11, ADR-003
 │       ├── main.py             # composición: arma la aplicación (no tiene lógica)
 │       ├── config.py           # Settings: DATABASE_URL, CORS_ORIGINS (variables de entorno)
 │       ├── database.py         # engine, SessionLocal, Base, get_session
+│       ├── security.py         # módulo transversal de seguridad: hash Argon2, JWT HS256 y las dependencias de sesión/rol (ADR-009, ADR-011)
 │       ├── models/             # tablas SQLAlchemy: la entidad PRODUCTO (diseño §2)
+│       ├── models/usuario.py   # la entidad USUARIO: email único, hash de contraseña y rol
 │       ├── schemas/            # frontera: validación Pydantic (RN-01, RN-02)
+│       ├── schemas/usuario.py  # RegistroCreate, UsuarioPublico y Token — espejan el contrato 0.2.0
 │       ├── repositories/       # solo acceso a datos: el almacén D1
+│       ├── repositories/usuario.py  # el almacén de usuarios: búsqueda por email y creación
 │       ├── services/           # las reglas del negocio: los procesos 1.0–3.0
+│       ├── services/cuentas.py # registrar (409 claro) y autenticar (401 genérico)
 │       ├── routers/            # endpoints HTTP: /api/salud, /api/productos
+│       ├── routers/auth.py     # /api/auth/registro, /api/auth/login, /api/auth/perfil
+│       ├── routers/admin.py    # /api/admin/estado — protegido por rol admin (D-33)
 │       └── seed.py             # siembra idempotente: el proceso 4.0 (RF-05)
 └── frontend/                   ← TIER CLIENTE — proyecto npm
     ├── public/products/        # las 12 fotos locales /products/{sku}.jpg (A1, RN-03)
@@ -147,8 +158,13 @@ maura/                          ← raíz del proyecto del alumno (D-11, ADR-003
         ├── main.tsx            # composición: BrowserRouter + QueryClientProvider
         ├── lib/api.ts          # ÚNICO punto de salida HTTP de la SPA
         ├── types/api.ts        # interfaces TS que espejan los schemas (ADR-004)
+        ├── stores/             # useAuthStore y useCarroStore: sesión y carro persistente en localStorage (ADR-009, ADR-010)
         ├── features/           # una carpeta por dominio: landing/, catalogo/
+        ├── features/cuentas/   # login y registro (fase 2)
+        ├── features/carro/     # la página /carro con hidratación de precios vigentes
+        ├── features/checkout/  # el resumen protegido del pedido (AUTH-04)
         └── components/         # Navbar, Footer, layout compartido
+            └── RequireAuth.tsx # components/RequireAuth.tsx — guard de rutas protegidas con returnTo genérico (D-32)
 ```
 
 **Reglas de dependencia** (verificables en revisión de código — las citan las guías):
@@ -179,6 +195,9 @@ maura/                          ← raíz del proyecto del alumno (D-11, ADR-003
 | [006](adr/006-uv-como-gestor.md) | uv como gestor del proyecto Python (3.12 con techo) | Cómo se administra el backend (D-10) |
 | [007](adr/007-api-first.md) | API-first: el contrato OpenAPI antes del código | Cómo se define la interfaz (D-15) |
 | [008](adr/008-repositorio-solo-guias.md) | Repositorio solo guías (guide-only) | Qué contiene este repo y qué construye el alumno (D-17/D-18) |
+| [009](adr/009-jwt-larga-vida-localstorage.md) | Sesión con un JWT de larga vida (7 días) en `localStorage` | Cómo mantiene la SPA la sesión entre recargas y full-page loads (D-19..D-22) |
+| [010](adr/010-carro-client-side.md) | Carro client-side hidratado con precios vigentes | Dónde vive el carro de compras y qué datos guarda (D-27..D-30) |
+| [011](adr/011-roles-desde-el-primer-token.md) | Roles desde el primer token: el admin nace del seed | Cómo nacen los roles y cómo se verifica el acceso por rol (D-23, D-24, D-33) |
 
 ---
 
