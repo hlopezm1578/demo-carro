@@ -76,7 +76,17 @@ class ProductoDetalle(ProductoResumen):
     descripcion: str
     notas: list[str]
     stock: int
+
+
+class Error(BaseModel):
+    """El cuerpo de error del contrato: un detail legible para el humano."""
+
+    detail: str
 ```
+
+El schema `Error` es el tercero que trae el contrato: el cuerpo de los
+errores (`{"detail": "…"}`) — el 404 de la ficha lo usa tal cual en el
+paso 3.
 
 Fíjate lo que NO hay: el campo `activo` no aparece en ningún schema. El
 contrato no lo expone — un producto inactivo no existe para el mundo exterior
@@ -239,7 +249,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from app.database import Session, get_session
 from app.models.producto import FamiliaAromatica
 from app.repositories.producto import ProductoRepository
-from app.schemas.producto import ProductoDetalle, ProductoResumen
+from app.schemas.producto import Error, ProductoDetalle, ProductoResumen
 from app.services.catalogo import CatalogService
 
 router = APIRouter(tags=["Productos"])
@@ -259,7 +269,16 @@ def listar_productos(
     )
 
 
-@router.get("/{producto_id}", response_model=ProductoDetalle)
+@router.get(
+    "/{producto_id}",
+    response_model=ProductoDetalle,
+    responses={
+        404: {
+            "description": "Producto inexistente (o inactivo)",
+            "model": Error,
+        }
+    },
+)
 def obtener_producto(
     producto_id: int,
     db: Session = Depends(get_session),
@@ -271,6 +290,16 @@ def obtener_producto(
         raise HTTPException(status_code=404, detail="Producto no encontrado")
     return producto
 ```
+
+Fíjate en el `responses` del decorator de `obtener_producto`. El `raise
+HTTPException(404)` funciona en runtime — lo comprobaste con el 999 —, pero
+FastAPI NO documenta en OpenAPI las excepciones lanzadas a mano: sin esta
+declaración, `/docs` listaría solo 200 y 422 para este endpoint… y el contrato
+promete también un 404 con cuerpo `Error`. Declararlo en la firma hace tres
+cosas a la vez: el panel lo muestra, muestra su esquema (`Error`, con `detail`
+string) y deja la regla visible donde el framework y el lector la buscan. Es la
+contracara del 422 automático: ese lo produce la validación de la firma; el 404
+lo produce tu código — y por eso hay que declararlo tú también en la firma.
 
 Y registra el router en **`backend/app/main.py`** — dos líneas, composición
 no lógica (ADR-001): el import junto al de `salud`…
@@ -303,6 +332,11 @@ experimenta en el navegador:
    `descripcion`, `notas`, `stock`)… y **http://localhost:8000/api/productos/999**
    → 404 con `{"detail": "Producto no encontrado"}` — el `None` del servicio
    traducido a HTTP por el router.
+5. Abre **http://localhost:8000/docs** y despliega `GET /api/productos/{producto_id}`:
+   además de la 200 aparece la respuesta **404** con su descripción y el
+   esquema `Error`. Sin el `responses` del decorator, el panel no la mostraría
+   aunque el 404 funcionara — esa es exactamente la comparación que cierra la
+   fila 11 de la gran verificación final.
 
 ---
 
@@ -943,7 +977,7 @@ desvíos) y respeta los 8 ADRs de la fase 4."
 
 - Schemas Pydantic como implementación del contrato (ADR-007), separados del ORM por una razón concreta
 - Repositorio con `select` parameterizado y filtros componibles — inyección SQL imposible por construcción
-- Servicio (casos de uso, sin HTTP) + router (frontera declarativa: Enum y `ge=0` → 422 automático)
+- Servicio (casos de uso, sin HTTP) + router (frontera declarativa: Enum y `ge=0` → 422 automático; `responses` del decorator para que `/docs` documente el 404 del contrato)
 - Fotos locales en `public/products/` nombradas por sku (RN-03) — cero hotlinks, demo autónomo
 - Filtros en URL search params: compartibles, back/forward, recargables — y caché por combinación en TanStack Query
 - Los cuatro estados async uniformes y el contador con plural correcto
