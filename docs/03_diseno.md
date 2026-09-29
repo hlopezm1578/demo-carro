@@ -153,6 +153,12 @@ se eligen pensando en ese futuro cercano.
 > consigue?). El diseño elige el navegador: el visitante anónimo puede armar
 > su carro desde el primer clic (RF-11).
 
+> Las decisiones 7 a 10 son de diseño (el QUÉ); su capa técnica (el CÓMO) se
+> decidió en la fase 4 y quedó registrada en los ADRs de la etapa: la sesión
+> que persiste y dónde vive en **ADR-009**, el carro del lado del cliente y su
+> hidratación contra precios vigentes en **ADR-010**, y las cuentas con rol
+> sembradas por variables de entorno en **ADR-011**.
+
 ---
 
 ## 3. Diseño de procesos (DFD)
