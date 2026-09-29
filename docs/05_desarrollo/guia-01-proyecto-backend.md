@@ -67,11 +67,15 @@ Desde la raíz de tu monorepo, ejecuta:
 uv init backend --vcs none --app
 ```
 
-El comando genera `backend/` con un `pyproject.toml`, un `.python-version`, un
-`README.md`, un `.gitignore` y un `main.py` de ejemplo (el clásico
-"Hello, world"). **Borra ese `main.py`**: es demostración del template, y
-nuestro código vivirá en el paquete `app/` que creamos en el paso 4 — pegado a
-las capas de ADR-001, no suelto en la raíz.
+El comando genera `backend/` con un `pyproject.toml`, un `.python-version`,
+un `README.md` y un `main.py` de ejemplo (el clásico "Hello, world").
+**Borra ese `main.py`**: es demostración del template, y nuestro código vivirá
+en el paquete `app/` que creamos en el paso 4 — pegado a las capas de ADR-001,
+no suelto en la raíz.
+
+¿Y el `.gitignore`? No viene: uv solo lo genera cuando inicializa el VCS
+y con `--vcs none` le pedimos no crearlo. Lo creas tú en el paso 5, con el
+contenido listo.
 
 ✅ **Mini-verificación:** abre la carpeta `backend/` en tu editor: debe existir
 `pyproject.toml`… y **ninguna carpeta `.git`** adentro de `backend/` (si tu
@@ -293,9 +297,10 @@ dirección completa la decide `main.py` al componer, no el router. Cuando la
 guía 4 agregue el router de productos, será **una línea más** en este mismo
 archivo: eso es crecer por composición.
 
-Antes de seguir, revisa el **`backend/.gitignore`** que generó uv. Déjalo así
-(cubre el entorno, la caché, la base de datos local y los secretos sueltos en
-un `.env`):
+Antes de seguir, crea el archivo **`backend/.gitignore`**: con `--vcs none`
+uv no inicializó git y por eso tampoco generó este archivo (uv solo lo
+escribe junto al VCS). El contenido es este (cubre el entorno, la caché, la
+base de datos local y los secretos sueltos en un `.env`):
 
 ```
 # Python
@@ -313,8 +318,8 @@ __pycache__/
 
 ✅ **Mini-verificación:** la estructura quedó así — `backend/app/__init__.py`,
 `backend/app/config.py`, `backend/app/main.py`, `backend/app/routers/__init__.py`
-y `backend/app/routers/salud.py`. El `.gitignore` de `backend/` menciona `.env`
-y `*.db`.
+y `backend/app/routers/salud.py`. El `backend/.gitignore` que acabas de crear
+menciona `.env` y `*.db`.
 
 ---
 
