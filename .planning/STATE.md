@@ -1,18 +1,18 @@
 ---
 gsd_state_version: "1.0"
-current_phase: 1
+current_phase: 01
 current_phase_name: Fundaciones de dos tiers y catálogo
 status: executing
-stopped_at: "Phase 1 ejecutada y verificada (human_needed): 5/5 planes, UAT con 4 tests del walkthrough de guías"
-last_updated: "2026-09-28T20:54:49.534Z"
-last_activity: 2026-09-28
-last_activity_desc: Phase 1 execution started
-state_head: 8fcf34e022c4e43a51073c9eac2ff13771bb9c2a
+stopped_at: Completed 01-06-PLAN.md (cierre de gaps G-01-1/G-01-4)
+last_updated: "2026-09-29T12:07:53.356Z"
+last_activity: 2026-09-29
+last_activity_desc: Phase 01 execution started
+state_head: 7d8ca85aa4269d87347f1e89eb18d15aff704459
 progress:
   total_phases: 5
   completed_phases: 0
-  total_plans: 5
-  completed_plans: 5
+  total_plans: 6
+  completed_plans: 6
   percent: 0
 ---
 
@@ -23,14 +23,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-28)
 
 **Core value:** La guía documenta el ciclo de vida completo y, siguiéndola en orden, la aplicación queda construida y operativa: tienda con catálogo, carro, checkout Webpay sandbox, cuentas JWT, panel admin y asistente IA sobre el catálogo real.
-**Current focus:** Phase 1 — Fundaciones de dos tiers y catálogo
+**Current focus:** Phase 01 — Fundaciones de dos tiers y catálogo
 
 ## Current Position
 
-Phase: 1 (Fundaciones de dos tiers y catálogo) — READY TO EXECUTE
-Plan: 6 of 7
+Phase: 01 (Fundaciones de dos tiers y catálogo) — EXECUTING
+Plan: 2 of 6
 Status: Ready to execute
-Last activity: 2026-09-28 — Phase 1 execution started
+Last activity: 2026-09-29 — Phase 01 execution started
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -61,6 +61,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01 P01-03 | 11min | 3 tasks | 11 files |
 | Phase 01 P01-04 | 11min | 3 tasks | 3 files |
 | Phase 01 P01-05 | 6min | 3 tasks | 7 files |
+| Phase 01 P06 | 4min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -85,6 +86,9 @@ Recent decisions affecting current work:
 - [Phase 01]: Tabla del README de 05_desarrollo con estado honesto por fase (D-13): guia-03/04 pendientes hasta que 01-05 las escriba; el gate node >= 22.22 vive como paso 1 del alumno en guia-02 (D-17), no del pipeline
 - [Phase 01]: Guias 03-04 de 05_desarrollo cierran la fase: guia-03 narra el seed verificado (upsert 12 SKU, git de0253e) con el gotcha del Enum; guia-04 une los tiers y fija la convencion 'Gran verificacion final' (tabla numerada CS/RF + fila contrato <-> /docs, ADR-007) que replican las fases 2-5
 - [Phase 01]: Paso de descarga de fotos (D-08 reinterpretado): la guia ensena al alumno a bajar 12 fotos stock licencia libre a SU frontend/public/products/{sku}.jpg — unica seccion con URLs de terceros y gate negativo sin src https; fila 5 del ciclo queda en Parcial (guias 1-4 listas; continua en fases 2+)
+- [Phase 01]: [Phase 01 P06] G-01-4 cerrado por Opcion A (declarar el 404 en responses del router) y no por Opcion B (nota que normaliza el desvio): la fila 11 existe para detectar drift; cuatro lineas declarativas ensenan un concepto real de FastAPI
+- [Phase 01]: [Phase 01 P06] Direccion del fix guia -> contrato: contrato_api.yaml intacto y WR-01/WR-02 abiertos; prohibido declarar el 422 en responses de guia-04
+- [Phase 01]: [Phase 01 P06] Bloque de contenido del .gitignore de guia-01 byte-identico (el gap era quien crea el archivo); menciones de guia-03 quedan validas sin editarla
 
 ### Pending Todos
 
@@ -107,6 +111,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-28T20:54:49.435Z
-Stopped at: Phase 1 ejecutada y verificada (human_needed): 5/5 planes, UAT con 4 tests del walkthrough de guías
-Resume file: .planning/phases/01-fundaciones-de-dos-tiers-y-cat-logo/01-UAT.md
+Last session: 2026-09-29T12:07:53.260Z
+Stopped at: Completed 01-06-PLAN.md (cierre de gaps G-01-1/G-01-4)
+Resume file: None
