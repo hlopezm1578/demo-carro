@@ -1,3 +1,8 @@
 # Runtime/tool installations (GSD lives in .zcode/, .kilo/ si se usa ese runtime)
 .zcode/
 .kilo/
+
+# GSD runtime artifacts
+.gsd/
+.planning/state.json
+.planning/milestone.lock
