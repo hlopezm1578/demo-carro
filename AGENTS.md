@@ -218,5 +218,10 @@ en el `*-UAT.md` de la fase con `verified_by: agent (user-delegated)` más notas
   las guías dentro de `D:\Repos\demo-carro`)
 - Las re-ejecuciones post-fix corren ahí mismo, sobre el estado que dejó la corrida anterior
 - Frontend ejecutado ahí con Node portátil v22.23.3 (guia-02, sesión 2026-09-28)
+- **Bugs: se corrigen SIEMPRE en los dos lugares** — en el proyecto de prueba (`maura-uat`,
+  para desbloquear la verificación) Y en la guía (`demo-carro/docs/05_desarrollo/*`, que es
+  el producto). Un fix solo en maura-uat deja el defecto vivo para el alumno. Esta instrucción
+  es autorización explícita del usuario para editar directamente las guías cuando se trate
+  de correcciones de bugs (los cambios mayores de contenido siguen yendo por flujo GSD).
 - Instrucción persistida por el usuario el 2026-09-29
 <!-- maura-uat-end -->
