@@ -175,8 +175,10 @@ el build vuelve a pasar.
 🧠 **El desarrollador piensa:** *la guía 2 prometió que este archivo
 existía para HOY: "cuando llegue el token, el header se agrega en UN lugar;
 cuando un endpoint responda 401, se decide qué hacer en UN lugar" (regla
-5). Llegó el momento — y la base (ApiError, la URL base, el `detail` del
-cuerpo) no se toca: lo nuevo es una refundición. Las tres funciones pasan
+5). Llegó el momento — la base (ApiError, la URL base) no se toca y lo
+nuevo es una refundición, con UNA corrección honesta: la lectura del
+`detail` aprende a manejar el 422 real de FastAPI (su `detail` viaja como
+array, no como string). Las tres funciones pasan
 por `pedir()`, que hace dos cosas transversales. **Adjunta el Bearer**
 cuando hay token — leído con `useAuthStore.getState()`: la API pública de
 Zustand para leer el store FUERA de React, sin hook ni contexto. **Y vigila
@@ -203,9 +205,10 @@ Reemplaza **`frontend/src/lib/api.ts`** completo:
 
 ```typescript
 // Regla 5 (ADR-002): TODO el HTTP del frontend sale de este archivo.
-// La etapa 2 lo extiende sin romper la base de la guía 4: ApiError y el
-// manejo de detail siguen intactos. Lo nuevo: pedir() adjunta el Bearer
-// y vigila el 401 (interceptor, D-22) para las tres funciones.
+// La etapa 2 lo extiende sin romper la base de la guía 4: ApiError y la
+// URL base siguen intactos. Lo nuevo: pedir() adjunta el Bearer, vigila
+// el 401 (interceptor, D-22) y normaliza el detail del 422 (que FastAPI
+// manda como array, no string).
 import { useAuthStore } from "../stores/useAuthStore";
 
 export class ApiError extends Error {
@@ -248,7 +251,15 @@ async function pedir<T>(
     let mensaje = `Error HTTP ${res.status}`;
     try {
       const cuerpo = await res.json();
-      if (cuerpo?.detail) mensaje = cuerpo.detail;
+      // El detail tiene DOS caras: string en los errores que el backend
+      // lanza a mano ("Credenciales incorrectas") y ARRAY de validación
+      // en el 422 de FastAPI ([{loc, msg, type}, …]). Se normaliza a UN
+      // string humano: asignar el array tal cual degrada el mensaje a
+      // "[object Object]" al llegar a ApiError.
+      const detalle = cuerpo?.detail;
+      if (typeof detalle === "string") mensaje = detalle;
+      else if (Array.isArray(detalle) && detalle[0]?.msg)
+        mensaje = detalle[0].msg;
     } catch {
       // El cuerpo no traía JSON: nos quedamos con el mensaje genérico
     }
@@ -281,9 +292,12 @@ export async function apiPost<T>(ruta: string, cuerpo: unknown): Promise<T> {
 ```
 
 ✅ **Mini-verificación:** `npm run build` pasa — y fíjate lo que NO cambió:
-`ApiError`, la URL base y la lectura del `detail` son los de la guía 4,
-así que la ficha y el catálogo siguen funcionando idéntico. El
-comportamiento nuevo se prueba en los pasos 6 a 10.
+`ApiError` y la URL base son los de la guía 4, así que la ficha y el
+catálogo siguen funcionando idéntico. La lectura del `detail` sí creció:
+normaliza el array del 422 de FastAPI a un string humano — la misma
+situación del paso 7 (registro con contraseña corta) ya no degrada
+`ApiError.message` a "[object Object]". El comportamiento nuevo se prueba
+en los pasos 6 a 10.
 
 ---
 
