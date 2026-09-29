@@ -769,7 +769,7 @@ desde `backend/`) y abre **http://localhost:8000/docs**:
 
 1. Aparecen los tags nuevos **Autenticación** y **Administración**, con
    `POST /api/auth/registro`, `POST /api/auth/login`, `GET /api/auth/perfil`
-   y `GET /api/admin/estado` — los 4 paths del contrato 0.2.0.
+   y `GET /api/admin/estado` — los 4 paths nuevos del contrato 0.2.0.
 2. Despliega `POST /api/auth/registro`: lista **201**, **409** y **422** con
    sus descripciones y el schema `Error`. Sin el `responses` de la firma, el
    409 no estaría — esa es la lección G-01-4 por segunda vez.
@@ -1064,7 +1064,7 @@ Desde `backend/`, con la API encendida y el seed corrido:
 7. El preflight del paso 9 responde `200` — el primer POST cross-origin de
    la guía 6 no morirá por CORS.
 
-(La comparación completa contrato ↔ `/docs` — los 8 paths, tags y schemas —
+(La comparación completa contrato ↔ `/docs` — los 7 paths, tags y schemas —
 es la Gran verificación final de la guía 8, como en la fase 1.)
 
 ## 📝 Punto de control (respóndelas sin mirar la guía)
