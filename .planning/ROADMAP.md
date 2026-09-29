@@ -44,7 +44,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. El seed idempotente deja datos demo reproducibles (re-ejecutable sin duplicar) para desarrollo y UAT (STORE-04)
   4. Un alumno que sigue la guía de esta fase paso a paso levanta desde cero los dos tiers con el catálogo funcionando; la fase documenta sus ADRs y el contrato de API inicial, y cada fase posterior actualiza ambos (GUIDE-02, GUIDE-03)
 
-**Plans**: 5/5 plans executed *(replanned 2026-09-28 — corrección de alcance D-17 guide-only: los planes 01-03..01-07 originales, que construían código de aplicación, fueron reemplazados por planes docs-only)*
+**Plans**: 6 plans (5 executed + 1 gap closure from UAT) *(replanned 2026-09-28 — corrección de alcance D-17 guide-only: los planes 01-03..01-07 originales, que construían código de aplicación, fueron reemplazados por planes docs-only)*
 **UI hint**: yes
 
 Plans:
@@ -60,6 +60,9 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 completion)*
 - [x] 01-05-PLAN.md — Guías 03-04 (modelos y seed 12 SKU, catálogo con fotos/filtros/ficha) + gran verificación final contrato ↔ /docs + estado de los READMEs (STORE-02/03/04, GUIDE-02/03)
+
+**Wave 5** *(gap closure — blocked on Wave 4; origen: gaps G-01-1/G-01-4 del 01-UAT.md)*
+- [ ] 01-06-PLAN.md — Cierre de gaps del UAT: guia-01 (con `--vcs none` uv no genera el .gitignore; la guía enseña a crearlo en el Paso 5) y guia-04 (declarar el 404 del contrato en el router para que /docs lo documente — fila 11 sin el tercer desvío)
 
 ### Phase 2: Cuentas de cliente y carro persistente
 
@@ -127,7 +130,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Fundaciones de dos tiers y catálogo | 5/5 | In Progress|  |
+| 1. Fundaciones de dos tiers y catálogo | 5/6 | In Progress|  |
 | 2. Cuentas de cliente y carro persistente | 0/TBD | Not started | - |
 | 3. Checkout Webpay y órdenes | 0/TBD | Not started | - |
 | 4. Panel de administración y asistente IA | 0/TBD | Not started | - |
