@@ -6,11 +6,19 @@ findings:
   - id: WR-01
     severity: warning
     disposition: open
-    title: "Contrato omite el 422 de `GET /api/productos/{producto_id}` — la verificación de cierre de fase produce un desvío falso"
+    title: "Contrato omite el 422 de `GET /api/productos/{producto_id}` — el prose nuevo lo hace visible y la fila 11 sigue sin advertirlo"
   - id: WR-02
     severity: warning
     disposition: open
-    title: "Schema `Error` documenta mal el cuerpo del 422 (`detail` string vs array real de FastAPI)"
+    title: "`Error` presentado como \"el cuerpo de los errores\" — el 422 real de FastAPI trae `detail` como array, no string"
+  - id: WR-08
+    severity: warning
+    disposition: open
+    title: "La fila 11 — invocada por el texto nuevo como \"la comparación que cierra\" — no incluye el schema `Error` en la comparación de schemas"
+  - id: IN-09
+    severity: info
+    disposition: open
+    title: "El `.gitignore` se crea en el Paso 5, pero `.venv/` existe desde el Paso 3 — ventana sin cobertura para quien commitea temprano"
   - id: WR-03
     severity: warning
     disposition: open
@@ -63,9 +71,9 @@ findings:
     severity: info
     disposition: open
     title: "Typo en requerimientos §3: \"para que el hilo quedé completo\""
-open: 15
-total: 15
-recorded: 2026-09-28T20:43:09.102Z
+open: 17
+total: 17
+recorded: 2026-09-29T12:29:07.909Z
 ---
 
 # Phase 01: Code Review Disposition
@@ -74,19 +82,21 @@ recorded: 2026-09-28T20:43:09.102Z
 |---------|----------|-------------|--------|
 | WR-01 | warning | open | - |
 | WR-02 | warning | open | - |
-| WR-03 | warning | open | - |
-| WR-04 | warning | open | - |
-| WR-05 | warning | open | - |
-| WR-06 | warning | open | - |
-| WR-07 | warning | open | - |
-| IN-01 | info | open | - |
-| IN-02 | info | open | - |
-| IN-03 | info | open | - |
-| IN-04 | info | open | - |
-| IN-05 | info | open | - |
-| IN-06 | info | open | - |
-| IN-07 | info | open | - |
-| IN-08 | info | open | - |
+| WR-08 | warning | open | - |
+| IN-09 | info | open | - |
+| WR-03 | warning | open | - (not in the current review) |
+| WR-04 | warning | open | - (not in the current review) |
+| WR-05 | warning | open | - (not in the current review) |
+| WR-06 | warning | open | - (not in the current review) |
+| WR-07 | warning | open | - (not in the current review) |
+| IN-01 | info | open | - (not in the current review) |
+| IN-02 | info | open | - (not in the current review) |
+| IN-03 | info | open | - (not in the current review) |
+| IN-04 | info | open | - (not in the current review) |
+| IN-05 | info | open | - (not in the current review) |
+| IN-06 | info | open | - (not in the current review) |
+| IN-07 | info | open | - (not in the current review) |
+| IN-08 | info | open | - (not in the current review) |
 
 Dispositions: `open` (recorded, not yet triaged), `fixed`, `skipped`, `deferred`.
 Set `deferred` by hand and put the reason in the Source cell; both are preserved. A `|` in the reason is kept as prose and escaped on the next run.
