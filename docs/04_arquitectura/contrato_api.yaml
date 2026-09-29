@@ -302,7 +302,11 @@ paths:
               example:
                 detail: Ese email ya tiene cuenta, inicia sesión
         '422':
-          description: Cuerpo mal formado (email sin formato, contraseña menor a 8 caracteres)
+          description: |
+            Cuerpo mal formado (email sin formato, contraseña menor a 8
+            caracteres). Desvío documentado: el 422 real de FastAPI trae
+            `detail` como array de validación ([{loc, msg, type}, …]);
+            el contrato lo simplifica como Error (detail string).
           content:
             application/json:
               schema:

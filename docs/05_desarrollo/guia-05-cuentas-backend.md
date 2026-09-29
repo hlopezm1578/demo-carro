@@ -688,6 +688,15 @@ def perfil(actual: Usuario = Depends(get_current_user)) -> UsuarioPublico:
     return actual
 ```
 
+Una honestidad sobre el 422 (desvío documentado): el cuerpo que FastAPI
+produce de verdad no calza exacto con el schema `Error` — su `detail` es un
+**array** de validación (`[{"loc": […], "msg": "…", "type": "…"}]`), no un
+string. La firma y el contrato lo declaran como `Error` a propósito:
+`/docs` y el contrato hablan el mismo idioma, y el desvío queda escrito
+acá y en la descripción del 422 del contrato. El cliente lo tendrá
+presente: la guía 6 normaliza ese `detail` antes de convertirlo en
+mensaje.
+
 Y crea **`backend/app/routers/admin.py`**:
 
 ```python
