@@ -203,3 +203,20 @@ Do not make direct repo edits outside a GSD workflow unless the user explicitly 
 > Profile not yet configured. Run `/gsd-profile-user` to generate your developer profile.
 > This section is managed by `generate-claude-profile` -- do not edit manually.
 <!-- GSD:profile-end -->
+
+<!-- maura-uat-start (memoria de trabajo del usuario — fuera de los bloques GSD) -->
+
+## UAT Delegado — workspace `D:\Repos\maura-uat`
+
+Para este proyecto, las verificaciones UAT (`/gsd-verify-work`) las ejecuta **el agente**, no
+el usuario manualmente: el agente construye o modifica la aplicación de prueba en
+`D:\Repos\maura-uat` siguiendo las guías de `docs/05_desarrollo/` como lo haría un alumno
+(comandos literales de las guías, mini-verificaciones incluidas), y registra cada resultado
+en el `*-UAT.md` de la fase con `verified_by: agent (user-delegated)` más notas de evidencia.
+
+- Workspace de ejecución: `D:\Repos\maura-uat` (monorepo scratch de UAT; **nunca** ejecutar
+  las guías dentro de `D:\Repos\demo-carro`)
+- Las re-ejecuciones post-fix corren ahí mismo, sobre el estado que dejó la corrida anterior
+- Frontend ejecutado ahí con Node portátil v22.23.3 (guia-02, sesión 2026-09-28)
+- Instrucción persistida por el usuario el 2026-09-29
+<!-- maura-uat-end -->
