@@ -478,9 +478,10 @@ nombre que exige el wire). El wrapper normaliza esa rareza a la entrada:
 devuelve `{"url": …, "token_ws": …}` y el resto del proyecto vive feliz
 sin saberla. **El error tipado del commit:** un token que Webpay no puede
 confirmar (inventado, de una transacción anulada) hace que el SDK lance
-`TransactionCommitError` — y el wrapper lo atrapa y devuelve `None`: el
-service del paso 7 recibirá una señal de dominio, jamás una excepción de
-transbank. La regla del aislamiento se cumple así completa: ni imports,
+`TransactionCommitError` — y el wrapper lo atrapa (junto con los errores
+de red hacia Webpay: `requests.ConnectionError`/`Timeout`) y devuelve
+`None`: el service del paso 7 recibirá una señal de dominio, jamás una
+excepción de transbank ni de su transporte. La regla del aislamiento se cumple así completa: ni imports,
 ni errores, ni vocabulario del SDK fuera de este archivo. Y las firmas,
 con sus límites validados por el SDK ANTES de
 llamar a la API: `buy_order` máximo 26 caracteres (tu `MAURA-000001` de
@@ -502,9 +503,11 @@ Las credenciales de integración son PÚBLICAS y viven dentro del SDK
 SDK usa requests (sync): las rutas que hablan con Webpay son `def`.
 """
 
+import requests
+
 from transbank.common.integration_api_keys import IntegrationApiKeys
 from transbank.common.integration_commerce_codes import IntegrationCommerceCodes
-from transbank.error.transaction_commit_error import TransactionCommitError
+from transbank.error.transbank_error import TransbankError
 from transbank.webpay.webpay_plus.transaction import Transaction
 
 tx = Transaction.build_for_integration(
@@ -530,13 +533,16 @@ def commit(token_ws: str) -> dict | None:
     Devuelve el dict de Webpay: response_code, status, buy_order, amount,
     authorization_code, transaction_date… Con response_code == 0 Y
     status == "AUTHORIZED" (ambos) el pago aprobó. None si Webpay no puede
-    confirmar el token (inventado, de una transacción anulada…): la
-    excepción tipada del SDK se traduce a señal de dominio AQUÍ — ninguna
-    excepción de transbank cruza la frontera de este archivo.
+    confirmar el token (inventado, de una transacción anulada…) o si la
+    red hacia Webpay falla a mitad del commit (timeout, conexión rota):
+    la excepción tipada del SDK (TransbankError, que cubre
+    TransactionCommitError) y los errores de red de requests se traducen
+    a señal de dominio AQUÍ — ninguna excepción de transbank ni de su
+    transporte cruza la frontera de este archivo.
     """
     try:
         return tx.commit(token_ws)
-    except TransactionCommitError:
+    except (TransbankError, requests.ConnectionError, requests.Timeout):
         return None
 ```
 
@@ -736,7 +742,8 @@ observaron 7 repeticiones de un mismo timeout) y un retorno tardío jamás
 pisa un estado ya decidido. **En el flujo normal, tres defensas en
 orden.** El `commit` blindado por el wrapper del paso 5:
 `TransactionCommitError` se atrapa DENTRO de `services/webpay.py` y llega
-acá como `None` — un token que Webpay no puede confirmar produce una 302
+acá como `None` — un token que Webpay no puede confirmar, o una red que
+se cae a mitad del commit, produce una 302
 con estado de error, jamás un 500. El mapeo token→orden lo hace el `buy_order` que el commit
 devuelve (por eso la orden nació ANTES del pago, D-34). Y el **guard
 ya-PAID** (Pitfall 4, PAY-03) es la MISMA muralla del stock, ahora para
@@ -1276,8 +1283,8 @@ uv run python -c "import httpx; r = httpx.get('http://localhost:8000/api/pago/re
 
 Debe imprimir `302` y
 `http://localhost:5173/pago/resultado?estado=error` — Webpay rechazó el
-commit, el wrapper devolvió `None` (su `except TransactionCommitError`,
-adentro de `services/webpay.py`) y el service lo convirtió en la
+commit, el wrapper devolvió `None` (su `except` de `TransbankError` y
+errores de red, adentro de `services/webpay.py`) y el service lo convirtió en la
 redirección de error: el navegador jamás vio un 500 (Pitfall 3). Fíjate
 en el
 `follow_redirects=False`: httpx sigue redirecciones solo si se lo pides —
