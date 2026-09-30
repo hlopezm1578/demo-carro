@@ -42,8 +42,8 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Órdenes
 
-- [ ] **ORDR-01**: Cliente ve su historial de pedidos con estados visibles (PENDING / PAID / CANCELLED / REJECTED)
-- [ ] **ORDR-02**: El stock se descuenta de forma atómica y transaccional al aprobarse el pago, sin oversell ante compras concurrentes
+- [x] **ORDR-01**: Cliente ve su historial de pedidos con estados visibles (PENDING / PAID / CANCELLED / REJECTED)
+- [x] **ORDR-02**: El stock se descuenta de forma atómica y transaccional al aprobarse el pago, sin oversell ante compras concurrentes
 
 ### Administración
 
@@ -123,8 +123,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PAY-02 | Phase 3 | Complete |
 | PAY-03 | Phase 3 | Complete |
 | PAY-04 | Phase 3 | Complete |
-| ORDR-01 | Phase 3 | Pending |
-| ORDR-02 | Phase 3 | Pending |
+| ORDR-01 | Phase 3 | Complete |
+| ORDR-02 | Phase 3 | Complete |
 | ADMN-01 | Phase 4 | Pending |
 | ADMN-02 | Phase 4 | Pending |
 | ADMN-03 | Phase 4 | Pending |

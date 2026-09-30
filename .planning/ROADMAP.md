@@ -106,7 +106,7 @@ Plans:
   4. El backend recalcula y valida precios y stock al crear la orden — nunca confía en los valores del cliente (CART-03)
   5. El stock se descuenta de forma atómica y transaccional al aprobarse el pago (sin oversell ante compras concurrentes) y el cliente ve su historial de pedidos con estados PENDING / PAID / CANCELLED / REJECTED (ORDR-02, ORDR-01)
 
-**Plans**: 4/5 plans executed *(planeados 2026-09-30 — spike primero D-38: el retorno se corrobora runtime ANTES de firmar contrato/ADRs/guías; luego API-first D-15 con docs 02/03 en paralelo)*
+**Plans**: 5/5 plans executed *(planeados 2026-09-30 — spike primero D-38: el retorno se corrobora runtime ANTES de firmar contrato/ADRs/guías; luego API-first D-15 con docs 02/03 en paralelo)*
 **UI hint**: yes
 
 Plans:
@@ -121,7 +121,7 @@ Plans:
 - [x] 03-04-PLAN.md — Guías 09-10: backend de órdenes+Webpay (recalculo CART-03, discriminador, stock atómico) y vuelta SPA (form auto-submit, voucher, carro solo al aprobar)
 
 **Wave 4** *(blocked on Wave 3)*
-- [ ] 03-05-PLAN.md — Guía 11 (historial /pedidos + Gran verificación final con 4 flujos runtime y contrato 0.3.0 ↔ /docs) + READMEs de estado (guías 1-11, 14 ADRs)
+- [x] 03-05-PLAN.md — Guía 11 (historial /pedidos + Gran verificación final con 4 flujos runtime y contrato 0.3.0 ↔ /docs) + READMEs de estado (guías 1-11, 14 ADRs)
 
 ### Phase 4: Panel de administración y asistente IA
 
@@ -160,6 +160,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 |-------|----------------|--------|-----------|
 | 1. Fundaciones de dos tiers y catálogo | 6/6 | Complete    | 2026-09-29 |
 | 2. Cuentas de cliente y carro persistente | 5/5 | Complete    | 2026-09-30 |
-| 3. Checkout Webpay y órdenes | 4/5 | In Progress|  |
+| 3. Checkout Webpay y órdenes | 5/5 | In Progress|  |
 | 4. Panel de administración y asistente IA | 0/TBD | Not started | - |
 | 5. Despliegue y cierre de la guía | 0/TBD | Not started | - |

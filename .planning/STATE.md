@@ -3,17 +3,17 @@ gsd_state_version: "1.0"
 current_phase: 3
 current_phase_name: Checkout Webpay y órdenes
 current_plan: 5
-status: executing
-stopped_at: Completed 03-04-PLAN.md (guias 09-10 del pago)
-last_updated: "2026-09-30T16:28:15.211Z"
+status: verifying
+stopped_at: Completed 03-05-PLAN.md (guia-11 + cierre de fase 3)
+last_updated: "2026-09-30T16:42:22.567Z"
 last_activity: 2026-09-30
 last_activity_desc: Phase 3 execution started
-state_head: 26dd3625138046e0411bd3cd377873a7b43c9eb8
+state_head: dde677408fd449a5e39b4876dfa41d4fab13a1c5
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 16
-  completed_plans: 15
+  completed_plans: 16
   percent: 40
 ---
 
@@ -31,7 +31,7 @@ See: .planning/PROJECT.md (updated 2026-09-30)
 Phase: 3 (Checkout Webpay y órdenes) — EXECUTING
 Current Plan: 5
 Total Plans in Phase: 5
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-09-30 — Phase 3 execution started
 
 Progress: [████░░░░░░] 40%
@@ -74,6 +74,7 @@ Progress: [████░░░░░░] 40%
 | Phase 03 P02 | 8 min | 3 tasks | 5 files |
 | Phase 03 P03 | 13 min | 2 tasks | 2 files |
 | Phase 03 P04 | 25 min | 2 tasks | 2 files |
+| Phase 03 P05 | 10 min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -142,6 +143,10 @@ Recent decisions affecting current work:
 - [Phase 03]: [Phase 03 P04] services/pedidos.py recibe la SESION y sus repos hacen flush sin commit: la transaccion de la orden abarca la llamada a Webpay (Pitfall 11) y la pareja descuento+transicion (ADR-013) — el service decide cuando cerrar
 - [Phase 03]: [Phase 03 P04] El titulo de ResultadoPago lo decide el estado REAL del pedido fetcheado (no el query param del 302) y el degradado sin sesion lleva el returnTo con la query DENTRO del string — el login de guia-06 no se edita
 - [Phase 03]: [Phase 03 P04] apiPost ya existia desde guia-06: guia-10 lo reusa con Bearer y narra la primera excepcion de la regla 5 (el checkout ES fetch, el retorno es navegacion del navegador — Pitfall 10)
+- [Phase 03]: guia-11 reutiliza VoucherPedido con import cruzado entre features 'con razon' (regla 6, D-46): moverlo a components/ re-editaria la guia 10 para cero ganancia y duplicarlo serian dos verdades del mismo detalle
+- [Phase 03]: La tabla BADGES se copia una vez por pantalla (historial y voucher): con dos consumidoras copiar es mas honesto que adelantar un modulo compartido — el dia que nazca la tercera, baja
+- [Phase 03]: Gran verificacion final de fase 3 (guia-11): 12 filas con Origen citando RF-12..18/RN-10..13/HU-09..11/ADR-012..014 y la fila contrato 0.3.0 vs /docs suma dos piezas — el 302 con Location en ambos metodos y el endpoint publico del retorno — con Authorize probado clienta 200 / admin-endpoint 403
+- [Phase 03]: Cierre de fase 3 en los indices (D-13/D-18): guias 1-11 listas + 14 ADRs + Webpay construido en el stack, fila 5 honesta en Parcial (fases 4+) y gate documental en verde (11 guia-*.md + repo guide-only)
 
 ### Pending Todos
 
@@ -164,6 +169,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-30T16:27:57.154Z
-Stopped at: Completed 03-04-PLAN.md (guias 09-10 del pago)
+Last session: 2026-09-30T16:42:22.441Z
+Stopped at: Completed 03-05-PLAN.md (guia-11 + cierre de fase 3)
 Resume file: None
