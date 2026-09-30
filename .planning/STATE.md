@@ -3,18 +3,18 @@ gsd_state_version: "1.0"
 milestone: v2.25.0
 current_phase: 4
 current_phase_name: Panel de administración y asistente IA
-current_plan: 2
+current_plan: 3
 status: executing
-stopped_at: Completed 04-01-PLAN.md (contrato 0.4.0 + ADRs 015-017 + README arq)
-last_updated: "2026-09-30T21:22:03.755Z"
+stopped_at: Completed 04-02-PLAN.md
+last_updated: "2026-09-30T21:38:46.033Z"
 last_activity: 2026-09-30
 last_activity_desc: Phase 4 execution started
-state_head: adbcf25084cdb429e49314f47be2f885d91998bd
+state_head: 26725b20f7b5c2b2d06f723be87570e298ce508c
 progress:
   total_phases: 5
   completed_phases: 3
   total_plans: 21
-  completed_plans: 17
+  completed_plans: 18
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-09-30)
 ## Current Position
 
 Phase: 4 (Panel de administración y asistente IA) — EXECUTING
-Current Plan: 2
+Current Plan: 3
 Total Plans in Phase: 5
 Status: Ready to execute
 Last activity: 2026-09-30 — Phase 4 execution started
@@ -77,6 +77,7 @@ Progress: [██████░░░░] 60%
 | Phase 03 P04 | 25 min | 2 tasks | 2 files |
 | Phase 03 P05 | 10 min | 2 tasks | 4 files |
 | Phase 04 P01 | 12 min | 3 tasks | 5 files |
+| Phase 04 P02 | 9 min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -157,6 +158,9 @@ Recent decisions affecting current work:
 - [Phase 04]: Contrato 0.4.0 aprobado ANTES de las guias (D-15 honrado): 7 paths de administracion + asistente publico, allow-list ProductoEditar SIN activo ni id (D-52, mass assignment vetado), 409 para transicion ilegal con copy locked, 503/429 sin cifras, retiro del demo /api/admin/estado narrado (D-54, Pitfall 7)
 - [Phase 04]: ADRs 015-017 (indice a 17): RequireAdmin espejo UX del 403 con get_current_admin en CADA endpoint como seguridad real (D-55); maquina de 4 estados con UNA transicion admin PENDING->CANCELLED cobrando las huerfanas D-48/D-49, PAID terminal y refund ADMN-05 diferido (D-50); mini-RAG con structured output citando la evidencia de 04-RESEARCH contra el README @ v2.25.0 y degradacion 503 en contraste con el fail-fast de secret_key (D-56/D-60/D-61)
 - [Phase 04]: Defaults del UI-SPEC confirmados como contrato 0.4.0: stock bajo <= 5 (D-53), mensaje <= 500 chars, historial <= 10, maximo 3 cards; 429 declarado SIN cifras de limites (concern abierto de STATE.md)
+- [Phase 04]: [04-02] docs/02 etapa 4: RF-19..24, RNF-08/09, RN-14..16, HU-12/13 con filas P7/P8 reales — RN-15 supersede a RN-04 citándola (byte-intacta) y RN-14 fija el umbral ≤ 5 activos como constante DISTINTA del 1-3 de tienda (Pitfall 6 hecho serie)
+- [Phase 04]: [04-02] docs/03 etapa 4: pantallas 10-14 con copys locked del UI-SPEC, decisiones 15-18 citando ADR-015..017 (la 15 cita §2.3.5 en vez de duplicar el soft delete), DFDs 12.0-15.0 (13.0 UPDATE condicional espejo del 10.0; 15.0 topes ANTES de Gemini e ids DESPUÉS contra D1 activo) y GEM como segunda entidad externa: request-response JSON sin redirecciones, el contraste con Webpay
+- [Phase 04]: [04-02] Los defaults del UI-SPEC quedaron confirmados como RN numeradas (RN-14 ≤ 5, RN-16 500/10/3): las guías 04-03/04-04 enseñan constantes con respaldo de requerimiento; pantalla 13 (No autorizado) traza a RF-08+D-55 — el espejo UX del 403 no inventa RF
 
 ### Pending Todos
 
@@ -177,6 +181,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-30T21:22:03.637Z
-Stopped at: Completed 04-01-PLAN.md (contrato 0.4.0 + ADRs 015-017 + README arq)
+Last session: 2026-09-30T21:38:45.916Z
+Stopped at: Completed 04-02-PLAN.md
 Resume file: None
