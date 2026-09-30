@@ -106,12 +106,12 @@ Plans:
   4. El backend recalcula y valida precios y stock al crear la orden — nunca confía en los valores del cliente (CART-03)
   5. El stock se descuenta de forma atómica y transaccional al aprobarse el pago (sin oversell ante compras concurrentes) y el cliente ve su historial de pedidos con estados PENDING / PAID / CANCELLED / REJECTED (ORDR-02, ORDR-01)
 
-**Plans**: 5 plans *(planeados 2026-09-30 — spike primero D-38: el retorno se corrobora runtime ANTES de firmar contrato/ADRs/guías; luego API-first D-15 con docs 02/03 en paralelo)*
+**Plans**: 1/5 plans executed *(planeados 2026-09-30 — spike primero D-38: el retorno se corrobora runtime ANTES de firmar contrato/ADRs/guías; luego API-first D-15 con docs 02/03 en paralelo)*
 **UI hint**: yes
 
 Plans:
 **Wave 1** *(spike primero — D-38/D-41: la mecánica del retorno se firma con evidencia)*
-- [ ] 03-01-PLAN.md — TRACER: spike de retorno Webpay runtime en maura-uat (3 flujos + 4° documentado) + hallazgos en 03-SPIKE-RETORNO.md (PAY-01/02)
+- [x] 03-01-PLAN.md — TRACER: spike de retorno Webpay runtime en maura-uat (3 flujos + 4° documentado) + hallazgos en 03-SPIKE-RETORNO.md (PAY-01/02)
 
 **Wave 2** *(paralelos — sin solape de archivos; blocked on Wave 1)*
 - [ ] 03-02-PLAN.md — Contrato 0.3.0 (checkout/retorno GET+POST 302/pedidos) + ADRs 012-014 + README de arquitectura (CART-03, PAY-01..03, ORDR-01)
@@ -160,6 +160,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 |-------|----------------|--------|-----------|
 | 1. Fundaciones de dos tiers y catálogo | 6/6 | Complete    | 2026-09-29 |
 | 2. Cuentas de cliente y carro persistente | 5/5 | Complete    | 2026-09-30 |
-| 3. Checkout Webpay y órdenes | 0/5 | Not started | - |
+| 3. Checkout Webpay y órdenes | 1/5 | In Progress|  |
 | 4. Panel de administración y asistente IA | 0/TBD | Not started | - |
 | 5. Despliegue y cierre de la guía | 0/TBD | Not started | - |

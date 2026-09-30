@@ -2,18 +2,18 @@
 gsd_state_version: "1.0"
 current_phase: 3
 current_phase_name: Checkout Webpay y órdenes
-current_plan: Not started
+current_plan: 2
 status: executing
-stopped_at: Phase 3 context gathered
-last_updated: "2026-09-30T14:02:36.145Z"
+stopped_at: "Completed 03-01-PLAN.md (spike de retorno Webpay: 4 flujos con evidencia + mecánica 302 firmada)"
+last_updated: "2026-09-30T15:28:02.448Z"
 last_activity: 2026-09-30
-last_activity_desc: Phase 02 complete, transitioned to Phase 3
-state_head: 6fe2180a3d6c9a26e76f23d40e25d748785a4c37
+last_activity_desc: Phase 3 execution started
+state_head: 0445089f4adcf20bc177cb11c01d2788584221c3
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 16
-  completed_plans: 11
+  completed_plans: 12
   percent: 40
 ---
 
@@ -28,11 +28,11 @@ See: .planning/PROJECT.md (updated 2026-09-30)
 
 ## Current Position
 
-Phase: 3 (Checkout Webpay y órdenes) — READY TO EXECUTE
-Current Plan: Not started
+Phase: 3 (Checkout Webpay y órdenes) — EXECUTING
+Current Plan: 2
 Total Plans in Phase: 5
 Status: Ready to execute
-Last activity: 2026-09-30 — Phase 02 complete, transitioned to Phase 3
+Last activity: 2026-09-30 — Phase 3 execution started
 
 Progress: [████░░░░░░] 40%
 
@@ -70,6 +70,7 @@ Progress: [████░░░░░░] 40%
 | Phase 02 P03 | 16 min | 2 tasks | 2 files |
 | Phase 02 P04 | 13 min | 2 tasks | 2 files |
 | Phase 02 P05 | 3 min | 2 tasks | 4 files |
+| Phase 03 P03-01 | 60 min | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -123,6 +124,11 @@ Recent decisions affecting current work:
 - [Phase 02 cierre]: Goal de fase 2 reescrito como User Story canónica en ROADMAP (mvp-phase equivalente --force, validada por user-story.validate; SPIDR omitido con causa: fase ya ejecutada como slice vertical)
 - [Phase 02 cierre]: 3 bugs de guía corregidos en caliente en ambos lugares (regla maura-uat): version 0.2.0 en main.py (guia-05 paso 8 + ítem de MV), Quitar en fila degradada del checkout (guia-08 + taller, verificado runtime), copy fallback "…e inténtalo de nuevo." unificado (guia-06 + fila nueva en Copywriting Contract) y empty state text-base (guia-07)
 - [Phase 02 cierre]: Seguridad 02-SECURITY.md 21/21 cerradas con evidencia runtime (threats_open 0, ASVS 1); ui-review 19/24 sin drift guías↔taller (los 3 hallazgos de contrato = los fixes arriba); verificación re-ejecutada passed 45/45 con digest fresco
+- [Phase 03]: Spike de retorno (03-01): el flujo anulado llega por GET (corrección material — docs decían POST en integración) con TBK_TOKEN+TBK_ID_SESION+TBK_ORDEN_COMPRA sin token_ws; endpoint GET+POST con discriminador por presencia de params queda inmune (Pitfall 2)
+- [Phase 03]: Mecánica del retorno firmada con evidencia (D-41): RedirectResponse con 302 EXPLICITO a /pago/resultado; página intermedia descartada; el 307 default de starlette re-POSTearía el form contra la SPA (Pitfall 1)
+- [Phase 03]: REJECTED reproducible en integración (Q2): elegir Rechazar/TSN en el simulador bancario → retorno normal token_ws → commit response_code=-1/FAILED; CVV errado NO rechaza (aprueba igual); clave 3DS errada → error.cgi+INITIALIZED sin commit; fallback: carrera de stock de D-35
+- [Phase 03]: Timeout cronometrado (Q3): 603 s (10:03) desde la carga del form con tab activo; PERO el redirect NO está garantizado si el tab duerme (13 min sin retorno observado) — PENDING huérfanas reales, D-48/D-49 las cubren con honestidad de estado
+- [Phase 03]: Idempotencia del commit de Webpay confirmada runtime (A1): segunda llamada con el mismo token devuelve respuesta idéntica — el guard de estado OUR-side sigue obligatorio (Pitfall 4); además el navegador puede repetir retornos (7 repeticiones observadas de un mismo timeout)
 
 ### Pending Todos
 
@@ -145,6 +151,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-30T12:37:24.103Z
-Stopped at: Phase 3 context gathered
-Resume file: .planning/phases/03-checkout-webpay-y-rdenes/03-CONTEXT.md
+Last session: 2026-09-30T15:28:02.347Z
+Stopped at: Completed 03-01-PLAN.md (spike de retorno Webpay: 4 flujos con evidencia + mecánica 302 firmada)
+Resume file: None
