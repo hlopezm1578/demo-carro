@@ -31,12 +31,14 @@
 | 6 | `guia-06-sesion-frontend.md` | La sesión en la SPA: store persistente, interceptor 401 y rutas protegidas con retorno | ✅ Listo |
 | 7 | `guia-07-carro.md` | El carro persistente: página `/carro` con precios vigentes, badge en el navbar y store que lo recuerda | ✅ Listo |
 | 8 | `guia-08-checkout.md` | El checkout protegido y la Gran verificación final de la fase 2 | ✅ Listo |
+| 9 | `guia-09-ordenes-webpay.md` | El backend del pago: órdenes con snapshot, checkout que recalcula, retorno con 302 y stock atómico | ✅ Listo |
+| 10 | `guia-10-retorno-voucher.md` | La vuelta a la SPA: el CTA encendido hacia Webpay, la ruta pública del resultado y el voucher de la tienda | ✅ Listo |
+| 11 | `guia-11-pedidos-cierre.md` | El historial de pedidos y la Gran verificación final de la fase 3 | ✅ Listo |
 
-> La fase 2 del proyecto completa sus cuatro guías (5-8: cuentas, sesión,
-> carro y checkout). Las guías 9+ llegan con las fases siguientes (pago Webpay,
-> panel admin, IA) — cada una asumiendo que estas están construidas y
-> verificadas en tu máquina, igual que el índice de `docs/README.md` avanza
-> por fase.
+> La fase 3 del proyecto completa sus tres guías (9-11: pago, vuelta,
+> historial). Las guías 12+ llegan con las fases siguientes (panel admin,
+> IA) — cada una asumiendo que estas están construidas y verificadas en tu
+> máquina, igual que el índice de `docs/README.md` avanza por fase.
 
 **Mapa mental de la serie:** el orden es **de adentro hacia afuera**. Primero
 construimos cada tier por separado (guías 1 y 2: el backend que responde JSON y
@@ -47,6 +49,10 @@ API). La fase 2 agrega sobre esa base la **capa de estado de cliente** (guías
 5-8): las cuentas con JWT que reconocen a la clienta (guía 5), la sesión y el
 carro que sobreviven recargas en su máquina (guías 6 y 7) y el checkout
 protegido que los junta (guía 8) — dejando el terreno listo para el pago de la
-fase 3. Las fases siguientes del proyecto (pago, panel, asistente) agregan las
-guías 9+ sobre esta base — cada una asumiendo que las anteriores están
-construidas y verificadas en tu máquina.
+fase 3. La fase 3 agrega la **capa de integración externa** (guías 9-11): el
+pago real que cruza tiers hacia Webpay y vuelve (un retorno que no es fetch,
+sino una navegación del navegador) — la orden con snapshot y stock atómico en
+el backend (guía 9), la vuelta a la SPA con el voucher de la tienda (guía 10)
+y el historial honesto que cierra la fase (guía 11). Las fases siguientes del
+proyecto (panel, asistente) agregan las guías 12+ sobre esta base — cada una
+asumiendo que las anteriores están construidas y verificadas en tu máquina.
