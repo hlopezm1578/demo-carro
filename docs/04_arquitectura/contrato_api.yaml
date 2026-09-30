@@ -659,7 +659,6 @@ paths:
         re-POSTearía el form de Webpay contra la SPA.
       security: []
       requestBody:
-        required: true
         content:
           application/x-www-form-urlencoded:
             schema:
