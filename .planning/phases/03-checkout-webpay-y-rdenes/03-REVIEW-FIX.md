@@ -24,7 +24,7 @@ status: all_fixed
 directamente en el checkout principal (rama `master`), sin worktree. Toda la verificación de abajo
 corrió en ese mismo checkout principal (reproducible desde el árbol actual).
 
-## Fixed Issues — Iteration 1 (Critical + Warning)
+## Fixed Issues
 
 ### CR-01: `routers/retorno.py` importa `Error` desde un módulo que no lo define — ImportError al copiar la guía tal cual
 
@@ -37,7 +37,7 @@ guía ("el cuerpo de error vive en schemas/producto desde la guía 4"). Verifica
 ocurrencia de `from app.schemas.pedido import Error`. Con esto, la mini-verificación del propio
 paso 8 (`from app.routers import checkout, pedidos, retorno`) vuelve a pasar.
 
-### WR-01: `services/pedidos.py` importa `transbank` — viola la regla "único archivo que importa transbank"
+### WR-01: `services/pedidos.py` importa `transbank` — viola la regla "único archivo que importa transbank" que la guía enseña y verifica
 
 **Files modified:** `docs/05_desarrollo/guia-09-ordenes-webpay.md`
 **Commit:** 2572b81
@@ -54,7 +54,7 @@ verificado que de los 20 fences Python de la guía, el único que menciona trans
 wrapper. Runtime: cambió la señal del camino de error (excepción → `None`); re-verificar en el
 próximo pase UAT.
 
-### WR-02: `return_url` construido desde `settings.cors_origins[0]` (origen de la SPA)
+### WR-02: `return_url` construido desde `settings.cors_origins[0]` (origen de la SPA) — semánticamente es una URL del backend y solo funciona por el proxy de Vite
 
 **Files modified:** `docs/05_desarrollo/guia-09-ordenes-webpay.md`
 **Commit:** 4a3484a
@@ -69,7 +69,7 @@ mini-verificación del paso 6 se extendió para imprimir `settings.backend_url`.
 viaja a Webpay cambia (`localhost:8000` directo en vez de `localhost:5173` vía proxy); re-verificar
 en el próximo pase UAT.
 
-### WR-03: El guard ya-PAID (y el de `_cancelar`) es read-check-write en Python
+### WR-03: El guard de idempotencia ya-PAID (y el de `_cancelar`) es read-check-write en Python — la ventana de carrera que la propia guía enseña a evitar
 
 **Files modified:** `docs/05_desarrollo/guia-09-ordenes-webpay.md`
 **Commit:** 2b21df0
@@ -86,7 +86,7 @@ el estado — check y write en UNA sola operación"), bullet de cierre. Sintaxis
 verificada con `ast.parse`; la semántica de concurrencia (rowcount decide, doble retorno del mismo
 token) requiere verificación runtime — cubierta por la corrida `carrera.py` del próximo pase UAT.
 
-### WR-04: La narrativa del F5 es factualmente incorrecta
+### WR-04: La narrativa del F5 es factualmente incorrecta — el F5 sobre `/pago/resultado` NO repite el retorno del backend
 
 **Files modified:** `docs/05_desarrollo/guia-10-retorno-voucher.md`, `docs/05_desarrollo/guia-11-pedidos-cierre.md`, `docs/05_desarrollo/guia-09-ordenes-webpay.md`
 **Commit:** d90f5b8
@@ -98,7 +98,7 @@ backend NO se ejecuta), y el guard ya-PAID cubre el caso donde lo que se repite 
 Gran verificación final fila 7 corregida con el mismo mecanismo. (c) guia-09 punto de control 3
 re-enfocado a la navegación repetida al retorno (deja de atribuirle el guard al F5).
 
-### WR-05: El diccionario de datos de PEDIDO (§2.2) no declara `fecha`
+### WR-05: El diccionario de datos de PEDIDO (diseño §2.2) no declara `fecha`, pero la guía 9 agrega la columna y afirma coincidencia "campo a campo... ni una más"
 
 **Files modified:** `docs/03_diseno.md`
 **Commit:** 0b1bd2d
@@ -109,7 +109,7 @@ diccionario §2.2 PEDIDO == columnas `mapped_column` del modelo de guia-09, camp
 mismo orden (`id, numero, estado, total, fecha, usuario_id`) — la afirmación "campo a campo… ni
 una más" del paso 2 de la guía 9 ahora es cierta sin tocar la guía.
 
-## Fixed Issues — Iteration 2 (Info, `--fix --all`)
+## Fixed Issues
 
 **Modo de trabajo iteración 2:** el subagent `gsd-code-fixer` no pudo despacharse
 (límite de cuota del plan, reset 2026-10-05), por lo que el orquestador ejecutó la
