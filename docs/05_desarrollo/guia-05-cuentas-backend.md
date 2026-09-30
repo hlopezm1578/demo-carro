@@ -764,6 +764,14 @@ app.include_router(auth.router, prefix="/api/auth")
 app.include_router(admin.router, prefix="/api/admin")
 ```
 
+Y un detalle de coherencia que la Gran verificación final de la guía 8 va a
+medir: el título de `/docs` muestra la versión que la app declara de sí
+misma — y hoy implementas el contrato **0.2.0**. En el `FastAPI(...)` de
+`main.py`, sube `version="0.1.0"` a `version="0.2.0"`: el contrato es la
+fuente de la verdad (ADR-007) y el panel debe decir lo mismo que él — una
+app que implementa 0.2.0 presentándose como 0.1.0 es un desvío que la
+comparación de cierre detectaría.
+
 ✅ **Mini-verificación:** enciende la API (`uv run fastapi dev app/main.py`
 desde `backend/`) y abre **http://localhost:8000/docs**:
 
@@ -776,6 +784,8 @@ desde `backend/`) y abre **http://localhost:8000/docs**:
 3. `GET /api/admin/estado` lista **200**, **401** y **403**; y el endpoint
    muestra el candado 🔒 con `bearerAuth (JWT)`: el botón **Authorize** ya
    existe — lo usamos en el paso 11.
+4. El título del panel dice **Maura API 0.2.0** — la versión del contrato
+   que acabas de implementar (ADR-007: panel y contrato dicen lo mismo).
 
 ---
 
