@@ -117,7 +117,8 @@ Versiones del stack autoritativo del proyecto (AGENTS.md / `.planning/research/S
 | Formularios HTTP | **python-multipart 0.0.32** | Parseo del form de login (`OAuth2PasswordRequestForm`) que exige el `/api/auth/login` del contrato 0.2.0; ya viene dentro de `fastapi[standard]` |
 | Gestor Python | **uv** (pyproject + uv.lock) | El flujo que enseña hoy la documentación oficial de FastAPI ([ADR-006](adr/006-uv-como-gestor.md)) |
 | Lenguaje backend | **Python 3.12** | Techo declarado por `transbank-sdk` (fase 3); fijado con `requires-python ">=3.12,<3.13"` ([ADR-006](adr/006-uv-como-gestor.md)) |
-| Pago (fase 3) | **Webpay Plus, ambiente de integración** | Pasarela real chilena en sandbox con credenciales públicas — llega en su fase |
+| Pago (fase 3) | **Webpay Plus REST, ambiente de integración** | Pasarela real chilena en sandbox con credenciales públicas sin registro (597055555532); el retorno del navegador hacia la SPA queda firmado con evidencia runtime ([ADR-012](adr/012-retorno-de-webpay.md)) |
+| SDK Webpay | **transbank-sdk 6.1.0** | Único SDK oficial (repo TransbankDevelopers); `Transaction.build_for_integration(...)` trae las credenciales públicas — sin `.env` nuevo en esta fase; sync `requests` → rutas `def` sincronizadas ([ADR-012](adr/012-retorno-de-webpay.md), [ADR-013](adr/013-orden-nace-al-pagar-stock-al-aprobar.md)) |
 | IA (fase 4) | **google-genai** | SDK oficial de Gemini; la API key vive solo en el backend — llega en su fase |
 
 ---
@@ -142,15 +143,23 @@ maura/                          ← raíz del proyecto del alumno (D-11, ADR-003
 │       ├── security.py         # módulo transversal de seguridad: hash Argon2, JWT HS256 y las dependencias de sesión/rol (ADR-009, ADR-011)
 │       ├── models/             # tablas SQLAlchemy: la entidad PRODUCTO (diseño §2)
 │       ├── models/usuario.py   # la entidad USUARIO: email único, hash de contraseña y rol
+│       ├── models/pedido.py    # las entidades PEDIDO y LÍNEA: estados honestos, total recalculado y snapshot (ADR-013, ADR-014)
 │       ├── schemas/            # frontera: validación Pydantic (RN-01, RN-02)
 │       ├── schemas/usuario.py  # RegistroCreate, UsuarioPublico y Token — espejan el contrato 0.2.0
+│       ├── schemas/pedido.py   # CheckoutCreate, CheckoutRespuesta, OrdenLista y OrdenDetalle — espejan el contrato 0.3.0
 │       ├── repositories/       # solo acceso a datos: el almacén D1
 │       ├── repositories/usuario.py  # el almacén de usuarios: búsqueda por email y creación
+│       ├── repositories/pedido.py   # el almacén de pedidos: crear, buscar por numero/dueña y el UPDATE condicional de stock
 │       ├── services/           # las reglas del negocio: los procesos 1.0–3.0
 │       ├── services/cuentas.py # registrar (409 claro) y autenticar (401 genérico)
+│       ├── services/pedidos.py # iniciar_checkout (recalculo CART-03) y procesar_retorno (discriminador + commit + transición)
+│       ├── services/webpay.py  # wrapper de Transaction.build_for_integration — el ÚNICO lugar que importa transbank
 │       ├── routers/            # endpoints HTTP: /api/salud, /api/productos
 │       ├── routers/auth.py     # /api/auth/registro, /api/auth/login, /api/auth/perfil
 │       ├── routers/admin.py    # /api/admin/estado — protegido por rol admin (D-33)
+│       ├── routers/checkout.py # POST /api/checkout — Bearer, valida el carro y crea la orden PENDING (D-34)
+│       ├── routers/retorno.py  # GET+POST /api/pago/retorno — público, discrimina por params y responde 302 a la SPA (ADR-012)
+│       ├── routers/pedidos.py  # GET /api/pedidos y /api/pedidos/{numero} — Bearer con ownership 404 uniforme
 │       └── seed.py             # siembra idempotente: el proceso 4.0 (RF-05)
 └── frontend/                   ← TIER CLIENTE — proyecto npm
     ├── public/products/        # las 12 fotos locales /products/{sku}.jpg (A1, RN-03)
@@ -163,6 +172,8 @@ maura/                          ← raíz del proyecto del alumno (D-11, ADR-003
         ├── features/cuentas/   # login y registro (fase 2)
         ├── features/carro/     # la página /carro con hidratación de precios vigentes
         ├── features/checkout/  # el resumen protegido del pedido (AUTH-04)
+        ├── features/pago/      # la ruta única /pago/resultado: el voucher que renderiza los 4 flujos (D-42, D-43)
+        ├── features/pedidos/   # el historial /pedidos: lista y detalle que reutiliza el voucher (D-46)
         └── components/         # Navbar, Footer, layout compartido
             └── RequireAuth.tsx # components/RequireAuth.tsx — guard de rutas protegidas con returnTo genérico (D-32)
 ```
@@ -177,7 +188,9 @@ maura/                          ← raíz del proyecto del alumno (D-11, ADR-003
 4. Solo `main.py` arma la aplicación (`FastAPI()`, CORS, `include_router`).
    Nadie más instancia la app.
 5. En el frontend, **todo HTTP pasa por `src/lib/api.ts`**: ningún componente
-   hace `fetch` por su cuenta.
+   hace `fetch` por su cuenta. *Única excepción, narrada en las guías: el
+   retorno de Webpay es navegación del navegador (302 del backend), no
+   `fetch` — CORS no aplica ([ADR-012](adr/012-retorno-de-webpay.md)).*
 6. Los componentes de `features/` **no se importan cruzados** sin razón: lo
    compartido baja a `components/`.
 
@@ -198,6 +211,9 @@ maura/                          ← raíz del proyecto del alumno (D-11, ADR-003
 | [009](adr/009-jwt-larga-vida-localstorage.md) | Sesión con un JWT de larga vida (7 días) en `localStorage` | Cómo mantiene la SPA la sesión entre recargas y full-page loads (D-19..D-22) |
 | [010](adr/010-carro-client-side.md) | Carro client-side hidratado con precios vigentes | Dónde vive el carro de compras y qué datos guarda (D-27..D-30) |
 | [011](adr/011-roles-desde-el-primer-token.md) | Roles desde el primer token: el admin nace del seed | Cómo nacen los roles y cómo se verifica el acceso por rol (D-23, D-24, D-33) |
+| [012](adr/012-retorno-de-webpay.md) | El retorno de Webpay: 302 hacia la ruta única de la SPA, discriminando por presencia de params | Cómo vuelve el navegador de Webpay a la tienda (PAY-02, D-40, D-41) |
+| [013](adr/013-orden-nace-al-pagar-stock-al-aprobar.md) | La orden nace al iniciar el pago y el stock se descuenta al aprobar | Cuándo nace la orden y cuándo se descuenta el stock (CART-03, ORDR-02, D-34, D-35) |
+| [014](adr/014-snapshot-de-precio-en-la-orden.md) | Snapshot de precio en la orden y numero legible como buy_order | Qué muestra un pedido viejo cuando el catálogo cambia (ORDR-01, D-36, D-37) |
 
 ---
 
