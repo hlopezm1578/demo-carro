@@ -3,18 +3,18 @@ gsd_state_version: "1.0"
 milestone: v2.25.0
 current_phase: 4
 current_phase_name: Panel de administración y asistente IA
-current_plan: 3
+current_plan: 4
 status: executing
-stopped_at: Completed 04-02-PLAN.md
-last_updated: "2026-09-30T21:38:46.033Z"
+stopped_at: Completed 04-03-PLAN.md
+last_updated: "2026-09-30T22:00:50.075Z"
 last_activity: 2026-09-30
 last_activity_desc: Phase 4 execution started
-state_head: 26725b20f7b5c2b2d06f723be87570e298ce508c
+state_head: 2cc278edbde2b9af8554a7ddd4358292571cf7c3
 progress:
   total_phases: 5
   completed_phases: 3
   total_plans: 21
-  completed_plans: 18
+  completed_plans: 19
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-09-30)
 ## Current Position
 
 Phase: 4 (Panel de administración y asistente IA) — EXECUTING
-Current Plan: 3
+Current Plan: 4
 Total Plans in Phase: 5
 Status: Ready to execute
 Last activity: 2026-09-30 — Phase 4 execution started
@@ -78,6 +78,7 @@ Progress: [██████░░░░] 60%
 | Phase 03 P05 | 10 min | 2 tasks | 4 files |
 | Phase 04 P01 | 12 min | 3 tasks | 5 files |
 | Phase 04 P02 | 9 min | 2 tasks | 2 files |
+| Phase 04 P03 | 18 min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -161,6 +162,9 @@ Recent decisions affecting current work:
 - [Phase 04]: [04-02] docs/02 etapa 4: RF-19..24, RNF-08/09, RN-14..16, HU-12/13 con filas P7/P8 reales — RN-15 supersede a RN-04 citándola (byte-intacta) y RN-14 fija el umbral ≤ 5 activos como constante DISTINTA del 1-3 de tienda (Pitfall 6 hecho serie)
 - [Phase 04]: [04-02] docs/03 etapa 4: pantallas 10-14 con copys locked del UI-SPEC, decisiones 15-18 citando ADR-015..017 (la 15 cita §2.3.5 en vez de duplicar el soft delete), DFDs 12.0-15.0 (13.0 UPDATE condicional espejo del 10.0; 15.0 topes ANTES de Gemini e ids DESPUÉS contra D1 activo) y GEM como segunda entidad externa: request-response JSON sin redirecciones, el contraste con Webpay
 - [Phase 04]: [04-02] Los defaults del UI-SPEC quedaron confirmados como RN numeradas (RN-14 ≤ 5, RN-16 500/10/3): las guías 04-03/04-04 enseñan constantes con respaldo de requerimiento; pantalla 13 (No autorizado) traza a RF-08+D-55 — el espejo UX del 403 no inventa RF
+- [Phase 04]: [04-03] guia-12: ProductoEditar hereda de ProductoCrear sin cuerpo (allow-list identica por herencia, mass assignment vetado por ausencia), PedidoTransicion con Literal[cancelled] y sku generado panel-{uuid8} en el repo (el upsert es del seed: crear dos veces crea dos productos, el idempotente por diseno es el ESTADO)
+- [Phase 04]: [04-03] guia-13: el editor hidrata descripcion/notas desde la ficha publica (ProductoAdmin liviano a proposito en 0.4.0, key ['producto', id] compartida) con hueco honesto para inactivos (la ficha 404a) — el detalle admin seria un 0.5.0, jamas desvio improvisado; queryKeys ['productos','admin'] y ['pedidos','admin'] invalidan por prefijo junto a catalogo e historial (D-48/D-49 cobrados sin editar guia-11)
+- [Phase 04]: [04-03] Desviacion Rule 2: guia-12 sube el CORS a [GET,POST,PUT,PATCH] (el plan solo decia version 0.4.0) — la leccion 'el CORS crece con la API' de guia-05 aplicada antes del deploy de fase 5, con mini-verificacion del preflight
 
 ### Pending Todos
 
@@ -181,6 +185,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-30T21:38:45.916Z
-Stopped at: Completed 04-02-PLAN.md
+Last session: 2026-09-30T22:00:49.955Z
+Stopped at: Completed 04-03-PLAN.md
 Resume file: None
