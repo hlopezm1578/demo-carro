@@ -926,7 +926,7 @@ from sqlalchemy.orm import Session
 
 from app.config import settings
 from app.database import get_session
-from app.schemas.pedido import Error
+from app.schemas.producto import Error  # el cuerpo de error vive en schemas/producto desde la guía 4
 from app.services.pedidos import PedidosService, RetornoResultado
 
 router = APIRouter(tags=["Pago"])
