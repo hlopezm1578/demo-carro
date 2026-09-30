@@ -16,9 +16,9 @@
 
 | Sección | Diseña | Responde a |
 |---|---|---|
-| §2 | Los **datos** (modelo relacional + diccionario) | RF-02, RF-04, RF-05, RF-06, RF-08, RF-12, RF-17, RF-18, RN-01, RN-02, RN-03, RN-05..RN-13, RNF-04 |
-| §3 | Los **procesos** (diagrama de contexto + DFD) | HU-01…HU-11, procesos de `02_requerimientos.md` §9 |
-| §4 | La **interfaz** (9 pantallas, wireframes) | RF-01…RF-04, RF-06…RF-18, RNF-01, C3 (celular primero) |
+| §2 | Los **datos** (modelo relacional + diccionario) | RF-02, RF-04, RF-05, RF-06, RF-08, RF-12, RF-17, RF-18, RF-19, RN-01, RN-02, RN-03, RN-05..RN-15, RNF-04 (etapa 4: sin entidades nuevas) |
+| §3 | Los **procesos** (diagrama de contexto + DFD) | HU-01…HU-13, procesos de `02_requerimientos.md` §9 |
+| §4 | La **interfaz** (14 pantallas, wireframes) | RF-01…RF-04, RF-06…RF-24, RNF-01, C3 (celular primero) |
 
 Se diseña QUÉ: la tecnología con la que se construye — y las alternativas
 descartadas — se decide y documenta en la fase 4 (`04_arquitectura/`, con ADRs).
@@ -215,6 +215,38 @@ elegido pensando en este momento.
    Identificador público y clave primaria son cosas distintas: exponer el
    correlativo interno regala información y encima topo con límites ajenos
    (RN-13). *(D-37; su capa técnica es ADR-014.)*
+15. **La máquina de estados de los pedidos, documentada con dueño por
+   transición.** Los cuatro estados de la etapa 3 (`pending`, `paid`,
+   `cancelled`, `rejected`) no cambian; lo que la etapa 4 documenta es quién
+   puede mover cada flecha: el flujo de pago posee sus transiciones y la dueña
+   posee exactamente **una** manual — `PENDING→CANCELLED`, la gestión de las
+   huérfanas. El backend valida cada transición pedida contra la máquina y
+   rechaza la ilegal (409); `PAID` es terminal en esta versión. La escritura
+   del catálogo sigue la misma lógica de dueño: la dueña (rol admin) es la
+   única que escribe productos fuera de la siembra, y su toggle activo/inactivo
+   **es** el soft delete ya diseñado en §2.3.5 — desactivar oculta sin borrar
+   y los pedidos viejos conservan su snapshot. *(D-50; su capa técnica es
+   ADR-016.)*
+16. **Dos umbrales de stock distintos, con nombre cada uno.** El del panel
+   ("stock bajo": 5 unidades o menos, solo productos activos, constante del
+   backend — RN-14) le habla a la dueña: hay que reabastecer. El de la tienda
+   ("últimas unidades": 1-3 en la ficha) le habla a la clienta: urge decidir.
+   Dos conceptos con dos constantes y dos textos: usar un mismo número para
+   ambos escondería que responden a preguntas distintas. *(D-53.)*
+17. **El mini-RAG honesto: la muralla anti-alucinación es del servidor.** El
+   catálogo activo completo (id, nombre, familia, notas y precio de cada
+   aroma) viaja en el prompt del sistema de cada consulta; el modelo responde
+   JSON estructurado — texto de recomendación + ids citados — y el backend
+   valida cada id contra la base de datos antes de responder: el chat solo
+   renderiza tarjetas que existen. Sin embeddings ni vector store: el catálogo
+   real cabe entero y la recomendación nace del inventario, no de la memoria
+   del modelo. *(D-56; su capa técnica es ADR-017.)*
+18. **Sin API key la tienda arranca igual: degradación, no fail-fast.** A
+   diferencia del `secret_key` de las sesiones (que frena el arranque si
+   falta), la asesora es un servicio opcional: sin `GEMINI_API_KEY` el
+   endpoint del asistente responde 503 con un mensaje amable, la burbuja
+   anuncia que no está disponible y la tienda sigue 100% operativa. El
+   contraste enseña cuándo un secreto es estructural y cuándo accesorio. *(D-61.)*
 
 > **Pregunta para la clase:** ¿por qué no usar el `id` (número correlativo)
 > como llave de la siembra en lugar del sku? (pista: qué pasa con los números
@@ -233,6 +265,12 @@ elegido pensando en este momento.
 > *quiere* comprar y cuál lo que *pagó*?). Esa es la diferencia entre una
 > intención y un hecho.
 
+> **Pregunta para la clase (etapa 4):** ¿por qué la validación de los ids que
+> cita la asesora vive en el backend y no en el componente del chat? (pista:
+> ¿qué tendría que hacer el equipo para corregir una validación que vive en
+> cada navegador del mundo, y cuánto para corregir una que vive en un solo
+> servidor?). Esa es la diferencia entre una muralla y un cartel.
+
 > Las decisiones 7 a 10 son de diseño (el QUÉ); su capa técnica (el CÓMO) se
 > decidió en la fase 4 y quedó registrada en los ADRs de la etapa: la sesión
 > que persiste y dónde vive en **ADR-009**, el carro del lado del cliente y su
@@ -244,6 +282,12 @@ elegido pensando en este momento.
 > la orden que nace al pagar y el stock que se descuenta al aprobar en
 > **ADR-013**, y el snapshot de precio con el número legible en **ADR-014**.
 
+> Las decisiones 15 a 18 siguen la misma regla: son el QUÉ de la etapa 4. Su
+> CÓMO quedó registrado en los ADRs de la etapa — el panel protegido por rol
+> en los dos tiers en **ADR-015**, la máquina de estados con la transición
+> admin única en **ADR-016**, y el asistente mini-RAG con la API key solo en
+> el backend en **ADR-017**.
+
 ---
 
 ## 3. Diseño de procesos (DFD)
@@ -252,9 +296,13 @@ elegido pensando en este momento.
 
 El sistema como un único proceso, con sus entidades externas (la etapa 2 sumó
 a la clienta identificada y a la dueña con rol de administración; la etapa 3
-suma a **Webpay**, el primer servicio externo del sistema — la ida es el
+sumó a **Webpay**, el primer servicio externo del sistema — la ida es el
 formulario de pago que redirige a la clienta hacia la pasarela y la vuelta es
-el retorno del navegador con el resultado, en cuatro flujos posibles):
+el retorno del navegador con el resultado, en cuatro flujos posibles; la etapa
+4 suma a **Gemini**, el segundo servicio externo — y de un tipo nuevo: mientras
+Webpay se lleva la navegación de la clienta con redirecciones de ida y vuelta,
+Gemini solo conversa con el backend — una consulta JSON de ida y una respuesta
+JSON de vuelta, sin redirecciones: la clienta nunca sale de la tienda):
 
 ```mermaid
 flowchart LR
@@ -263,18 +311,21 @@ flowchart LR
     AD["Admin (dueña)"]
     D["Desarrollador de la guía"]
     WP["Webpay (pasarela de pago)"]
-    SISTEMA(["TIENDA MAURA (etapas 1 a 3: catálogo, cuentas, carro, pago y pedidos)"])
+    GEM["Gemini (asesora IA)"]
+    SISTEMA(["TIENDA MAURA (etapas 1 a 4: catálogo, cuentas, carro, pago, pedidos, panel y asesora)"])
 
     V -->|"abre la tienda, filtra, abre fichas,<br>arma su carro anónimo"| SISTEMA
     SISTEMA -->|"landing, catálogo filtrable, fichas<br>con notas y stock, carro persistente"| V
     CC -->|"crea cuenta, inicia sesión,<br>llega al checkout protegido, paga"| SISTEMA
     SISTEMA -->|"sesión que persiste, resumen del pedido,<br>voucher e historial de pedidos"| CC
-    AD -->|"entra con su rol de administración"| SISTEMA
-    SISTEMA -->|"endpoint de administración (el panel: etapa 4)"| AD
+    AD -->|"gestiona catálogo, pedidos y métricas<br>desde su panel (etapa 4)"| SISTEMA
+    SISTEMA -->|"panel de administración: productos,<br>pedidos, métricas y estados de stock"| AD
     D -->|"ejecuta la siembra de datos demo"| SISTEMA
     SISTEMA -->|"catálogo y cuentas demo en estado conocido"| D
     SISTEMA -->|"crea la transacción y lleva a la clienta<br>al formulario de pago (form POST)"| WP
     WP -->|"retorno del navegador con el resultado<br>(cuatro flujos posibles)"| SISTEMA
+    SISTEMA -->|"consulta de recomendación (JSON:<br>mensaje + historial con topes)"| GEM
+    GEM -->|"respuesta JSON estructurada:<br>texto + ids de aromas citados"| SISTEMA
 ```
 
 ### 3.2 Almacenes de datos
@@ -292,6 +343,13 @@ flowchart LR
 > cliente (RNF-06) — el mecanismo concreto (localStorage) se elige y documenta
 > en la fase 4. Por eso el carro no aparece en el modelo de datos de §2: la
 > base de datos del sistema no guarda ningún carro en esta etapa.
+
+> **Nota de la etapa 4 (asesora):** el historial del chat tampoco vive en la
+> base de datos — ni siquiera en A2: es estado en memoria del componente de la
+> burbuja. Sobrevive la navegación interna de la SPA (el layout no se
+> desmonta), parte de cero tras una recarga completa y viaja completo en cada
+> consulta al asistente (proceso 15.0) — cero tablas y cero sesiones de chat
+> en el servidor (D-58).
 
 ### 3.3 DFD — Proceso 1.0: Explorar el catálogo (HU-01)
 
@@ -493,6 +551,89 @@ existe para el sistema: responder igual para "no existe" y "no es tuyo" no
 regala información; el detalle reutiliza la vista del voucher del proceso
 10.0 — se construye una vez y el historial la hereda (D-43/D-46); en esta
 etapa ninguna orden expira ni se cierra sola (D-49).
+
+### 3.14 DFD — Proceso 12.0: Gestionar el catálogo (HU-12)
+
+```mermaid
+flowchart TD
+    AD["Admin (dueña)"] -->|"crea, edita o alterna<br/>el estado comercial"| P12(["12.0 Gestionar catálogo"])
+    P12 -->|"valida familia (RN-01),<br/>precio y stock ≥ 0"| P12
+    P12 -->|"escribe el producto — la primera<br/>escritura de D1 fuera del seed"| D1[("D1 Productos")]
+    P12 -->|"producto creado / actualizado /<br/>activo ↔ inactivo"| AD
+    P12 -->|"422: dato mal formado"| AD
+```
+
+**Reglas del proceso:** la escritura del catálogo es exclusiva del rol admin
+(RN-15) — la primera escritura de D1 fuera de la siembra del proceso 4.0; el
+toggle activo/inactivo es el soft delete de §2.3.5: oculta sin borrar, es
+reversible y no destruye historial — los pedidos viejos conservan su snapshot
+(RN-10); el editor no lleva campo de estado comercial: el toggle es una
+escritura propia; y el cuerpo edita solo una lista cerrada de campos (sin id):
+lo que el cuerpo no puede llevar, no se puede voltear.
+
+### 3.15 DFD — Proceso 13.0: Anular pedido huérfano (HU-12)
+
+```mermaid
+flowchart TD
+    AD["Admin (dueña)"] -->|"anula el pedido {numero} en curso"| P13(["13.0 Anular pedido"])
+    P13 -->|"UPDATE condicional:<br/>... WHERE estado = 'pending'"| D3[("D3 Pedidos")]
+    D3 -->|"rowcount 1: transición aplicada"| P13
+    D3 -->|"rowcount 0: ya no está en curso"| P13
+    P13 -->|"pedido anulado (CANCELLED)"| AD
+    P13 -->|"409: ese pedido ya no está en curso"| AD
+```
+
+**Reglas del proceso:** espejo del descuento atómico del proceso 10.0 (RN-12):
+la condición de estado vive **dentro** de la propia sentencia de
+actualización — dos pestañas del panel que anulan el mismo pedido a la vez no
+lo anulan dos veces; rowcount 0 → rechazo 409: la máquina de estados (RN-15)
+valida en el backend, es un conflicto de estado y no un dato mal formado;
+cancelar una orden en curso **no toca stock** — nunca se descontó (RN-12: el
+stock solo baja al aprobar el pago); y el historial de la clienta refleja el
+estado nuevo sin edición alguna (proceso 11.0).
+
+### 3.16 DFD — Proceso 14.0: Calcular métricas (HU-12)
+
+```mermaid
+flowchart TD
+    AD["Admin (dueña)"] -->|"abre sus métricas"| P14(["14.0 Calcular métricas"])
+    P14 -->|"suma totales de órdenes PAID<br/>y cuenta por cada estado"| D3[("D3 Pedidos")]
+    P14 -->|"unidades vendidas por nombre<br/>snapshot (top 5)"| D3
+    P14 -->|"productos activos con stock ≤ 5"| D1[("D1 Productos")]
+    P14 -->|"4 métricas: ingresos, por estado,<br/>top 5, stock bajo"| AD
+```
+
+**Reglas del proceso:** agregación de **solo lectura** — el proceso jamás
+escribe D1 ni D3, y todo computa desde las tablas existentes (sin entidades
+nuevas); el top 5 se calcula desde las líneas snapshot de las órdenes pagadas:
+el nombre es el congelado al vender, aunque el producto ya esté inactivo
+(RN-10, D-54); el conteo de stock bajo cuenta solo productos **activos**
+(RN-14) — un inactivo con stock bajo no vende; y con cero ventas los KPI
+muestran cero explícito ($0 / 0): los números no se esconden.
+
+### 3.17 DFD — Proceso 15.0: Conversar con la asesora (HU-13)
+
+```mermaid
+flowchart TD
+    VIS["Visitante / Clienta"] -->|"mensaje (máx. 500) +<br/>historial (máx. 10)"| P15(["15.0 Conversar con la asesora"])
+    P15 -->|"topes violados (RN-16) → 422"| VIS
+    P15 -->|"catálogo activo completo:<br/>id, nombre, familia, notas, precio"| D1[("D1 Productos")]
+    P15 -->|"prompt del sistema (catálogo + voz)<br/>+ conversación"| GEM["Gemini (asesora IA)"]
+    GEM -->|"JSON estructurado:<br/>texto + ids citados"| P15
+    P15 -->|"valida cada id contra<br/>el catálogo ACTIVO"| D1
+    P15 -->|"respuesta + tarjetas clicables<br/>(ids válidos, máx. 3)"| VIS
+    P15 -->|"503 sin key / caído · 429 cuota<br/>(degradación amable)"| VIS
+```
+
+**Reglas del proceso:** los topes (RN-16) validan **antes** de llamar al
+servicio externo — proteger el tier gratuito es lo primero; el prompt del
+sistema lleva el catálogo activo completo (mini-RAG, D-56) y la voz de la
+dueña; la validación de ids corre **después** de la respuesta, contra D1
+activo: la muralla anti-alucinación es del servidor — un id alucinado o
+inactivo se descarta, jamás se renderiza; sin API key o con el servicio caído
+→ 503 amable, con la cuota consumida → 429 sin cifras de límites (RNF-08): la
+tierra sigue 100% operativa (D-61); y el historial vive en el navegador
+(D-58) — no existe sesión de chat en el servidor.
 
 ---
 
@@ -937,6 +1078,268 @@ tienes pedidos" + botón Ver catálogo que reemplaza la página)
 - El pedido de otra clienta no existe para esta pantalla: el detalle ajeno
   se trata exactamente como el inexistente.
 
+### 4.11 Pantalla 10 — Panel: Productos (/admin)
+
+**Origen:** RF-19, RF-20, RN-14, HU-12 (con RN-01 y RN-02 en la validación del
+editor) · **Estados:** carga (filas esqueleto mientras llega el listado) /
+error de carga ("No pudimos cargar los productos" + "Revisa que el backend
+esté corriendo en el puerto 8000 e inténtalo de nuevo." + Reintentar) / vacío
+("Aún no hay productos" + "Crea el primero con el botón «Nuevo producto».") /
+editor abierto (un estado de la pantalla, no una ruta) / guardando (submit
+deshabilitado con "Guardando…") / error al guardar ("No pudimos guardar el
+producto. Revisa los datos e inténtalo de nuevo.")
+
+```
+┌────────────────────────────────────────────────────────┐
+│  Maura · Body Splash            Inicio  Catálogo  Panel│
+│  Panel:  Productos · Pedidos · Métricas                │
+├────────────────────────────────────────────────────────┤
+│  Productos                            ( Nuevo producto )│
+│  ┌──────────────────────────────────────────────────┐  │
+│  │ [foto] Cítricas            $7.990       [Activo]  │  │
+│  │         Brisa de Naranja        4 u. [Stock bajo] │  │
+│  │                        Editar · Desactivar        │  │
+│  ├──────────────────────────────────────────────────┤  │
+│  │ [foto] Florales            $9.990     [Inactivo]  │  │
+│  │         Jazmín de Tarde          12 u.            │  │
+│  │                         Editar · Reactivar        │  │
+│  └──────────────────────────────────────────────────┘  │
+└────────────────────────────────────────────────────────┘
+```
+
+- La tabla lista **todos** los productos — activos e inactivos: el catálogo
+  público filtra activos, el panel ve la trastienda completa (soft delete
+  visible y reversible, D-52).
+- El badge "Stock bajo" acompaña al stock cuando hay 5 unidades o menos y el
+  producto está activo (RN-14) — un umbral deliberadamente distinto del
+  "¡Últimas N unidades!" de la ficha de tienda: reabastecimiento para la
+  dueña, no urgencia para la clienta.
+- "Desactivar"/"Reactivar" escribe directo, **sin confirmación**: es
+  reversible por diseño y el feedback es el badge cambiando en el lugar; si
+  la escritura falla: "No pudimos guardar el cambio. Inténtalo de nuevo."
+- El editor inline (estado de la pantalla, abierto por "Nuevo producto" o
+  "Editar"):
+
+```
+┌──────────────────────────────────────────────────┐
+│  Nuevo producto / Editar {nombre}      Cancelar  │
+│  Nombre [_______________]  Precio [______]       │
+│  Familia [Cítricas ▾]      Stock  [______]       │
+│  Descripción [_____________________________]     │
+│  Notas aromáticas [naranja, bergamota]           │
+│  (separadas por comas)                           │
+│  Foto (ruta) [/products/citricas-01.jpg]         │
+│  (ruta dentro del sitio, sin upload)             │
+│                           [ Crear producto ]     │
+└──────────────────────────────────────────────────┘
+```
+
+- El editor **no** edita el estado comercial: un producto nuevo nace activo y
+  el toggle de la fila es el único dueño de `activo` (D-52); la foto es un
+  campo de texto con la ruta — sin upload de archivos (D-51).
+- La validación de la pantalla espeja el 422 del backend: "Escribe un
+  nombre." / "El precio debe ser un número mayor o igual a 0." / "El stock
+  debe ser un número mayor o igual a 0." / "Elige una familia." / "Escribe al
+  menos una nota." — la pantalla responde inmediato, la API sigue siendo la
+  autoridad.
+- El vacío es el opuesto del de tienda: "Aún no hay productos" con "Crea el
+  primero con el botón «Nuevo producto»." — la dueña SÍ puede crear.
+
+### 4.12 Pantalla 11 — Panel: Pedidos (/admin/pedidos)
+
+**Origen:** RF-21, RN-15, HU-12 · **Estados:** carga (filas esqueleto) / error
+de carga ("No pudimos cargar los pedidos" + causa puerto 8000 + Reintentar) /
+vacío ("Todavía no hay pedidos" + "Cuando tus clientas compren, los pedidos
+aparecerán aquí.") / anulación en dos pasos (confirmación inline en la celda) /
+transición ilegal (banner "Ese pedido ya no está en curso.")
+
+```
+┌────────────────────────────────────────────────────────┐
+│  Panel:  Productos · Pedidos · Métricas                │
+├────────────────────────────────────────────────────────┤
+│  Pedidos                                               │
+│  ┌──────────────────────────────────────────────────┐  │
+│  │ MAURA-000004 · 30-09-2026 · clienta@ejemplo.cl   │  │
+│  │                            $10.990    [En curso] │  │
+│  │                                     Anular       │  │
+│  ├──────────────────────────────────────────────────┤  │
+│  │ MAURA-000003 · 30-09-2026 · clienta@ejemplo.cl   │  │
+│  │                            $26.970      [Pagado] │  │
+│  ├──────────────────────────────────────────────────┤  │
+│  │ MAURA-000002 · 30-09-2026 · clienta@ejemplo.cl   │  │
+│  │                            $10.990     [Anulado] │  │
+│  └──────────────────────────────────────────────────┘  │
+└────────────────────────────────────────────────────────┘
+```
+
+- La dueña ve **todas** las órdenes de **todas** las clientas, la más
+  reciente primero; cada fila suma el email de la clienta dueña del pedido —
+  un dato que solo el rol admin ve (la pantalla 9 jamás lo muestra).
+- "Anular" aparece **solo** en filas en curso (`pending`): es la única
+  transición manual del admin (RN-15); las pagadas y rechazadas no ofrecen
+  acción — no existe vuelta desde CANCELLED y el reembolso queda diferido.
+- La confirmación es **en dos pasos en el mismo lugar** (el patrón de
+  "Vaciar carro" de la etapa 2): el primer clic transforma la celda en
+  "¿Anular el pedido {numero}?" con "Sí, anular" / "Cancelar" — sin modal ni
+  diálogo del navegador, porque es la acción destructiva irreversible de la
+  fase.
+- Éxito: el badge pasa a "Anulado" en el lugar y la acción desaparece; la
+  clienta ve el pedido CANCELLED en su historial (pantalla 9) sin edición
+  alguna de esa pantalla.
+- Transición ilegal (409 — otra pestaña anuló primero): banner rojo "Ese
+  pedido ya no está en curso." — el backend validó contra la máquina de
+  estados y la fila se refresca con el estado real.
+- **Sin vista de detalle en el panel:** el endpoint de detalle es del dueño
+  del pedido (404 uniforme de ownership) y la fila ya lleva todo lo que la
+  gestión necesita — número, fecha, clienta, total y estado. Nada de enlazar
+  al voucher.
+
+### 4.13 Pantalla 12 — Panel: Métricas (/admin/metricas)
+
+**Origen:** RF-22, RN-14, HU-12 · **Estados:** carga (tarjetas y tabla
+esqueleto) / error de carga ("No pudimos cargar las métricas" + causa puerto
+8000 + Reintentar) / vacío de ventas (ceros honestos en los KPI y "Aún no
+hay ventas registradas." en la tabla)
+
+```
+┌────────────────────────────────────────────────────────┐
+│  Panel:  Productos · Pedidos · Métricas                │
+├────────────────────────────────────────────────────────┤
+│  Métricas                                              │
+│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐       │
+│  │ Ingresos    │ │ Pedidos por │ │ Stock bajo  │       │
+│  │ totales     │ │ estado      │ │             │       │
+│  │  $26.970    │ │ Pagado    2 │ │      3      │       │
+│  │ Suma de los │ │ En curso  1 │ │ Productos   │       │
+│  │ pedidos     │ │ Anulado   1 │ │ activos con │       │
+│  │ pagados.    │ │ Rechazado 0 │ │ 5 o menos.  │       │
+│  │             │ │             │ │ Ver productos →     │
+│  └─────────────┘ └─────────────┘ └─────────────┘       │
+│  Top 5 aromas vendidos                                 │
+│  ┌──────────────────────────────────────────────────┐  │
+│  │  #   Aroma                          Unidades     │  │
+│  │  1   Brisa de Naranja                    4       │  │
+│  │  2   Rosa de Río                         1       │  │
+│  └──────────────────────────────────────────────────┘  │
+└────────────────────────────────────────────────────────┘
+```
+
+- Tres tarjetas y una tabla, **sin gráficos** — el requisito lo veta
+  (RF-22/ADMN-04): la dueña necesita números confiables, no decoración.
+- El "Top 5 aromas vendidos" se computa desde las líneas snapshot de las
+  órdenes pagadas (D-54): el nombre es el congelado al vender — un aroma
+  desactivado sigue apareciendo con su nombre histórico y las filas son texto
+  plano, sin link a la ficha (puede ya no existir en el catálogo).
+- El KPI "Stock bajo" cuenta solo productos **activos** con 5 unidades o
+  menos (RN-14) — un inactivo con stock bajo no vende — y su link "Ver
+  productos →" lleva al listado de la pantalla 10.
+- Cero honesto: sin ventas, los KPI muestran `$0` y `0` explícitos (los
+  números no se esconden) y la tabla muestra "Aún no hay ventas
+  registradas."
+
+### 4.14 Pantalla 13 — No autorizado (dentro del guard del panel)
+
+**Origen:** RF-08 (el 403 por rol de la etapa 2) y el guard RequireAdmin de la
+etapa 4 (D-55) · **Estados:** único — contenido estático, sin datos que cargar
+
+```
+┌────────────────────────────────────────────────────────┐
+│                                                        │
+│            No tienes acceso al panel                   │
+│                                                        │
+│     El panel de administración es solo para la         │
+│               dueña de la tienda.                      │
+│                                                        │
+│                 Volver a la tienda                     │
+│                                                        │
+└────────────────────────────────────────────────────────┘
+```
+
+- Es el **espejo UX del 403** del backend: una clienta con sesión válida que
+  fuerza `/admin` tiene identidad pero le falta permiso — no se le expulsa al
+  login, se le explica (D-55).
+- El guard es cortesía, no seguridad: sin sesión delega en RequireAuth (con
+  retorno); con sesión sin rol admin muestra esta pantalla. La seguridad real
+  son las dependencias de rol del backend en cada endpoint del panel — el
+  frontend cortés, el servidor estricto.
+- "Volver a la tienda" regresa al inicio: la clienta sigue comprando.
+
+### 4.15 Pantalla 14 — Asesora de aromas (burbuja de la tienda)
+
+**Origen:** RF-23, RF-24, RN-16, HU-13 · **Estados:** cerrada (solo la burbuja
+flotante) / abierta con bienvenida (mensaje local, sin gasto de cuota) / en
+vuelo (burbuja de la asesora con pulso + "Enviar" deshabilitado) / no
+disponible 503 ("La asesora no está disponible en este momento. Inténtalo más
+tarde." + Reintentar) / cuota 429 ("La asesora está recibiendo muchas
+consultas. Espera unos segundos y reintenta." + Reintentar) / error de red
+("No pudimos conectar con el servidor. Revisa que el backend esté corriendo
+en el puerto 8000 e inténtalo de nuevo." + Reintentar)
+
+La burbuja cerrada — acompaña toda la tienda:
+
+```
+┌────────────────────────────────────────────────────────┐
+│  (cualquier página de la tienda: pública o de clienta) │
+│                                                        │
+│                                        ( Pregúntale    │
+│                                           a Maura )    │
+└────────────────────────────────────────────────────────┘
+```
+
+El panel desplegado:
+
+```
+┌────────────────────────────────────────────────────────┐
+│  (la tienda sigue detrás, la burbuja queda abajo)      │
+│                    ┌───────────────────────────────┐   │
+│                    │ Asesora de aromas     Cerrar  │   │
+│                    │ Recomendaciones del catálogo  │   │
+│                    │ de Maura                      │   │
+│                    │ ┌───────────────────────────┐ │   │
+│                    │ │ ¡Hola! Soy la asesora de  │ │   │
+│                    │ │ Maura. Cuéntame qué aromas│ │   │
+│                    │ │ te gustan y te recomiendo │ │   │
+│                    │ │ del catálogo.             │ │   │
+│                    │ └───────────────────────────┘ │   │
+│                    │ [¿Qué aroma buscas?] [Enviar] │   │
+│                    └───────────────────────────────┘   │
+└────────────────────────────────────────────────────────┘
+```
+
+La respuesta cuando la asesora citó aromas:
+
+```
+│  │ ┌────────────────────────────────┐ │
+│  │ │ Si te gusta lo cítrico, te     │ │
+│  │ │ recomiendo la Brisa de Naranja:│ │
+│  │ │ fresca y luminosa para el día. │ │
+│  │ └────────────────────────────────┘ │
+│  │ [card: foto · Cítricas ·           │
+│  │  Brisa de Naranja · $7.990]        │
+```
+
+- La burbuja flotante — con su etiqueta **"Pregúntale a Maura"** — vive en el
+  **layout de la tienda**: visible en las páginas públicas y de clienta, y NO
+  en `/admin`: el panel es la trastienda y no necesita asesora (D-59).
+- El historial es **stateless** (D-58): vive en memoria del componente,
+  sobrevive la navegación interna de la SPA y viaja completo (máx. 10
+  mensajes, RN-16) en cada consulta; la bienvenida es un mensaje local que
+  calienta el contexto sin gastar cuota.
+- Respuesta única, **sin streaming** (D-57): el mensaje de la clienta aparece
+  inmediato y la burbuja de la asesora late mientras llega la respuesta — el
+  botón "Enviar" se deshabilita contra el doble envío.
+- Las product cards son las mismas del catálogo (clicables hacia la ficha),
+  máximo 3 por respuesta — y solo ids que el backend ya validó contra el
+  catálogo activo (RF-24): la muralla anti-alucinación es del servidor, jamás
+  del chat; si la respuesta no trae ids válidos, solo llega el texto.
+- Los errores nunca son un 500 crudo: 503 sin key o con Gemini caído
+  (degradación, D-61), 429 de cuota **sin cifras de límites**, error de red
+  con la causa del puerto 8000 — todos con "Reintentar" que reenvía el
+  último mensaje.
+- El texto de la asesora se renderiza como texto, nunca como HTML: la voz es
+  la de Maura — primera persona, tuteo chileno, recomendando por familia y
+  notas, solo del catálogo real.
+
 ---
 
 ## 5. Trazabilidad: requerimiento → diseño
@@ -983,6 +1386,19 @@ tienes pedidos" + botón Ver catálogo que reemplaza la página)
 | HU-10 (volver del pago) | §3.12 proceso 10.0 · §4.9 pantalla 8 (las cuatro caras) |
 | HU-11 (ver mis pedidos) | §3.13 proceso 11.0 · §4.10 pantalla 9 |
 | C3 (celular y notebook) | §4.1 · §4.3 · §4.4 (apilado en celular) |
+| RF-19 (CRUD de productos con soft delete) | §2.3.15 decisión 15 (dueño de la escritura) · §3.14 proceso 12.0 · §4.11 pantalla 10 (editor inline y toggle) |
+| RF-20 (stock con alerta de stock bajo) | §3.14 proceso 12.0 · §4.11 pantalla 10 (badge) · §4.13 pantalla 12 (KPI stock bajo) · RN-14 |
+| RF-21 (gestión de pedidos con 409) | §2.3.15 decisión 15 · §3.15 proceso 13.0 (UPDATE condicional) · §4.12 pantalla 11 · RN-15 |
+| RF-22 (métricas en tarjetas y tabla) | §3.16 proceso 14.0 · §4.13 pantalla 12 |
+| RF-23 (asesora en burbuja pública) | §3.17 proceso 15.0 · §4.15 pantalla 14 (burbuja) |
+| RF-24 (solo productos existentes, cards clicables) | §2.3.17 decisión 17 (mini-RAG) · §3.17 proceso 15.0 (validación de ids contra D1 activo) · §4.15 pantalla 14 (cards) |
+| RNF-08 (dependencia del servicio Gemini free tier) | §3.1 Gemini como entidad externa · §2.3.18 decisión 18 · §3.17 reglas del proceso (503/429) |
+| RNF-09 (API key solo en el backend) | §3.17 proceso 15.0 (solo el backend habla con Gemini) · §2.3.18 decisión 18 |
+| RN-14 (umbral stock bajo ≤ 5 activos) | §2.3.16 decisión 16 (dos umbrales) · §4.11 badge de la pantalla 10 · §4.13 KPI de la pantalla 12 |
+| RN-15 (máquina de estados, transición admin única) | §2.3.15 decisión 15 · §3.15 proceso 13.0 · §4.12 pantalla 11 |
+| RN-16 (topes del chat 500/10/3) | §3.17 proceso 15.0 (topes antes de Gemini) · §4.15 pantalla 14 (input y cards) |
+| HU-12 (la dueña gestiona su tienda) | §3.14/§3.15/§3.16 procesos 12.0-14.0 · §4.11-§4.13 pantallas 10-12 |
+| HU-13 (la clienta consulta a la asesora) | §3.17 proceso 15.0 · §4.15 pantalla 14 |
 
 ---
 
