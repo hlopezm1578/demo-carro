@@ -545,8 +545,9 @@ paths:
         El servidor recalcula el total con el precio vigente y valida el
         stock sin tocarlo (la segunda barrera de CART-03; la primera es
         RN-09 en pantalla); solo entonces crea la orden PENDING (D-34) y la
-        transacción en Webpay. Stock insuficiente en alguna línea → 400 con
-        el detalle de la fila que no alcanzó.
+        transacción en Webpay. Stock insuficiente en alguna línea, o un aroma
+        del carro que ya no está disponible, → 400 con el detalle de la fila
+        que no alcanzó.
       security:
         - bearerAuth: []
       requestBody:
@@ -563,7 +564,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/CheckoutRespuesta'
         '400':
-          description: Stock insuficiente para alguna línea — regla de negocio (CART-03); la orden no se crea
+          description: Stock insuficiente o aroma no disponible — regla de negocio (CART-03); la orden no se crea
           content:
             application/json:
               schema:
