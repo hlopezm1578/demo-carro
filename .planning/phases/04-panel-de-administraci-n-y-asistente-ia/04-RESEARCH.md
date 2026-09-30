@@ -480,18 +480,23 @@ TRANSICIONES_ADMIN = {"pending": {"cancelled"}}   # PENDING → CANCELLED; PAID 
 | A4 | `gemini-flash-latest` es estable para free tier (los modelos Flash 3.x tienen "Sin costo" según la página de pricing; el alias apunta a la latest Flash) | Standard Stack | Si el alias apuntara algún día a un modelo sin free tier, el alumno vería 402/403 — la guía puede fijar `gemini-3.8-flash` como alternativa concreta verificada con free tier |
 | A5 | React Router 8 anidado con `<Outlet>` funciona igual que v6 en modo declarativo (el repo ya usa `<Route element={...}>` con hijos en guia-06/08/11) | Pattern 5 | Bajo: el patrón con hijos ya está verificado runtime en maura-uat; solo el layout intermedio con Outlet es nuevo para el alumno |
 
-## Open Questions
+## Open Questions (RESOLVED)
+
+> Las tres preguntas quedaron resueltas por los planes de la fase 4 antes de la ejecución — resolución inline citando plan (convención de 01/02/03-RESEARCH). Ninguna exigió nuevo research: las tres son disposiciones que los planes ya adoptaron (OQ1 → happy path tras checkpoint del UAT delegado en 04-04; OQ2 → 429 sin cifras en 04-01/04-04; OQ3 → 409 en 04-01).
 
 1. **¿De dónde sale la `GEMINI_API_KEY` para el UAT delegado (happy path)?**
    - What we know: `D:/Repos/maura-uat/backend/.env` NO tiene GEMINI hoy (verificado este session). D-60 hace de la key un paso DEL ALUMNO; el UAT delegado (AGENTS.md) corre como alumno.
    - What's unclear: si el agente debe crear su propia key (requiere cuenta Google en el browser automation) o el usuario provee una key de prueba.
    - Recommendation: el planner deja la fila de UAT del happy path tras un `checkpoint:human-verify` (el usuario entrega la key o autoriza crearla); la ruta de degradación (sin key → 503 + burbuja "no disponible") y el grep del build se verifican sin key y SIN depender del usuario.
+   - Resolution: (RESOLVED) adoptada la Recommendation — el plan 04-04 deja el happy path del asistente (llamada real a Gemini en el UAT delegado) tras `checkpoint:human-verify`: no hay `GEMINI_API_KEY` en `maura-uat/backend/.env` y solo el usuario puede entregar la key o autorizar crearla (D-60 la hace paso del alumno); la ruta de degradación (sin key → 503 + burbuja "no disponible") y el grep del build (AIAS-03) se verifican SIN key y sin depender del usuario (truth AIAS-02 y nota UAT del verification de 04-04).
 2. **Límites RPM/RPD del free tier (concern abierto heredado)**
    - What we know: verificado este session que la página oficial NO muestra números sin login (deriva a "View your active rate limits in AI Studio"); solo el usuario logueado puede verlos.
    - Recommendation: mantener la decisión de CONTEXT.md — la guía enseña el 429 sin cifras; si el usuario algún día reporta sus límites, se agregan como nota, no como promesa.
+   - Resolution: (RESOLVED) adoptada la Recommendation — la fase mantiene el 429 SIN cifras: guia-14/guia-15 (plan 04-04) enseñan el manejo del error con copy amable sin números (concern abierto heredado de STATE.md: la página oficial no muestra límites sin login, verificado arriba), y el contrato 0.4.0 (04-01 Task 1) declara la fila 429 de la convención de errores sin cifras de límites; si el usuario algún día reporta sus límites, se agregan como nota, no como promesa.
 3. **409 vs 422 para transición ilegal (discreción del planner)**
    - What we know: el contrato ya usa 409 para conflicto de negocio visible al usuario (email registrado) y 422 para schema; la transición ilegal es un conflicto de ESTADO del recurso, no un dato mal formado (el body `{estado}` es sintácticamente válido).
    - Recommendation: **409** con detail claro ("Ese pedido ya está pagado" / "Solo se puede anular un pedido en curso") — es también el estándar REST para state conflicts; documentarlo en la convención de errores del contrato 0.4.0.
+   - Resolution: (RESOLVED) adoptada la Recommendation (409) — el contrato 0.4.0 (04-01 Task 1) declara el 409 para la transición ilegal en PATCH `/api/admin/pedidos/{numero}/estado` con el example detail locked "Ese pedido ya no está en curso." y la fila 409 de la convención de errores gana su segundo uso (conflicto de ESTADO del recurso, no un dato mal formado); ADR-016 (04-01 Task 2) registra la máquina de estados que lo produce (D-50).
 
 ## Environment Availability
 
