@@ -1,6 +1,6 @@
 ---
 phase: 03-checkout-webpay-y-rdenes
-verified: 2026-09-30T18:40:17Z
+verified: 2026-09-30T19:21:03Z
 status: passed
 score: 12/12 must-haves verified
 covered_files:
@@ -17,6 +17,9 @@ covered_files:
   - .planning/phases/03-checkout-webpay-y-rdenes/03-SPIKE-RETORNO.md
   - .planning/phases/03-checkout-webpay-y-rdenes/03-UAT.md
   - .planning/phases/03-checkout-webpay-y-rdenes/03-SECURITY.md
+  - .planning/phases/03-checkout-webpay-y-rdenes/03-REVIEW.md
+  - .planning/phases/03-checkout-webpay-y-rdenes/03-REVIEW-FIX.md
+  - .planning/phases/03-checkout-webpay-y-rdenes/03-REVIEW-DISPOSITION.md
   - docs/02_requerimientos.md
   - docs/03_diseno.md
   - docs/04_arquitectura/contrato_api.yaml
@@ -30,16 +33,16 @@ covered_files:
   - docs/05_desarrollo/README.md
   - docs/README.md
   - README.md
-covered_digest: "v2:sha256:309b615551f4a3048ee0bd8dade8cd528a5b6ab6eac3b6bf8f53f95082868858"
+covered_digest: "v2:sha256:3ad2396a74eba300c8d4da259a2d8fc3f5d21a96e96fad33e0fdf94e5811e67d"
 behavior_unverified: 0
 overrides_applied: 0
 re_verification:
-  previous_status: human_needed
-  previous_score: 7/12
+  previous_status: passed
+  previous_score: 12/12
   gaps_closed:
-    - "Los 5 Success Criteria runtime (antes PRESENT_BEHAVIOR_UNVERIFIED) cerrados por el UAT delegado completo: 03-UAT.md status complete, 3/3 pass, verified_by agent (user-delegated), Gran verificación final 12/12 — corroborado de forma independiente contra la BD del taller (D:/Repos/maura-uat/backend/maura.db, lectura mode=ro)"
-    - "Fixes D-1/D-2/D-3 del UAT presentes en el texto ACTUAL de las guías (commits 9066777 y b191830 verificados con git show) y en la app del taller (regla dos-lugares): D-1 default _numero_provisorio en guia-09 Paso 2 + reemplazo MAURA-{id:06d} post-flush en el repositorio; D-2 import del modelo usuario en carrera.py (guia-09 Paso 10); D-3 timeout con pestaña activa CANCELA la orden (guia-10 Paso 7, guia-11 fila 5 + MV de la huérfana)"
-    - "Los 3 ítems de human_verification de la ronda previa resueltos: (1) UAT delegado completo; (2) corrección del flujo anulado aceptada por el usuario (decided_by user 2026-09-30); (3) IN-01..IN-06 dispuestos por el usuario (decided_by user 2026-09-30: cerrar con --fix --all)"
+    - "Digest stale cerrado: los fixes IN-01..IN-06 del code review (iteration 2, commits dc38220/5489a43/521769d/ef89c67/a9402c6/86c2297) tocaron 5 archivos cubiertos DESPUES de la ronda previa (0a8a7cb, 15:42 local); esta ronda verifico cada fix en el texto ACTUAL (no en los claims del REVIEW-FIX) y regenero el fingerprint"
+    - "Los 12 findings del 03-REVIEW.md ahora estan disposed fixed (03-REVIEW-DISPOSITION.md: open 0/total 12) — la unica pizarra abierta de la ronda previa (fixer de IN-01..IN-06 pendiente) quedo cerrada"
+    - "Hallazgo favorable: la nota UAT del 03-REVIEW-FIX.md ('los de la iteracion 1 siguen pendientes de espejo') esta STALE — los espejos WR-01/02/03 en maura-uat (app/services/pedidos.py, app/config.py mtime 14:56) PREDATAN la corrida UAT (commits 15:28-15:30), asi que la evidencia runtime se recogio sobre codigo post-iteration-1 (senal None, backend_url, guard atomico)"
   gaps_remaining: []
   regressions: []
 ---
@@ -47,11 +50,11 @@ re_verification:
 # Phase 3: Checkout Webpay y órdenes — Verification Report
 
 **Phase Goal:** Un cliente con sesión completa una compra de extremo a extremo contra Webpay Plus en ambiente de integración — ida por form POST auto-submit, vuelta por el endpoint del backend que discrimina los 4 flujos oficiales, voucher de la tienda, orden con estados y stock descontado de forma atómica. El spike del retorno de Webpay (aprobado, anulado y timeout en sandbox) se resuelve dentro de esta fase, ANTES de redactar su guía de desarrollo.
-**Verified:** 2026-09-30T18:40:17Z
+**Verified:** 2026-09-30T19:21:03Z
 **Status:** passed
-**Re-verification:** Yes — la ronda previa (2026-09-30T17:18:04Z, human_needed 7/12) quedó stale tras los fixes D-1/D-2/D-3 (commits 9066777, b191830), la completitud del UAT delegado (03-UAT.md) y 03-SECURITY.md; digest regenerado.
+**Re-verification:** Yes — la ronda previa (2026-09-30T18:40:17Z, passed 12/12) quedó con digest stale tras los fixes IN-01..IN-06 (iteration 2 del code review) sobre 5 archivos cubiertos. Esta ronda re-verifica esos fixes en el texto actual, corre regresión sobre el resto del corpus y regenera el digest.
 
-> **Nota de modo MVP:** la fase tiene `Mode: mvp` pero el goal del ROADMAP no está en formato User Story literal. Los planes 03-01..03-05 llevan user stories canónicas y el goal es verificable goal-backward contra las 5 Success Criteria (misma decisión de la ronda previa). La cobertura de flujo de usuario abajo se actualiza con la evidencia runtime del UAT.
+> **Nota de modo MVP:** la fase tiene `Mode: mvp` pero el goal del ROADMAP no está en formato User Story literal. Los planes 03-01..03-05 llevan user stories canónicas y el goal es verificable goal-backward contra las 5 Success Criteria (misma decisión de las dos rondas previas — se mantiene estable).
 
 ## User Flow Coverage (modo MVP)
 
@@ -59,144 +62,151 @@ User story (de los planes): *As a clienta con sesión iniciada, I want to comple
 
 | Paso del flujo | Esperado | Evidencia en el corpus | Estado |
 |---|---|---|---|
-| Iniciar checkout (CTA) | CTA crea la orden via POST /api/checkout con items sin precios y viaja a Webpay por form POST auto-submit | Contrato bearerAuth + CheckoutCreate=[items] (YAML); guia-10 paso 2 (useMutation + createElement + submit solo en el clic); runtime UAT: precio inyectado ignorado, orden creada, viaje al form hosted | ✓ VERIFIED (runtime UAT) |
-| Pagar en Webpay sandbox | Navegador llega al formulario hosted con token_ws | Spike (VISA oficial, commit AUTHORIZED observado); UAT: aprobado real con 3DS, voucher MAURA-000006 Pagado $15.980; BD: pedido paid con líneas snapshot | ✓ VERIFIED (runtime UAT) |
-| Volver por el retorno | Endpoint GET+POST público discrimina los 4 flujos por presencia y responde 302 | Contrato (get+post security [] con 302 en ambos); guia-09 clasificar_flujo; spike 3 flujos runtime; UAT: aprobado/anulado/timeout reales + 4° documentado, carro vacío SOLO en aprobado | ✓ VERIFIED (runtime UAT) |
-| Ver el voucher de la tienda | Voucher propio con numero/líneas snapshot/total/badge; carro intacto en anulado | guia-10 VoucherPedido + vaciado gated a paid; UAT: voucher MAURA-000006, carro {"items":[]} solo en aprobado, anulado con carro intacto; F5 sin doble pago | ✓ VERIFIED (runtime UAT) |
-| Ver mi historial | /pedidos lista TODAS las órdenes con badges, PENDING "en curso", detalle = mismo voucher | guia-11 Pedidos.tsx + DetallePedido reutilizando VoucherPedido; UAT: huérfanas MAURA-000001/000002/000009 visibles "En curso", 404 uniforme, contrato ↔ /docs | ✓ VERIFIED (runtime UAT) |
+| Iniciar checkout (CTA) | CTA crea la orden via POST /api/checkout con items sin precios y viaja a Webpay por form POST auto-submit | Contrato bearerAuth + CheckoutCreate=[items] (YAML re-parseado esta ronda); guia-10 paso 2 (submit solo en el clic); runtime UAT 12/12; BD taller: MAURA-000006 paid 15.980 | ✓ VERIFIED (runtime UAT) |
+| Pagar en Webpay sandbox | Navegador llega al formulario hosted con token_ws | Spike (VISA oficial, commit AUTHORIZED); UAT: aprobado real con 3DS, voucher MAURA-000006 Pagado | ✓ VERIFIED (runtime UAT) |
+| Volver por el retorno | Endpoint GET+POST público discrimina los 4 flujos por presencia y responde 302 | Contrato (get+post security [] con 302/400 en ambos — re-parseado); guia-09 clasificar_flujo intacto (l.786-812); spike 3 flujos runtime + 4° documentado; UAT: carro vacío SOLO en aprobado | ✓ VERIFIED (runtime UAT) |
+| Ver el voucher de la tienda | Voucher propio con numero/líneas snapshot/total/badge; carro intacto en anulado | guia-10 VoucherPedido + vaciado gated a paid (l.330/426/550/626/766); UAT: voucher MAURA-000006, carro intacto en anulado/timeout; F5 sin doble pago; IN-02 agrega rama cancelled al título post-fetch (l.553-556 + espejo maura-uat l.173-177) | ✓ VERIFIED (runtime UAT) |
+| Ver mi historial | /pedidos lista TODAS las órdenes con badges, PENDING "en curso", detalle = mismo voucher | guia-11 (sin cambios desde la ronda previa) + UAT: huérfanas visibles "En curso", 404 uniforme, contrato ↔ /docs | ✓ VERIFIED (runtime UAT) |
 
 ## Goal Achievement
 
 ### Observable Truths
 
-Las 5 Success Criteria del ROADMAP son comportamientos runtime de la app que las guías enseñan. En la ronda previa quedaron PRESENT_BEHAVIOR_UNVERIFIED (delegadas al UAT por diseño, per AGENTS.md). Esta runda las cierra con la evidencia runtime registrada en 03-UAT.md (status complete, 3/3 pass, verified_by agent user-delegated), corroborada de forma INDEPENDIENTE por este verificador contra la BD del taller (`D:/Repos/maura-uat/backend/maura.db`, modo solo-lectura).
+Las 5 Success Criteria del ROADMAP son comportamientos runtime de la app que las guías enseñan; quedaron cerrados por el UAT delegado (03-UAT.md, status complete, 3/3 pass) en la ronda previa y NINGÚN cambio de esta ronda los toca: los fixes IN-01..IN-06 son 4 documentales y 2 de robustez menor (IN-02 título, IN-06 wrapper de red) que no alteran ningún invariante de los SCs. La corroboración BD de esta ronda confirma que la evidencia sigue en pie.
 
 | # | Truth | Status | Evidence |
 |---|---|---|---|
-| 1 | SC1 (PAY-01): cliente inicia checkout y es redirigida a Webpay Plus mediante form POST auto-submit con el token | ✓ VERIFIED | UAT runtime: flujo aprobado completo con VISA 4051 8856 0044 6623 + 3DS (RUT 11.111.111-1, clave 123); Gran verificación final 12/12 en verde. Corroboración BD: MAURA-000006 paid con total 15.980 = 2×7.990 y descuento real de stock. Estructura documental intacta (guia-10 paso 2, submit solo en el handler del clic) |
-| 2 | SC2 (PAY-02/PAY-04): los 4 flujos del retorno llegan al endpoint GET+POST, discriminados con resultado correcto en la SPA, voucher de la tienda, carro restituido si fue anulado | ✓ VERIFIED | UAT runtime: aprobado (voucher "MAURA-000006 · Pagado"), anulado por botón ("Tu compra no se concretó" + carro intacto), timeout con pestaña activa ~11 min ("Se agotó el tiempo" + carro intacto), 4° documentado solo-producción cubierto por el discriminador. Corroboración BD: MAURA-000007/000008 cancelled SIN descuento de stock (producto 2 sigue en 9). Carro vaciado SOLO en aprobado (maura-carro {"items":[]}) |
-| 3 | SC3 (PAY-03): orden pagada solo con response_code == 0 AND status == AUTHORIZED; el refresh no paga dos veces | ✓ VERIFIED | UAT runtime: F5 sobre el voucher pagado → mismo voucher, estado paid, stock sin segundo descuento (fila 7 de la Gran verificación); re-navegación al return_url cubierta por el guard ya-PAID (UPDATE condicional, WR-03). Estructura: criterio doble literal en el bloque _confirmar (guia-09 Paso 7) |
-| 4 | SC4 (CART-03): el backend recalcula y valida precios y stock al crear la orden — nunca confía en valores del cliente | ✓ VERIFIED | UAT runtime: payload con `"precio":1` inyectado → ignorado por HTTP, total 17.980 = 2×8.990 del catálogo; stock insuficiente → 400 y la orden NO se crea. Corroboración BD: MAURA-000009 (la orden del experimento) con precio_snapshot 8990 por línea — el precio del catálogo, no el del cliente |
-| 5 | SC5 (ORDR-02/ORDR-01): stock descontado atómicamente al aprobar (sin oversell) + historial con PENDING/PAID/CANCELLED/REJECTED | ✓ VERIFIED | UAT runtime: carrera.py → exactamente un PAID + un REJECTED + stock 0; /pedidos lista TODAS las órdenes con badges, huérfanas 000001/000002/000009 visibles "En curso". Corroboración BD (invariante anti-oversell): exactamente las 3 órdenes paid descontaron (000003:1, 000005:1, 000006:2 unidades); rejected (000004), cancelled (000007/8) y pending NO tocaron stock — la discriminación paid/no-paid del descuento es exacta |
-| 6 | Spike: los 4 flujos oficiales del retorno documentados con evidencia (3 runtime + 1 documentado) con método, params y veredicto vs Pattern 3 | ✓ VERIFIED (regresión) | 03-SPIKE-RETORNO.md sin cambios desde la ronda previa (git): verified_by agent (user-delegated), 4 result:, TBK_* presentes; eventos.jsonl en maura-uat/spike-retorno. La aceptación como canónica fue decidida por el usuario (03-UAT.md test 2, decided_by user 2026-09-30) |
-| 7 | Spike: decisión de mecánica firmada con evidencia runtime (D-41: 302 explícito a /pago/resultado) | ✓ VERIFIED (regresión) | Sección "Decisión de mecánica" intacta; ADR-012 la cita (grep presente); el runtime del UAT ejercitó el 302 real en los 4 flujos |
-| 8 | Spike: camino reproducible a REJECTED documentado empíricamente con fallback declarado | ✓ VERIFIED (regresión) | REJECTED vía TSN (response_code=-1/FAILED) + fallback carrera. El UAT corrió la carrera con el veredicto esperado (un REJECTED visible en BD: MAURA-000004) |
-| 9 | Contrato 0.3.0: superficie completa de la etapa con fases 1-2 intactas | ✓ VERIFIED (regresión) | `yaml.safe_load` re-ejecutado: version 0.3.0, 11 paths, CheckoutCreate props=['items'], retorno get+post security=[] con '302'+'400' en ambos, pedidos/{numero} 200/401/404, enum [pending, paid, cancelled, rejected]. UAT fila 12: contrato ↔ /docs idénticos, 302 declarado, retorno sin candado, Authorize 200/403 |
-| 10 | ADRs 012-014 (índice a 14) con el formato canónico | ✓ VERIFIED (regresión) | 14 archivos adr/0*.md en disco; ADR-012 cita 03-SPIKE-RETORNO; sin cambios desde la ronda previa (fuera de los commits post-verificación) |
-| 11 | docs/02 y docs/03 documentan la etapa 3 sin renumerar etapas 1-2 | ✓ VERIFIED (regresión) | Sin cambios git desde la ronda previa (verificación documental previa: RF-12..18/RN-10..13/HU-09..11, PEDIDO/LÍNEA, DFDs 9.0-11.0, pantallas 8-9) |
-| 12 | Guías 09-11 enseñan backend+vuelta+historial sin desviarse; índices honestos; repo guide-only | ✓ VERIFIED (regresión + fixes) | 11 guías / 14 ADRs / `git ls-files -- backend frontend` vacío / READMEs con "1-11 listas" y "14 ADRs" sin rastros stale. AST de guia-09 tras D-1/D-2: 19/21 bloques parsean (los 2 no-parseos son los mismos fragmentos de continuación documentados). Los fixes D-1/D-2/D-3 del UAT están integrados en el texto actual (detalle abajo) |
+| 1 | SC1 (PAY-01): cliente inicia checkout y es redirigida a Webpay Plus mediante form POST auto-submit con el token | ✓ VERIFIED (regresión) | UAT runtime 12/12; BD re-corroborada ESTA ronda (mode=ro): MAURA-000006 paid 15.980, stock consistente. Estructura intacta: guia-10 solo cambió 4 líneas desde la ronda previa (diff = exactamente IN-02), submit vive solo en el handler del clic |
+| 2 | SC2 (PAY-02/PAY-04): los 4 flujos del retorno llegan al endpoint GET+POST, discriminados con resultado correcto en la SPA, voucher de la tienda, carro restituido si fue anulado | ✓ VERIFIED (regresión) | Contrato re-parseado: retorno get+post security=[] con '302'+'400' ambos; clasificar_flujo por presencia intacto en guia-09 (l.786-812); _cancelar SIN llamada a la API (l.824-856); carro gated a `estado === "paid"` (7 sitios en guia-10). UAT runtime: aprobado/anulado/timeout reales |
+| 3 | SC3 (PAY-03): orden pagada solo con response_code == 0 AND status == AUTHORIZED; el refresh no paga dos veces | ✓ VERIFIED (regresión) | Criterio doble literal en _confirmar (guia-09 l.875); guard ya-PAID como UPDATE condicional pending→paid con rowcount (l.886-897, WR-03 intacto); F5 sin doble pago observado en UAT; WR-04 (mecanismo real del F5 = re-fetch) intacto en guia-10 l.658-707 |
+| 4 | SC4 (CART-03): el backend recalcula y valida precios y stock al crear la orden — nunca confía en valores del cliente | ✓ VERIFIED (regresión) | CheckoutCreate props=['items'] (YAML re-parseado, prohibición en verde); UAT: precio inyectado ignorado, stock insuficiente → 400 sin orden; BD: precio_snapshot 8990 = catálogo |
+| 5 | SC5 (ORDR-02/ORDR-01): stock descontado atómicamente al aprobar (sin oversell) + historial con PENDING/PAID/CANCELLED/REJECTED | ✓ VERIFIED (regresión) | BD re-corroborada esta ronda: 9 pedidos (3 paid / 1 rejected / 2 cancelled / 3 pending), descuento exactamente en las paid; UPDATE condicional stock>=cantidad + rowcount intacto (guia-09 l.424-442); guia-11 sin cambios |
+| 6 | Spike: los 4 flujos oficiales del retorno documentados con evidencia (3 runtime + 1 documentado) con método, params y veredicto vs Pattern 3 | ✓ VERIFIED (regresión) | 03-SPIKE-RETORNO.md sin cambios git desde la ronda previa (diff 0a8a7cb..HEAD vacío para el archivo); aceptación canónica por el usuario (2026-09-30) |
+| 7 | Spike: decisión de mecánica firmada con evidencia runtime (D-41: 302 explícito a /pago/resultado) | ✓ VERIFIED (regresión) | Sin cambios; ADR-012 cita 03-SPIKE-RETORNO (grep re-ejecutado: 1); el 302 corre en contrato (get+post ambos) y guia-09 |
+| 8 | Spike: camino reproducible a REJECTED documentado empíricamente con fallback declarado | ✓ VERIFIED (regresión) | Sin cambios; BD re-corroborada: MAURA-000004 rejected (la carrera del UAT) |
+| 9 | Contrato 0.3.0: superficie completa de la etapa con fases 1-2 intactas | ✓ VERIFIED (re-parse post IN-03/IN-04) | `yaml.safe_load` re-ejecutado sobre el contrato ACTUAL: version 0.3.0, 11 paths, CheckoutCreate=['items'], retorno get+post security=[] con 302/400, POST retorno SIN `required` (IN-03), enum [pending, paid, cancelled, rejected], login requestBody required:true conservado (intencional), 400 del checkout con descripción extendida (IN-04) idéntica al responses del router de guia-09 (l.567 ≡ l.983) |
+| 10 | ADRs 012-014 (índice a 14) con el formato canónico | ✓ VERIFIED (regresión) | 14 archivos adr/0*.md en disco (re-contado); ninguno modificado desde la ronda previa |
+| 11 | docs/02 y docs/03 documentan la etapa 3 sin renumerar etapas 1-2 | ✓ VERIFIED (regresión + IN-01/IN-05 verificados) | diff 0a8a7cb..HEAD sobre ambos = EXACTAMENTE 2 líneas: "se descuento"→"se descuente" (HU-10, IN-01) y wireframe "Carro (0)"→"Carro" (IN-05); greps: 0 "se descuento" en docs/, 0 "Carro (0)" en 03_diseno; fila `fecha` del diccionario §2.2 (WR-05) intacta (l.119); RF-12/HU-09 presentes |
+| 12 | Guías 09-11 enseñan backend+vuelta+historial sin desviarse; índices honestos; repo guide-only | ✓ VERIFIED (re-verificado post IN-06/IN-02) | 11 guías / 14 ADRs (re-contado); `git ls-files -- backend frontend` vacío; READMEs "1-11 listas" + "14 ADRs"; AST 21/21 fences Python de guia-09 parsean (class-wrap); diff guia-09 = exactamente IN-06 (import requests + TransbankError base + except ampliado + 3 narrativas); CR-01 (3 imports Error desde schemas/producto, 0 desde schemas.pedido), WR-01 (único fence con `from transbank` = wrapper, l.508-511; l.67 es comando shell de mini-verificación), WR-02 (backend_url l.602/685), D-1 (_numero_provisorio l.115/143), D-2 (l.1316) intactos |
 
 **Score:** 12/12 truths verified (0 present, behavior-unverified)
 
-### Re-verification: fixes D-1/D-2/D-3 en el texto actual (el disparador de esta ronda)
+### Re-verification: fixes IN-01..IN-06 en el texto actual (el disparador de esta ronda)
 
-| Fix | Commit | Dónde debía quedar | Verificación en texto actual |
+Verificados contra el código/texto ACTUAL, no contra los claims del 03-REVIEW-FIX.md:
+
+| Fix | Commit | Dónde | Verificación en texto actual |
 |---|---|---|---|
-| D-1 numero provisorio (IntegrityError NOT NULL pedidos.numero) | 9066777 | guia-09 Paso 2 (models/pedido.py) | ✓ `import uuid` (l.106) + `def _numero_provisorio()` (l.115-120, TMP-uuid 24 chars) + `default=_numero_provisorio` (l.143) + narrativa gallina-y-huevo (l.173-183); mecanismo completo en el repositorio: `crear` hace `flush()` y reemplaza por `MAURA-{id:06d}` antes del commit (l.390-405). AST del bloque OK |
-| D-2 carrera.py importa modelo usuario (NoReferencedTableError FK) | 9066777 | guia-09 Paso 10 (carrera.py) | ✓ l.1309: `from app.models import usuario  # noqa: F401 — la FK pedidos.usuario_id necesita la tabla usuarios en el metadata`. AST del bloque OK |
-| D-3 timeout con pestaña ACTIVA cancela la orden | b191830 | guia-10 Paso 7 + guia-11 fila 5 + MV huérfana | ✓ guia-10 l.662-670: "~10 minutos con la pestaña activa (cronometrado: 603 s) — el retorno del timeout marca la orden CANCELLED… la orden queda 'en curso' SOLO si la pestaña durmió en background"; guia-11 fila 5 (l.482) con la misma precisión + MV de la huérfana (l.453-455). Sin pasajes residuales que contradigan (grep timeout+PENDING: solo el caso condicionado a pestaña dormida) |
+| IN-01 typo "se descuento" | dc38220 | docs/02 HU-10 (RF-15) | ✓ grep: 0 ocurrencias de "se descuento" en docs/; "se descuente" en l.250 |
+| IN-02 título ResultadoPago rama cancelled | a9402c6 | guia-10 l.553-556 + espejo maura-uat | ✓ ternario anidado `estado === "cancelled" ? "Tu compra quedó anulada"` en guía (l.555) y espejo ResultadoPago.tsx (l.175); título se decide por el estado REAL fetcheado; la cara por query param ("Tu compra no se concretó", l.458) sigue intacta |
+| IN-03 contrato sin required:true en POST retorno | 521769d | contrato_api.yaml l.660-672 | ✓ POST retorno requestBody sin `required` (YAML parse: None); login conserva required:true (intencional); schema declara los 4 params opcionales |
+| IN-04 contrato 400 checkout cubre aroma no disponible | ef89c67 | contrato l.567 + description endpoint | ✓ descripción del '400' == responses del router de guia-09 l.983, texto contra texto |
+| IN-05 wireframe "Carro (0)" | 5489a43 | docs/03 §4.10 | ✓ 0 ocurrencias "Carro (0)" en 03_diseno.md; navbar dibuja `Carro` sin contador |
+| IN-06 wrapper atrapa TransbankError + errores de red | 86c2297 | guia-09 l.505-549 + espejo maura-uat | ✓ `import requests` + import base `TransbankError` + `except (TransbankError, requests.ConnectionError, requests.Timeout): return None` (guía l.545, espejo webpay.py l.48); docstring documenta la frontera ampliada; 3 narrativas actualizadas; pedidos.py espejo sin transbank (0 matches) y con la señal `commit is None` (l.170-171) |
 
-Regla dos-lugares (AGENTS.md): los fixes D-1 y D-2 también están en la app del taller — `D:/Repos/maura-uat/backend/app/models/pedido.py` (l.13/41: `_numero_provisorio`) y `D:/Repos/maura-uat/backend/carrera.py` (l.19: import usuario). Verificado por inspección directa.
+### Corroboración independiente (esta ronda)
 
-### Corroboración independiente de la evidencia UAT
-
-Este verificador NO confió solo en 03-UAT.md: consultó la BD que la corrida dejó en el taller (`sqlite3 mode=ro` sobre `D:/Repos/maura-uat/backend/maura.db`). Los 9 pedidos registrados calzan claim por claim: MAURA-000006 paid 15.980 (voucher del UAT), MAURA-000009 pending 17.980 con precio_snapshot 8990 (precio inyectado ignorado), MAURA-000004 rejected (la carrera), MAURA-000007/000008 cancelled (anulado + timeout — D-3), MAURA-000001/2/9 pending (huérfanas "en curso"), y el stock solo reflejó las líneas paid. La estructura de la app (models/pedido, services/pedidos+webpay, routers/checkout+retorno+pedidos, features/pago+pedidos) existe completa en el taller.
+- **BD del taller re-consultada** (`sqlite3 mode=ro` sobre `D:/Repos/maura-uat/backend/maura.db`): 9 pedidos con estados mixtos (MAURA-000001/2/9 pending, 000003/5/6 paid, 000004 rejected, 000007/8 cancelled), stock de los 12 productos consistente con los descuentos paid — la base de evidencia runtime del UAT sigue en pie, sin mutaciones posteriores.
+- **Estado de espejos maura-uat (regla dos-lugares):** TODOS aplicados — WR-01 (`commit is None`, pedidos.py l.170-171, 0 transbank), WR-02 (`backend_url` en config.py l.36 + return_url l.110), WR-03 (`update(Pedido)` condicional con rowcount l.157/198/203), IN-02 (ResultadoPago.tsx 15:59), IN-06 (webpay.py 15:59). Mtimes: pedidos.py/config.py 14:56 y models/pedido.py 15:00 — **antedatan la corrida UAT** (commits 15:28-15:30), o sea la evidencia runtime se recogió sobre código post-iteration-1. La nota del 03-REVIEW-FIX.md que daba los espejos de la iteration 1 "pendientes" quedó stale (dirección favorable); no afecta ningún must-have.
+- **Cambios de comportamiento NO re-corridos en runtime:** IN-06 (falla de red durante commit → None) e IN-02 (título de un cancelled fetcheado por link viejo) se verificaron por jerarquía de clases contra el SDK instalado (`TransactionCommitError ⊂ TransbankError`), `tsc --noEmit` y presencia del espejo — ambos son robustez info-level fuera de la superficie de los 5 SCs, que el UAT ya ejercitó.
 
 ### Required Artifacts
 
 | Artifact | Expected | Status | Details |
 |---|---|---|---|
-| `.planning/phases/03-checkout-webpay-y-rdenes/03-SPIKE-RETORNO.md` | Hallazgos runtime por flujo + decisión de mecánica | ✓ VERIFIED | Sin cambios desde ronda previa; aceptación del anulado corregido decidida por el usuario |
-| `docs/04_arquitectura/contrato_api.yaml` | Contrato 0.3.0 con la superficie de la etapa | ✓ VERIFIED | YAML re-parseado: todas las garantías estructurales en verde; runtime UAT fila 12 confirma /docs ↔ contrato |
-| `docs/04_arquitectura/adr/012-014` | ADRs de retorno/ciclo de vida/snapshot | ✓ VERIFIED | 14 ADRs en disco; 012 cita el spike; sin cambios post-ronda previa |
-| `docs/04_arquitectura/README.md` | Stack real + índice 14 | ✓ VERIFIED | Regresión OK |
-| `docs/02_requerimientos.md` / `docs/03_diseno.md` | Etapa 3 sin renumerar | ✓ VERIFIED | Sin cambios git desde la ronda previa |
-| `docs/05_desarrollo/guia-09-ordenes-webpay.md` | Guía backend del pago | ✓ VERIFIED | 1600 líneas; D-1 + D-2 integrados; AST 19/21 (2 fragmentos documentados); 25 marcadores clave presentes |
-| `docs/05_desarrollo/guia-10-retorno-voucher.md` | Guía vuelta a la SPA | ✓ VERIFIED | D-3 integrado (Paso 7); carro gated a `estado === "paid"`; sin innerHTML/iframes en código (las 2 menciones de "iframes" son narrativas, docs que los desaconsejan) |
-| `docs/05_desarrollo/guia-11-pedidos-cierre.md` | Guía historial + Gran verificación final | ✓ VERIFIED | D-3 integrado (fila 5 + MV huérfana); 12 filas de verificación final |
-| `READMEs` (raíz, docs, 05_desarrollo) | Índices al cierre real | ✓ VERIFIED | "1-11 listas" + "14 ADRs" en ambos índices raíz; sin stale |
-| `.planning/.../03-UAT.md` | Evidencia runtime de los 5 SCs | ✓ VERIFIED | status complete, 3/3 pass, verified_by agent (user-delegated); corroborada contra BD del taller |
-| `.planning/.../03-SECURITY.md` | Contrato de seguridad de la fase | ✓ VERIFIED | threats_open: 0, 14/14 closed, status verified; register reforzado con runtime del UAT |
+| `.planning/phases/03-checkout-webpay-y-rdenes/03-SPIKE-RETORNO.md` | Hallazgos runtime por flujo + decisión de mecánica | ✓ VERIFIED | Sin cambios git desde la ronda previa (diff vacío) |
+| `docs/04_arquitectura/contrato_api.yaml` | Contrato 0.3.0 con la superficie de la etapa | ✓ VERIFIED | YAML re-parseado post IN-03/IN-04: garantías estructurales en verde; diffs quirúrgicos |
+| `docs/04_arquitectura/adr/012-014` | ADRs de retorno/ciclo de vida/snapshot | ✓ VERIFIED | 14 ADRs; 012 cita el spike; sin cambios post-ronda previa |
+| `docs/04_arquitectura/README.md` | Stack real + índice 14 | ✓ VERIFIED | Regresión OK (sin cambios) |
+| `docs/02_requerimientos.md` / `docs/03_diseno.md` | Etapa 3 sin renumerar | ✓ VERIFIED | Diffs post-ronda = exactamente IN-01/IN-05 (2 líneas) |
+| `docs/05_desarrollo/guia-09-ordenes-webpay.md` | Guía backend del pago | ✓ VERIFIED | AST 21/21; diff = exactamente IN-06; CR-01/WR-01..03 + D-1/D-2 intactos |
+| `docs/05_desarrollo/guia-10-retorno-voucher.md` | Guía vuelta a la SPA | ✓ VERIFIED | Diff = exactamente IN-02 (4 líneas); gating paid + D-3 + WR-04 intactos |
+| `docs/05_desarrollo/guia-11-pedidos-cierre.md` | Guía historial + Gran verificación final | ✓ VERIFIED | Sin cambios desde ronda previa; 12 filas + VoucherPedido reutilizado |
+| `READMEs` (raíz, docs, 05_desarrollo) | Índices al cierre real | ✓ VERIFIED | "1-11 listas" + "14 ADRs" presentes en raíz y docs |
+| `.planning/.../03-UAT.md` | Evidencia runtime de los 5 SCs | ✓ VERIFIED | Sin cambios; BD re-corroborada esta ronda |
+| `.planning/.../03-SECURITY.md` | Contrato de seguridad de la fase | ✓ VERIFIED | Sin cambios desde ronda previa |
+| `.planning/.../03-REVIEW*.md` (3 archivos) | Review, fix report y disposition | ✓ VERIFIED | Disposition: 12/12 fixed, open 0 — la pizarra abierta de la ronda previa cerrada; nota espejos stale (Info, ver arriba) |
 
 ### Key Link Verification
 
 | From | To | Via | Status | Details |
 |---|---|---|---|---|
-| 03-SPIKE-RETORNO.md | contrato_api.yaml | endpoint GET+POST según evidencia por flujo | ✓ WIRED | Regresión OK; runtime UAT lo ejercitó |
-| 03-SPIKE-RETORNO.md | ADR-012 | cita como evidencia | ✓ WIRED | grep presente |
+| 03-SPIKE-RETORNO.md | contrato_api.yaml | endpoint GET+POST según evidencia por flujo | ✓ WIRED | Regresión OK; contrato re-parseado |
+| 03-SPIKE-RETORNO.md | ADR-012 | cita como evidencia | ✓ WIRED | grep re-ejecutado |
 | ADR-013 | ADR-010 | regla 3 del carro | ✓ WIRED | Sin cambios |
-| contrato_api.yaml | guias 09-10 | paths implementados sin desviarse | ✓ WIRED | Fila 12 del UAT: versiones y 11 paths idénticos contrato ↔ /docs |
-| guia-10 | guia-08/guia-07 | CTA encendido + vaciar() gated a paid | ✓ WIRED | `estado === "paid"` presente (l.330/426/550) |
+| contrato_api.yaml | guias 09-10 | paths implementados sin desviarse | ✓ WIRED | Re-verificado post IN-04: 400 contrato ≡ 400 router (l.567 ≡ l.983); discriminador guia-09 calza con params del contrato |
+| guia-10 | guia-08/guia-07 | CTA encendido + vaciar() gated a paid | ✓ WIRED | `estado === "paid"` en 7 sitios (l.330/426/550/626/766...) |
 | guia-11 | guia-10/contrato | VoucherPedido reutilizado + fila /docs | ✓ WIRED | Sin cambios |
-| 03-UAT.md | guias 09-11 (fixes D-1/D-2/D-3) | regla dos-lugares | ✓ WIRED | Los tres fixes presentes en guías Y en la app del taller (commits 9066777, b191830) |
+| 03-REVIEW-FIX.md | guías + espejos maura-uat | regla dos-lugares | ✓ WIRED | Los 12 fixes presentes en guías; espejos verificados por inspección directa (WR-01/02/03 + IN-02 + IN-06) |
 
 ### Data-Flow Trace (Level 4)
 
 | Artefacto | Variable de contenido | Fuente | Fluye real | Status |
 |---|---|---|---|---|
-| Guías 09-11 | código del pago (modelo→repo→service→router→SPA) | Contrato 0.3.0 + spike | Sí — y ahora EJECUTADO runtime: la app construida del texto de las guías produjo los 9 pedidos/estados/stock de la BD del taller | ✓ FLOWING |
-| 03-UAT.md | resultados runtime | corrida en maura-uat | Sí — claims calzados registro a registro contra maura.db (verificado por este verificador en mode=ro) | ✓ FLOWING |
-| 03-SECURITY.md | mitigaciones | corpus + runtime UAT | Sí — T-03-03/04/05/07/08/09/12 citan resultados runtime específicos | ✓ FLOWING |
+| Guías 09-11 | código del pago (modelo→repo→service→router→SPA) | Contrato 0.3.0 + spike | Sí — ejecutado runtime en el taller (12/12) y la BD sigue en pie (re-corroborada); el texto actual solo difiere del corrido en IN-02/IN-06 (robustez info-level, espejados y type-checked) | ✓ FLOWING |
+| 03-UAT.md | resultados runtime | corrida en maura-uat | Sí — BD re-cotejada esta ronda, claim por claim | ✓ FLOWING |
+| 03-REVIEW-FIX.md / DISPOSITION | fixes aplicados | commits + texto actual | Sí — cada fix IN-01..IN-06 verificado por grep/diff/YAML/AST en el estado actual; commits existen | ✓ FLOWING |
 
 ### Behavioral Spot-Checks
 
 | Behavior | Command | Result | Status |
 |---|---|---|---|
-| Contrato 0.3.0 parsea y cumple garantías | `python -c "yaml.safe_load(...)"` | version 0.3.0; 11 paths; CheckoutCreate=[items]; retorno get+post security[] 302/400 ambos; enum exacto | ✓ PASS |
-| Bloques Python de guia-09 tras D-1/D-2 | `ast.parse` sobre los 21 bloques ```python | 19/21; los 2 fallos son los mismos fragmentos de continuación indentada documentados (bloques 5 y 8, comentarios `# --- Etapa 3`); los bloques de D-1 (models/pedido.py) y D-2 (carrera.py) parsean | ✓ PASS |
-| Commits de fixes existen y tocan los archivos declarados | `git show --stat 9066777 b191830` | 9066777: guia-09 (+25/-1); b191830: guia-10 (+7/-2) y guia-11 (+8/-3) | ✓ PASS |
-| Evidencia UAT corroborada contra BD del taller | `sqlite3 file:D:/Repos/maura-uat/backend/maura.db?mode=ro` (pedidos, lineas, productos) | 9 pedidos con estados mixtos (3 paid/1 rejected/2 cancelled/3 pending); descuento solo en paid; snapshots con precio de catálogo; calza claim por claim con 03-UAT.md | ✓ PASS |
-| Fixes D-1/D-2 en la app del taller (dos-lugares) | grep en maura-uat backend | `_numero_provisorio` en models/pedido.py (l.13/41); import usuario en carrera.py (l.19) | ✓ PASS |
-| Gate guide-only (D-17) | `git ls-files -- backend frontend` + `ls -d backend frontend` | Vacío; sin directorios sin trackear | ✓ PASS |
+| Contrato 0.3.0 parsea y cumple garantías (post IN-03/IN-04) | `python -c "yaml.safe_load(...)"` | version 0.3.0; 11 paths; CheckoutCreate=['items']; retorno get+post security[] 302/400; POST retorno sin required; login required conservado; enum exacto | ✓ PASS |
+| Fixes IN-01..IN-06 en texto actual | greps + diff 0a8a7cb..HEAD por archivo | Cada archivo cubierto modificado difiere de la ronda previa EXACTAMENTE en su fix (guia-09=IN-06, guia-10=IN-02, contrato=IN-03/04, docs/02=IN-01, docs/03=IN-05); todos los greps en verde | ✓ PASS |
+| AST de fences Python de guia-09 (post IN-06) | `ast.parse` sobre 21 bloques ```python (continuaciones envueltas como métodos) | 21/21 parsean | ✓ PASS |
+| Espejos maura-uat (dos-lugares) | greps en `D:/Repos/maura-uat/backend` y `/frontend` | WR-01 (`commit is None`, 0 transbank en pedidos.py), WR-02 (backend_url), WR-03 (update condicional + rowcount), IN-02 (l.175), IN-06 (l.48) presentes; mtimes 14:56-15:00 anteceden la corrida UAT (15:28) para los de iteration 1 | ✓ PASS |
+| Evidencia UAT sigue en pie | `sqlite3 file:...maura.db?mode=ro` | 9 pedidos (3 paid/1 rejected/2 cancelled/3 pending), totales calzan, stock consistente con descuentos paid | ✓ PASS |
+| Commits de fixes existen | `git log/diff 0a8a7cb..HEAD` | dc38220, 5489a43, 521769d, ef89c67, a9402c6, 86c2297 + 4 commits docs de review | ✓ PASS |
+| Gate guide-only (D-17) | `git ls-files -- backend frontend` | Vacío | ✓ PASS |
 | Conteo de guías y ADRs | `ls docs/05_desarrollo/guia-*.md` / `ls docs/04_arquitectura/adr/0*.md` | 11 y 14 exactos | ✓ PASS |
-| Índices de estado | grep en READMEs | "1-11 listas" + "14 ADRs" presentes; sin "1-8 listas"/"11 ADRs" | ✓ PASS |
+| Índices de estado | grep en READMEs | "1-11 listas" + "14 ADRs" presentes | ✓ PASS |
 
 ### Probe Execution
 
-No hay probes `scripts/*/tests/probe-*.sh` declarados por la fase. La evidencia runnable de la fase vive en el UAT delegado (03-UAT.md) y fue corroborada de forma independiente (BD del taller, commits, greps) — ver Behavioral Spot-Checks.
+No hay probes `scripts/*/tests/probe-*.sh` declarados por la fase. La evidencia runnable vive en el UAT delegado (03-UAT.md) y fue re-corroborada de forma independiente esta ronda (BD del taller en modo solo-lectura, espejos, commits, greps) — ver Behavioral Spot-Checks.
 
 ### Requirements Coverage
 
 | Requirement | Source Plan | Description | Status | Evidence |
 | ----------- | ---------- | ----------- | ------ | -------- |
-| CART-03 | 03-02, 03-03, 03-04 | Backend recalcula y valida precios/stock al crear la orden | ✓ SATISFIED (runtime) | Contrato sin precio (YAML) + UAT: `"precio":1` ignorado, total 17.980 = 2×8.990 catálogo (BD: precio_snapshot 8990), stock insuficiente → 400 sin orden |
-| PAY-01 | 03-01..03-04 | Checkout redirige a Webpay por form POST auto-submit | ✓ SATISFIED (runtime) | Spike + UAT: flujo aprobado completo con la VISA oficial; carro vaciado solo en aprobado |
-| PAY-02 | 03-01..03-04 | Retorno GET+POST discrimina los 4 flujos y redirige a la SPA | ✓ SATISFIED (runtime) | Spike (3 runtime + 1 documentado) + UAT: los 3 flujos corridos con cara/302 correctos; anulado aceptado como canónico por el usuario |
-| PAY-03 | 03-02, 03-03, 03-04 | Criterio doble + idempotencia anti doble-commit | ✓ SATISFIED (runtime) | UAT: F5 sobre voucher pagado sin segundo descuento ni transición; guard UPDATE condicional en el bloque |
-| PAY-04 | 03-03, 03-04 | Voucher de la tienda + carro restituido si fue anulado | ✓ SATISFIED (runtime) | UAT: voucher MAURA-000006 de la tienda; anulado/timeout con carro intacto (nunca se borró) |
-| ORDR-01 | 03-02, 03-03, 03-05 | Historial con estados visibles PENDING/PAID/CANCELLED/REJECTED | ✓ SATISFIED (runtime) | UAT: /pedidos con badges, huérfanas "En curso", detalle = mismo voucher; BD: los 4 estados presentes |
-| ORDR-02 | 03-03, 03-04, 03-05 | Stock descontado atómica y transaccionalmente, sin oversell | ✓ SATISFIED (runtime) | UAT: carrera un PAID/un REJECTED/stock 0; BD: descuento exactamente en las paid (invariante anti-oversell observado) |
+| CART-03 | 03-02, 03-03, 03-04 | Backend recalcula y valida precios/stock al crear la orden | ✓ SATISFIED (runtime) | CheckoutCreate=['items'] (re-parse); UAT: precio inyectado ignorado, BD precio_snapshot 8990; 400 sin orden. IN-04 además alineó contrato ↔ router |
+| PAY-01 | 03-01..03-04 | Checkout redirige a Webpay por form POST auto-submit | ✓ SATISFIED (runtime) | UAT: flujo aprobado con VISA oficial; submit solo en el handler del clic (intacto) |
+| PAY-02 | 03-01..03-04 | Retorno GET+POST discrimina los 4 flujos y redirige a la SPA | ✓ SATISFIED (runtime) | Contrato re-parseado + clasificar_flujo intacto + spike + UAT |
+| PAY-03 | 03-02, 03-03, 03-04 | Criterio doble + idempotencia anti doble-commit | ✓ SATISFIED (runtime) | Criterio doble l.875; guard UPDATE condicional (WR-03) intacto; F5 sin doble pago en UAT |
+| PAY-04 | 03-03, 03-04 | Voucher de la tienda + carro restituido si fue anulado | ✓ SATISFIED (runtime) | Voucher MAURA-000006; carro intacto en anulado/timeout (gating re-verificado); IN-02 mejora el título del cancelled fetcheado |
+| ORDR-01 | 03-02, 03-03, 03-05 | Historial con estados visibles | ✓ SATISFIED (runtime) | UAT /pedidos con badges; BD re-corroborada con los 4 estados; guia-11 sin cambios |
+| ORDR-02 | 03-03, 03-04, 03-05 | Stock descontado atómicamente, sin oversell | ✓ SATISFIED (runtime) | Carrera del UAT (un PAID/un REJECTED/stock 0); BD: descuento exactamente en las paid; UPDATE condicional intacto |
 
-Sin requisitos huérfanos: los 7 IDs mapeados a Phase 3 en REQUIREMENTS.md (todos marcados Complete) aparecen en el campo `requirements` de los planes (unión 03-01..03-05 = los 7).
+Sin requisitos huérfanos: los 7 IDs mapeados a Phase 3 en REQUIREMENTS.md (todos Complete) aparecen en el campo `requirements` de los planes (unión 03-01..03-05 = los 7).
 
 ### Anti-Patterns Found
 
 | File | Line | Pattern | Severity | Impact |
 | ---- | ---- | ------- | -------- | ------ |
-| guia-10 | 751, 832 | menciones "iframes" | ℹ️ Info | Falso positivo del gate negativo: narrativa que desaconseja iframes citando las docs de Webpay, no uso en código |
-| (corpus fase 3) | — | IN-01..IN-06 del review aún sin ejecutar el fixer | ⚠️ Warning | El usuario decidió cerrarlos con `/gsd-code-review 3 --fix --all` (03-UAT.md test 3, decided_by user 2026-09-30) y la ejecución queda como paso siguiente; severidad info, no bloquean el objetivo |
+| guia-09 | 429 | "TODO y la orden queda REJECTED" | ℹ️ Info | Falso positivo: palabra española "todo" en comentario ("TODO y la orden queda REJECTED" = "todo queda revertido"), no un debt marker |
+| 03-REVIEW-FIX.md | §Nota UAT | Nota de espejos iteration-1 "pendientes" stale | ℹ️ Info | Los espejos YA estaban aplicados (mtimes 14:56-15:00, antes de la corrida UAT 15:28) — la nota subestima el estado; documentalmente inexacta pero en dirección favorable; sin impacto en must-haves |
 
-Sin marcadores de deuda reales (TBD/FIXME/XXX) en los archivos de la fase (scan re-ejecutado sobre guias 09-11, contrato y ADRs tras los fixes). Sin stubs: AST 19/21 con los 2 no-parseos documentados como fragmentos de continuación.
+Sin marcadores de deuda reales (TBD/FIXME/XXX: 0 en los 5 archivos cubiertos modificados; TODO/HACK/PLACEHOLDER: solo el falso positivo español). Sin stubs: AST 21/21.
 
 ### Advisory (New Scope, Unevidenced)
 
 | # | Finding | Category | Why Advisory |
 |---|---------|----------|--------------|
-| 1 | Ninguno | — | Re-verification: sin hallazgos new-scope sin evidencia determinista; los cambios post-ronda previa (D-1/D-2/D-3, UAT, SECURITY, COVERAGE) fueron todos verificados con commits/greps/BD |
+| 1 | Ninguno | — | Re-verification: los cambios post-ronda previa (IN-01..IN-06 + docs de review + transición de fase) fueron todos verificados con commits, diffs por archivo, greps, YAML parse, AST y BD |
 
 ### Decision Coverage
 
-Las decisiones D-34..D-49 de 03-CONTEXT.md siguen traducidas en los artefactos (regresión de la ronda previa, sin cambios en los archivos que las portan). La novedad de esta ronda: D-37 (numero legible) ganó su mecanismo provisorio post-flush (D-1) que la ronda runtime exigió — documentado con su narrativa gallina-y-huevo y el porqué del INSERT NOT NULL.
+Las decisiones D-34..D-49 de 03-CONTEXT.md siguen traducidas en los artefactos (regresión: los archivos que las portan no cambiaron salvo los fixes verificados línea a línea). La novedad operativa de esta ronda: el disposition del review quedó 12/12 fixed, cerrando la única pizarra abierta de la ronda previa.
 
 ### Human Verification Required
 
-Ninguno. Los 3 ítems de la ronda previa quedaron resueltos con registro: (1) UAT delegado completo (03-UAT.md, 3/3 pass, corroborado contra BD); (2) corrección del flujo anulado aceptada por el usuario (decided_by user 2026-09-30); (3) IN-01..IN-06 dispuestos por el usuario (decided_by user 2026-09-30 — cierre vía fixer, ejecución pendiente como mantenimiento, no como verificación).
+Ninguno. La ronda previa ya había resuelto sus 3 ítems con registro (UAT delegado completo, aceptación del flujo anulado, disposición del usuario para cerrar IN-01..IN-06 con el fixer — ahora ejecutado y verificado en texto actual). Esta ronda no genera ítems nuevos: los 6 fixes verificados son documentales o robustez info-level con verificación estática + espejo, fuera de la superficie runtime de los 5 SCs (que el UAT ya ejercitó y cuya BD sigue en pie).
 
 ### Gaps Summary
 
-Sin gaps. El objetivo de la fase está logrado en los tres niveles que este proyecto guide-only exige: (a) corpus documental completo y auto-consistente (contrato 0.3.0 por parse YAML, 14 ADRs, docs 02/03, guías 09-11 con índices honestos, gate guide-only en verde); (b) evidencia runtime del spike que firmó la mecánica antes de documentarla; (c) runtime COMPLETO de la app que las guías enseñan, construida y corrida en el taller delegado (12/12 filas de la Gran verificación final), con la BD del taller corroborada de forma independiente por este verificador. Los tres desvíos que la corrida runtime descubrió (D-1/D-2/D-3) fueron corregidos en los dos lugares que la instrucción persistida exige (guía + taller) y están presentes en el texto actual — el digest de esta verificación cubre ese estado. La única pizarra abierta es operativa, no del objetivo: ejecutar el fixer de los 6 nits Info que el usuario ya dispuso cerrar.
+Sin gaps. El objetivo de la fase sigue logrado en los tres niveles del proyecto guide-only: (a) corpus documental completo y auto-consistente — contrato 0.3.0 re-parseado tras IN-03/IN-04 con la alineación contrato ↔ router verificada texto contra texto, docs 02/03 con diffs quirúrgicos de 1 línea, guías 09-10 con AST 21/21 y regresión verde de todos los fixes previos (CR-01, WR-01..05, D-1/D-2/D-3); (b) evidencia runtime del spike intacta y canónica; (c) runtime completo del UAT delegado re-corroborado contra la BD del taller. El review quedó 12/12 fixed con verificación independiente de cada fix en el texto actual. Hallazgo menor (Info): la nota de espejos del 03-REVIEW-FIX.md quedó stale — el estado real del taller es mejor que lo documentado (los espejos de iteration 1 anteceden la corrida UAT). El digest de esta verificación cubre el estado actual completo, incluyendo los 3 documentos de review ahora incorporados a covered_files.
 
 ---
 
-_Verified: 2026-09-30T18:40:17Z_
+_Verified: 2026-09-30T19:21:03Z_
 _Verifier: Claude (gsd-verifier)_
