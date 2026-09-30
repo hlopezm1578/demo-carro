@@ -12,7 +12,7 @@
 |---|---|---|
 | create (iniciar transacción) | INTEGRATE | |
 | commit (confirmar transacción) | INTEGRATE | |
-| status (consultar sin confirmar) | OPT-OUT | not needed yet — la fase 3 discrimina los flujos del retorno por presencia de params y el plugin oficial NO llama status en los flujos de retorno (03-RESEARCH Pattern 3); la consulta sin confirmar llega con la gestión de órdenes huérfanas del panel admin (fase 4, ADMN-03). La guía puede mencionarla como nota educativa (ventana de 7 días) |
+| status (consultar sin confirmar) | OPT-OUT | not needed yet — la fase 3 discrimina el retorno por presencia de params y no llama status (03-RESEARCH P3); la consulta llega con las órdenes huérfanas del panel (fase 4, ADMN-03) |
 | refund (anular/reembolsar) | OPT-OUT | explicitly out of scope — ADMN-05 (refund desde el panel admin) está diferido a v1.x (REQUIREMENTS v2) |
 | capture (captura diferida) | OPT-OUT | explicitly out of scope — "Webpay Mall / captura diferida" figura en Out of Scope de REQUIREMENTS.md (modalidades fuera del caso de la PYME) |
 
