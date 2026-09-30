@@ -10,20 +10,32 @@ openapi: 3.0.3
 
 info:
   title: Maura API
-  version: 0.3.0
+  version: 0.4.0
   description: |
     API del catálogo de la tienda Maura · Body Splash (tier servidor de los
     dos tiers: la SPA React la consume; el backend solo expone JSON, jamás
     plantillas HTML).
 
     **Autenticación:** sesión JWT Bearer — `/api/auth/perfil`,
-    `/api/admin/estado`, `/api/checkout` y `/api/pedidos*` piden token
-    (`Authorization: Bearer`); el registro y el login son públicos. El
-    retorno de Webpay (`/api/pago/retorno`) también es público — por diseño:
-    quien llega es el navegador de la clienta recién salido del formulario
-    de Webpay, sin Bearer; la sesión se retoma después en la SPA. El token
-    lo emite `/api/auth/login` y vive 7 días (D-20); no existe endpoint de
+    `/api/checkout`, `/api/pedidos*` y los paths `/api/admin/*` piden token
+    (`Authorization: Bearer`); los paths de administración exigen además
+    claim de rol admin en el token (clienta con sesión válida → 403). El
+    registro y el login son públicos. El retorno de Webpay
+    (`/api/pago/retorno`) también es público — por diseño: quien llega es el
+    navegador de la clienta recién salido del formulario de Webpay, sin
+    Bearer; la sesión se retoma después en la SPA. El asistente de venta
+    (`/api/asistente`) es público igual que el retorno: la asesora atiende
+    a quien navega la tienda, con o sin cuenta (D-59). El token lo emite
+    `/api/auth/login` y vive 7 días (D-20); no existe endpoint de
     renovación (D-19).
+
+    **Evolución de esta versión (0.4.0):** el endpoint demo
+    `/api/admin/estado` de la fase 2 SE RETIRA del contrato — cumplió su
+    lección (hacer verificable el 403 por rol, D-33) y los endpoints
+    reales de administración toman su puesto (D-54); la evolución se narra
+    en la description de `GET /api/admin/metricas`. Las guías que lo
+    construyeron no se re-editan: la historia del contrato es la historia
+    de la tienda.
 
     **Convención de errores:**
 
@@ -36,8 +48,10 @@ info:
     | 401 | Sin sesión o credenciales incorrectas | En uso (fase 2) |
     | 403 | Con sesión, pero sin permiso | En uso (fase 2) |
     | 404 | Recurso inexistente | En uso (fase 1) |
-    | 409 | Conflicto (email ya registrado) | En uso (fase 2) |
+    | 409 | Conflicto (email ya registrado; transición ilegal de pedido) | En uso (fases 2 y 4) |
     | 422 | Datos mal formados (validación de esquema) | En uso (fase 1) |
+    | 429 | Cuota del free tier de Gemini consumida — el asistente la traduce a mensaje amable, sin cifras de límites | En uso (fase 4) |
+    | 503 | Servicio externo del asistente no disponible (sin API key o Gemini caído — degradación D-61) | En uso (fase 4) |
 
 servers:
   - url: http://localhost:8000
@@ -55,7 +69,9 @@ tags:
   - name: Pedidos
     description: Historial y detalle de los pedidos de la clienta, con estados honestos (ORDR-01, ORDR-02)
   - name: Administración
-    description: Endpoints protegidos por rol admin (AUTH-03, D-33)
+    description: Panel de la dueña — CRUD de productos con soft delete, gestión de pedidos con transición validada y métricas, todo protegido por rol admin (ADMN-01, ADMN-02, ADMN-03, ADMN-04)
+  - name: Asistente
+    description: La asesora de venta con IA — recomienda aromas del catálogo real vía Gemini; endpoint público con topes de entrada y degradación amable (AIAS-01, AIAS-02, AIAS-03)
   - name: Operación
     description: Chequeo del servicio
 
@@ -280,6 +296,302 @@ components:
                 required: [nombre_snapshot, precio_snapshot, cantidad]
           required: [lineas]
 
+    ProductoCrear:
+      type: object
+      description: |
+        Lo que envía el formulario "Nuevo producto" del panel (ADMN-01). El
+        producto nuevo nace SIEMPRE activo: no existe campo de estado
+        comercial en este schema — el toggle activo/inactivo vive en su
+        propio endpoint (D-52). La imagen es una ruta de texto (D-51):
+        sin upload de archivos, el seed ya baja las fotos (D-08).
+      properties:
+        nombre:
+          type: string
+          description: Nombre comercial del aroma, tal como aparece en el catálogo
+          example: Brisa de Naranja
+        descripcion:
+          type: string
+          description: 1-2 frases en español de Chile, tono cercano — la misma voz del catálogo
+          example: Naranja recién pelada con un fondo de bergamota. Frescura luminosa para el día.
+        familia:
+          type: string
+          description: Slug ASCII de la familia aromática — el mismo enum cerrado del catálogo público (RN-01)
+          enum: [citricas, florales, frutales, dulces]
+          example: citricas
+        precio:
+          type: integer
+          minimum: 0
+          description: Precio en pesos chilenos (CLP), entero sin decimales
+          example: 7990
+        stock:
+          type: integer
+          minimum: 0
+          description: Unidades disponibles para la venta
+          example: 14
+        notas:
+          type: array
+          description: Notas aromáticas que componen la fragancia — el panel las recibe separadas por comas
+          items:
+            type: string
+          example: [naranja, bergamota, mandarina]
+        imagen:
+          type: string
+          description: Ruta local de la foto dentro del sitio (D-51 — campo de texto, sin upload)
+          example: /products/citricas-01.jpg
+      required: [nombre, descripcion, familia, precio, stock, notas, imagen]
+
+    ProductoEditar:
+      type: object
+      description: |
+        Lo que el panel puede escribir de un producto existente (ADMN-01):
+        la MISMA allow-list de campos de ProductoCrear — SIN id y SIN campo
+        de estado comercial. El toggle activo/inactivo vive en su propio
+        endpoint (PATCH /api/admin/productos/{producto_id}/activo, D-52).
+        Una regla demostrada por AUSENCIA de campo — la misma lección
+        estructural de CheckoutCreate sin precio (CART-03): lo que el
+        cuerpo no puede llevar, el mass assignment no puede voltear. El
+        id del producto es del path, jamás del cuerpo.
+      properties:
+        nombre:
+          type: string
+          description: Nombre comercial del aroma
+          example: Brisa de Naranja
+        descripcion:
+          type: string
+          description: 1-2 frases en español de Chile, tono cercano
+          example: Naranja recién pelada con un fondo de bergamota. Frescura luminosa para el día.
+        familia:
+          type: string
+          description: Slug ASCII de la familia aromática — el mismo enum cerrado del catálogo público (RN-01)
+          enum: [citricas, florales, frutales, dulces]
+          example: citricas
+        precio:
+          type: integer
+          minimum: 0
+          description: Precio en pesos chilenos (CLP), entero sin decimales
+          example: 7990
+        stock:
+          type: integer
+          minimum: 0
+          description: Unidades disponibles para la venta
+          example: 14
+        notas:
+          type: array
+          description: Notas aromáticas que componen la fragancia — separadas por comas en el formulario
+          items:
+            type: string
+          example: [naranja, bergamota, mandarina]
+        imagen:
+          type: string
+          description: Ruta local de la foto dentro del sitio (D-51 — campo de texto, sin upload)
+          example: /products/citricas-01.jpg
+      required: [nombre, descripcion, familia, precio, stock, notas, imagen]
+
+    ProductoAdmin:
+      type: object
+      description: |
+        Un producto tal como lo ve la dueña en el listado del panel
+        (ADMN-01, ADMN-02) — TODOS los productos, incluidos los inactivos
+        (D-52): el catálogo público filtra activos, el panel ve la
+        trastienda completa. Por eso suma el campo de estado comercial y
+        el stock que el resumen público no muestra.
+      properties:
+        id:
+          type: integer
+          description: Id interno del producto — visible para admin, jamás en las pantallas de tienda
+          example: 1
+        nombre:
+          type: string
+          description: Nombre comercial del aroma
+          example: Brisa de Naranja
+        familia:
+          type: string
+          description: Slug ASCII de la familia aromática
+          enum: [citricas, florales, frutales, dulces]
+          example: citricas
+        precio:
+          type: integer
+          description: Precio en pesos chilenos (CLP), entero sin decimales
+          example: 7990
+        stock:
+          type: integer
+          description: Unidades disponibles — el panel marca "Stock bajo" cuando hay 5 o menos y el producto está activo (D-53)
+          example: 4
+        imagen:
+          type: string
+          description: Ruta local de la foto dentro del sitio (D-51)
+          example: /products/citricas-01.jpg
+        activo:
+          type: boolean
+          description: Estado comercial visible — soft delete (D-52); false saca el producto del catálogo público sin destruir su historial y los pedidos viejos conservan su snapshot (D-36)
+          example: true
+      required: [id, nombre, familia, precio, stock, imagen, activo]
+
+    PedidoAdmin:
+      type: object
+      description: |
+        Un pedido tal como lo ve la dueña en el panel (ADMN-03): lo mismo
+        que OrdenLista (numero, fecha, total, estado) MÁS el email de la
+        clienta dueña del pedido — un dato que solo el rol admin puede
+        ver, porque la dueña es dueña del negocio entero, no de una cuenta
+        (D-55). Sin vista de detalle en el panel: la fila ya lleva todo lo
+        que la gestión necesita.
+      properties:
+        numero:
+          type: string
+          description: Número público legible (D-37) — jamás el id interno de la BD
+          example: MAURA-000001
+        fecha:
+          type: string
+          format: date-time
+          description: Momento en que la orden nació al iniciar el pago (D-34)
+          example: '2026-09-30T14:49:29Z'
+        email_clienta:
+          type: string
+          format: email
+          description: La dueña del pedido — email de la cuenta que inició el checkout; visible solo para admin
+          example: clienta@maura.cl
+        total:
+          type: integer
+          description: Total en CLP recalculado por el servidor al comprar (CART-03)
+          example: 15980
+        estado:
+          type: string
+          description: Estado real de la orden, en minúsculas por el cable — la máquina de estados completa en ADR-016 (D-50)
+          enum: [pending, paid, cancelled, rejected]
+          example: pending
+      required: [numero, fecha, email_clienta, total, estado]
+
+    PedidoTransicion:
+      type: object
+      description: |
+        Lo que envía el panel al transicionar un pedido (ADMN-03, D-50).
+        El enum acepta UN solo valor — cancelled — porque el admin posee
+        exactamente UNA transición manual en la máquina de estados:
+        PENDING → CANCELLED, la gestión de las huérfanas que la fase 3
+        dejó visibles como "en curso". Las demás transiciones pertenecen
+        al flujo de pago (ADR-012/ADR-013) y PAID es terminal en v1 (el
+        refund es ADMN-05, diferido a v2).
+      properties:
+        estado:
+          type: string
+          enum: [cancelled]
+          description: Único destino manual posible — anular un pedido en curso; pedir otra cosa es 422 aquí, y pedirlo sobre un pedido que ya no está en curso es 409 en el endpoint
+          example: cancelled
+      required: [estado]
+
+    Metricas:
+      type: object
+      description: |
+        Los cuatro KPI del panel de administración (ADMN-04, D-54) —
+        tarjetas y tabla, sin gráficos (STAKE-04 diferido a v2). Todo
+        computable desde las tablas existentes: pedidos y líneas con
+        snapshot.
+      properties:
+        ingresos_totales:
+          type: integer
+          description: Suma de los totales de las órdenes PAID, en CLP — sin excepciones manuales que la falseen (D-50)
+          example: 31960
+        pedidos_por_estado:
+          type: object
+          description: Contador por cada uno de los 4 estados de la máquina (D-50) — siempre los cuatro, aunque sean 0
+          properties:
+            pending:
+              type: integer
+              description: Órdenes en curso — las huérfanas incluidas, hasta que la dueña las anule
+              example: 1
+            paid:
+              type: integer
+              description: Órdenes pagadas — las únicas que suman ingresos
+              example: 2
+            cancelled:
+              type: integer
+              description: Órdenes anuladas (por el flujo de Webpay o por el admin)
+              example: 0
+            rejected:
+              type: integer
+              description: Órdenes que perdieron la carrera de stock (D-35)
+              example: 0
+          required: [pending, paid, cancelled, rejected]
+        top_5:
+          type: array
+          maxItems: 5
+          description: Los 5 aromas más vendidos por unidades, computados desde el snapshot de las líneas de órdenes PAID (D-36/D-54) — el nombre es el congelado al vender, aunque el producto ya esté inactivo
+          items:
+            type: object
+            properties:
+              nombre:
+                type: string
+                description: Nombre snapshot congelado al comprar (D-36) — histórico, sin link a ficha
+                example: Brisa de Naranja
+              unidades:
+                type: integer
+                description: Unidades vendidas en órdenes PAID
+                example: 4
+            required: [nombre, unidades]
+        productos_stock_bajo:
+          type: integer
+          description: Productos ACTIVOS con 5 unidades o menos — el umbral fijo del backend (D-53), distinto del "últimas unidades" de la tienda
+          example: 3
+      required: [ingresos_totales, pedidos_por_estado, top_5, productos_stock_bajo]
+
+    ChatMensaje:
+      type: object
+      description: |
+        Lo que envía la burbuja del chat a la asesora (AIAS-01, D-58/D-59).
+        Multi-turno stateless: el historial visible viaja en cada request —
+        el backend NO guarda conversaciones (cero tablas para el
+        asistente). Los topes (mensaje de hasta 500 caracteres, historial
+        de hasta 10 mensajes) protegen el free tier de Gemini y validan
+        aquí, en el borde, como 422 declarativo.
+      properties:
+        mensaje:
+          type: string
+          maxLength: 500
+          description: El mensaje nuevo de la visitante — máximo 500 caracteres
+          example: ¿Qué recomiendas si me gusta lo cítrico?
+        historial:
+          type: array
+          maxItems: 10
+          description: Los últimos mensajes de la conversación (máximo 10), tal como los mantiene el navegador — no existe sesión de chat en el servidor
+          items:
+            type: object
+            properties:
+              rol:
+                type: string
+                enum: [clienta, asesora]
+                description: Quién escribió el mensaje en la conversación visible
+                example: clienta
+              texto:
+                type: string
+                description: El contenido del mensaje
+                example: Busco un regalo para mi mamá
+            required: [rol, texto]
+      required: [mensaje]
+
+    ChatRespuesta:
+      type: object
+      description: |
+        La respuesta de la asesora (AIAS-02). El texto habla con la voz de
+        Maura (D-02) y los productos son ids del catálogo ACTIVO ya
+        validados por el backend contra la BD antes de responder (D-56) —
+        la muralla anti-alucinación es del servidor: el chat solo
+        renderiza cards que existen (máximo 3).
+      properties:
+        respuesta:
+          type: string
+          description: El texto de la recomendación — primera persona, tuteo chileno, solo del catálogo real
+          example: Si te gusta lo cítrico, prueba la Brisa de Naranja — naranja recién pelada con un fondo de bergamota, fresca y luminosa para el día.
+        productos:
+          type: array
+          maxItems: 3
+          description: Ids de productos del catálogo activo citados en la respuesta (máximo 3), ya validados contra la BD por el backend antes de responder
+          items:
+            type: integer
+            description: Id del producto en el catálogo — existe y está activo, garantizado por el servidor
+            example: 1
+      required: [respuesta, productos]
+
 # ---------------------------------------------------------------------------
 # Operaciones
 # ---------------------------------------------------------------------------
@@ -489,35 +801,367 @@ paths:
               example:
                 detail: Credenciales incorrectas
 
-  /api/admin/estado:
+  /api/admin/productos:
     get:
       tags: [Administración]
-      summary: Conteos del catálogo (endpoint demo protegido por rol)
+      summary: Listar TODOS los productos del panel (incluye inactivos)
       description: |
-        AUTH-03, D-33 · Requiere sesión con rol admin (Bearer). Endpoint demo
-        con conteos triviales del catálogo para enseñar la dependencia de
-        seguridad por rol: el token de la clienta es válido, pero su claim de
-        rol no alcanza → 403. El panel real de administración llega en la
-        fase 4; este endpoint existe para que el 403 sea verificable ya.
+        ADMN-01, ADMN-02 · Requiere sesión con rol admin (Bearer). El
+        listado del panel ve la trastienda completa: TODOS los productos,
+        activos e inactivos (D-52) — el catálogo público sigue filtrando
+        activos. El stock viaja completo para que el panel marque el badge
+        de "Stock bajo" (≤ 5 unidades activas, D-53).
       security:
         - bearerAuth: []
       responses:
         '200':
-          description: Conteos del catálogo
+          description: Todos los productos del sistema, activos e inactivos, orden estable por id
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  productos:
-                    type: integer
-                    description: Productos activos en el catálogo
-                    example: 12
-                  familias:
-                    type: integer
-                    description: Familias aromáticas con al menos un producto activo
-                    example: 4
-                required: [productos, familias]
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProductoAdmin'
+        '401':
+          description: Sin sesión, o token inválido/expirado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                detail: Credenciales incorrectas
+        '403':
+          description: Con sesión, pero sin rol admin
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                detail: Requiere rol admin
+    post:
+      tags: [Administración]
+      summary: Crear un producto
+      description: |
+        ADMN-01 · Requiere sesión con rol admin (Bearer). El producto nuevo
+        nace SIEMPRE activo (D-52): el cuerpo es ProductoCrear, sin campo
+        de estado comercial. Familia fuera del enum, precio o stock
+        negativos, o campos faltantes → 422 declarativo (Pydantic), sin
+        código manual.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductoCrear'
+      responses:
+        '201':
+          description: Producto creado — activo por nacimiento
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductoAdmin'
+        '401':
+          description: Sin sesión, o token inválido/expirado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                detail: Credenciales incorrectas
+        '403':
+          description: Con sesión, pero sin rol admin
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                detail: Requiere rol admin
+        '422':
+          description: Cuerpo mal formado (familia fuera del enum, precio o stock negativos, campos faltantes) — validación declarativa (Pydantic)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/admin/productos/{producto_id}:
+    put:
+      tags: [Administración]
+      summary: Editar un producto (allow-list sin activo ni id)
+      description: |
+        ADMN-01 · Requiere sesión con rol admin (Bearer). El cuerpo es
+        ProductoEditar: la allow-list de campos editables, SIN id (el id es
+        del path) y SIN campo de estado comercial — el toggle activo vive
+        en su propio endpoint (D-52). Lo que el cuerpo no puede llevar, el
+        mass assignment no puede voltear: sin model_dump ciego sobre el
+        ORM.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: producto_id
+          in: path
+          required: true
+          description: Id del producto a editar
+          schema: { type: integer }
+          example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductoEditar'
+      responses:
+        '200':
+          description: El producto actualizado, tal como queda en la trastienda
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductoAdmin'
+        '401':
+          description: Sin sesión, o token inválido/expirado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                detail: Credenciales incorrectas
+        '403':
+          description: Con sesión, pero sin rol admin
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                detail: Requiere rol admin
+        '404':
+          description: Producto inexistente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                detail: Producto no encontrado
+        '422':
+          description: Cuerpo mal formado (familia fuera del enum, precio o stock negativos) — validación declarativa (Pydantic)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/admin/productos/{producto_id}/activo:
+    patch:
+      tags: [Administración]
+      summary: Alternar el estado comercial de un producto (soft delete reversible)
+      description: |
+        ADMN-01, D-52 · Requiere sesión con rol admin (Bearer). El PRIMER
+        PATCH del proyecto, y no es casualidad: alterna exactamente UN
+        campo. Desactivar saca el producto del catálogo público y de las
+        fichas sin destruir su historial (soft delete de docs/03 §2.3.5):
+        los pedidos viejos siguen mostrando su snapshot (D-36). Reactivar
+        lo devuelve. El toggle es una escritura PROPIA — por eso no vive en
+        el editor (ProductoEditar no tiene el campo).
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: producto_id
+          in: path
+          required: true
+          description: Id del producto cuyo estado comercial se alterna
+          schema: { type: integer }
+          example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: El nuevo estado comercial — un solo campo, la escritura propia del toggle (D-52)
+              properties:
+                activo:
+                  type: boolean
+                  description: true reactiva el producto en el catálogo público; false lo esconde (soft delete)
+                  example: false
+              required: [activo]
+      responses:
+        '200':
+          description: El producto con su nuevo estado comercial
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductoAdmin'
+        '401':
+          description: Sin sesión, o token inválido/expirado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                detail: Credenciales incorrectas
+        '403':
+          description: Con sesión, pero sin rol admin
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                detail: Requiere rol admin
+        '404':
+          description: Producto inexistente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                detail: Producto no encontrado
+        '422':
+          description: Cuerpo mal formado (falta el booleano activo) — validación declarativa (Pydantic)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/admin/pedidos:
+    get:
+      tags: [Administración]
+      summary: Listar TODOS los pedidos del panel
+      description: |
+        ADMN-03 · Requiere sesión con rol admin (Bearer). La dueña ve el
+        negocio entero: TODAS las órdenes de TODAS las clientas, la más
+        reciente primero (orden por id descendente) — sin el filtro por
+        dueña del token que rige `/api/pedidos`. Cada fila suma el email
+        de la clienta dueña del pedido (visible solo para admin).
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Todos los pedidos del sistema, el más reciente primero
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PedidoAdmin'
+        '401':
+          description: Sin sesión, o token inválido/expirado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                detail: Credenciales incorrectas
+        '403':
+          description: Con sesión, pero sin rol admin
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                detail: Requiere rol admin
+
+  /api/admin/pedidos/{numero}/estado:
+    patch:
+      tags: [Administración]
+      summary: Transicionar un pedido — la única transición manual del sistema
+      description: |
+        ADMN-03, D-50 · Requiere sesión con rol admin (Bearer). El backend
+        valida la transición pedida contra la máquina de estados: el admin
+        posee exactamente UNA transición manual — PENDING → CANCELLED, la
+        gestión de las huérfanas que la fase 3 dejó visibles "en curso".
+        Las demás transiciones pertenecen al flujo de pago
+        (ADR-012/ADR-013) y PAID es terminal en v1 (refund = ADMN-05,
+        diferido a v2). Cancelar una PENDING NO toca stock (D-35: nunca se
+        descontó). Una transición ilegal responde 409: es un conflicto de
+        ESTADO del recurso, no un dato mal formado — el cuerpo
+        {estado: cancelled} es sintácticamente válido, pero el pedido ya
+        no está donde se pide.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: numero
+          in: path
+          required: true
+          description: Número público legible de la orden (D-37)
+          schema:
+            type: string
+          example: MAURA-000001
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PedidoTransicion'
+      responses:
+        '200':
+          description: El pedido transicionado, con su nuevo estado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PedidoAdmin'
+        '401':
+          description: Sin sesión, o token inválido/expirado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                detail: Credenciales incorrectas
+        '403':
+          description: Con sesión, pero sin rol admin
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                detail: Requiere rol admin
+        '404':
+          description: Pedido inexistente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                detail: Pedido no encontrado
+        '409':
+          description: Transición ilegal — el pedido ya no está en curso (la máquina de estados la rechaza, D-50)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                detail: Ese pedido ya no está en curso.
+        '422':
+          description: Cuerpo mal formado (estado fuera del enum de PedidoTransicion) — validación declarativa (Pydantic)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/admin/metricas:
+    get:
+      tags: [Administración]
+      summary: Las métricas del panel (reemplaza al endpoint demo /api/admin/estado)
+      description: |
+        ADMN-04, D-54 · Requiere sesión con rol admin (Bearer). Los cuatro
+        KPI de la dueña: ingresos (suma de PAID), pedidos por estado, top
+        5 por unidades y stock bajo — computados sobre pedidos y líneas
+        snapshot.
+
+        **Evolución narrada (0.4.0):** este endpoint REEMPLAZA al demo
+        `/api/admin/estado` de la fase 2, que se retira del contrato —
+        cumplió su lección de hacer verificable el 403 por rol (D-33) y
+        deja el puesto a la administración de verdad (D-54). Las guías 05
+        y 06 que lo construyeron no se re-editan: el endpoint demo vive en
+        la historia del proyecto como se le enseñó, con su lección intacta.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Los cuatro KPI del panel
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Metricas'
         '401':
           description: Sin sesión, o token inválido/expirado
           content:
@@ -776,3 +1420,57 @@ paths:
                 $ref: '#/components/schemas/Error'
               example:
                 detail: Pedido no encontrado
+
+  /api/asistente:
+    post:
+      tags: [Asistente]
+      summary: Conversar con la asesora de aromas
+      description: |
+        AIAS-01, AIAS-02, AIAS-03 · **Público por diseño** (`security: []`,
+        la segunda aparición del patrón después del retorno de Webpay): la
+        asesora atiende a quien navega la tienda, con o sin cuenta (D-59)
+        — nadie necesita sesión para que le recomienden un aroma. El
+        backend arma el prompt con el catálogo ACTIVO (mini-RAG, D-56),
+        Gemini responde JSON estructurado y el backend valida cada id
+        contra la BD antes de responder. Sin `GEMINI_API_KEY` en el .env
+        del backend el endpoint degrada a 503 amable — la tienda sigue
+        100% operativa (D-61); si la cuota del free tier se agota, 429
+        también amable y SIN cifras de límites (no hay fuente pública sin
+        login). Los topes de entrada (mensaje 500, historial 10) validan
+        en el borde → 422.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatMensaje'
+      responses:
+        '200':
+          description: La recomendación de la asesora — texto + ids ya validados contra el catálogo activo (máximo 3)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatRespuesta'
+        '422':
+          description: Topes violados (mensaje sobre 500 caracteres, historial sobre 10 mensajes) — validación declarativa (Pydantic)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Cuota del free tier de Gemini consumida — traducida a mensaje amable, sin cifras de límites (no son públicos sin login)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                detail: La asesora está recibiendo muchas consultas. Espera unos segundos y reintenta.
+        '503':
+          description: El servicio externo no está disponible (sin API key en el .env del backend o Gemini caído) — degradación deliberada, jamás un 500 crudo (D-61)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                detail: La asesora no está disponible en este momento. Inténtalo más tarde.
