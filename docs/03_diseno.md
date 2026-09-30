@@ -913,7 +913,7 @@ tienes pedidos" + botón Ver catálogo que reemplaza la página)
 
 ```
 ┌────────────────────────────────────────────────────────┐
-│  Maura · Body Splash   Inicio  Catálogo  Carro (0)     │
+│  Maura · Body Splash   Inicio  Catálogo  Carro          │
 │                                 Mis pedidos  (sesión)  │
 ├────────────────────────────────────────────────────────┤
 │  Mis pedidos                                            │
