@@ -2,18 +2,18 @@
 gsd_state_version: "1.0"
 current_phase: 3
 current_phase_name: Checkout Webpay y órdenes
-current_plan: 4
+current_plan: 5
 status: executing
-stopped_at: Completed 03-03-PLAN.md (etapa 3 en docs/02 y docs/03)
-last_updated: "2026-09-30T15:59:00.107Z"
+stopped_at: Completed 03-04-PLAN.md (guias 09-10 del pago)
+last_updated: "2026-09-30T16:28:15.211Z"
 last_activity: 2026-09-30
 last_activity_desc: Phase 3 execution started
-state_head: ba8eb1512feaf2a1014535792d0acb2e17b95fee
+state_head: 26dd3625138046e0411bd3cd377873a7b43c9eb8
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 16
-  completed_plans: 14
+  completed_plans: 15
   percent: 40
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-09-30)
 ## Current Position
 
 Phase: 3 (Checkout Webpay y órdenes) — EXECUTING
-Current Plan: 4
+Current Plan: 5
 Total Plans in Phase: 5
 Status: Ready to execute
 Last activity: 2026-09-30 — Phase 3 execution started
@@ -73,6 +73,7 @@ Progress: [████░░░░░░] 40%
 | Phase 03 P03-01 | 60 min | 2 tasks | 1 files |
 | Phase 03 P02 | 8 min | 3 tasks | 5 files |
 | Phase 03 P03 | 13 min | 2 tasks | 2 files |
+| Phase 03 P04 | 25 min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -137,6 +138,10 @@ Recent decisions affecting current work:
 - [Phase 03]: ADR-014 fija D-36/D-37: snapshot nombre/precio obligatorio en la orden (asimetría con RN-08 como lección), soportado por el soft delete de docs/03 §2.3.5, y numero legible MAURA-{id:06d} como buy_order ≤26 chars distinto del id interno
 - [Phase 03]: docs/02 etapa 3: RF-12..18 en orden de flujo de la clienta (recalculo CART-03 primero), RNF-07 sandbox sin registro, RN-10..13 con su porqué (snapshot/asimetría RN-08, estados honestos en curso, stock atómico en el UPDATE, numero legible), HU-09..11; fila P6 real y bloque de aprobación — series 1-2 intactas
 - [Phase 03]: docs/03 etapa 3: PEDIDO/LÍNEA con snapshot conectan USUARIO↔PRODUCTO (primeras relaciones), Webpay como primer servicio externo, D3, DFDs 9.0-11.0 con las reglas del retorno por presencia de params (evidencia del spike), pantallas 8-9 con degradado sin sesión y variante del CTA en la 7; decisiones 11-14 citan ADR-012..014
+- [Phase 03]: [Phase 03 P04] La carrera de stock de guia-09 se demuestra en dos fases (httpx concurrente crea dos PENDING; dos threads ejecutan el MISMO bloque del commit aprobado sin Webpay): commitear tokens no pagados no aprueba en integracion y el alumno aun no tiene SPA — el UPDATE condicional es lo que se ejercita
+- [Phase 03]: [Phase 03 P04] services/pedidos.py recibe la SESION y sus repos hacen flush sin commit: la transaccion de la orden abarca la llamada a Webpay (Pitfall 11) y la pareja descuento+transicion (ADR-013) — el service decide cuando cerrar
+- [Phase 03]: [Phase 03 P04] El titulo de ResultadoPago lo decide el estado REAL del pedido fetcheado (no el query param del 302) y el degradado sin sesion lleva el returnTo con la query DENTRO del string — el login de guia-06 no se edita
+- [Phase 03]: [Phase 03 P04] apiPost ya existia desde guia-06: guia-10 lo reusa con Bearer y narra la primera excepcion de la regla 5 (el checkout ES fetch, el retorno es navegacion del navegador — Pitfall 10)
 
 ### Pending Todos
 
@@ -159,6 +164,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-30T15:58:59.998Z
-Stopped at: Completed 03-03-PLAN.md (etapa 3 en docs/02 y docs/03)
+Last session: 2026-09-30T16:27:57.154Z
+Stopped at: Completed 03-04-PLAN.md (guias 09-10 del pago)
 Resume file: None

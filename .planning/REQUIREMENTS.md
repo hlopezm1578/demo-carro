@@ -24,7 +24,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 - [x] **CART-01**: Visitante agrega productos al carro, edita cantidades y puede vaciarlo
 - [x] **CART-02**: El carro persiste en el navegador (localStorage) y sobrevive los full-page loads que impone la redirección de Webpay
-- [ ] **CART-03**: El backend recalcula y valida precios y stock del carro al crear la orden — nunca confía en los valores del cliente
+- [x] **CART-03**: El backend recalcula y valida precios y stock del carro al crear la orden — nunca confía en los valores del cliente
 
 ### Cuentas
 
@@ -35,10 +35,10 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Checkout y pago (Webpay sandbox)
 
-- [ ] **PAY-01**: Cliente inicia checkout y es redirigido a Webpay Plus (Transbank, ambiente de integración) mediante form POST auto-submit con el token
-- [ ] **PAY-02**: El retorno de Webpay llega a un endpoint del backend (GET+POST) que discrimina los 4 flujos oficiales (aprobado, anulado, timeout, error de formulario) y redirige a la SPA con el resultado
-- [ ] **PAY-03**: La orden se marca pagada solo con `response_code == 0` y `status == AUTHORIZED`, con idempotencia anti doble-commit (el refresh del retorno no paga dos veces)
-- [ ] **PAY-04**: Cliente ve un voucher de la tienda (no de Transbank) tras el pago, y el carro se restituye si el pago fue anulado
+- [x] **PAY-01**: Cliente inicia checkout y es redirigido a Webpay Plus (Transbank, ambiente de integración) mediante form POST auto-submit con el token
+- [x] **PAY-02**: El retorno de Webpay llega a un endpoint del backend (GET+POST) que discrimina los 4 flujos oficiales (aprobado, anulado, timeout, error de formulario) y redirige a la SPA con el resultado
+- [x] **PAY-03**: La orden se marca pagada solo con `response_code == 0` y `status == AUTHORIZED`, con idempotencia anti doble-commit (el refresh del retorno no paga dos veces)
+- [x] **PAY-04**: Cliente ve un voucher de la tienda (no de Transbank) tras el pago, y el carro se restituye si el pago fue anulado
 
 ### Órdenes
 
@@ -114,15 +114,15 @@ Which phases cover which requirements. Updated during roadmap creation.
 | STORE-04 | Phase 1 | Complete |
 | CART-01 | Phase 2 | Complete |
 | CART-02 | Phase 2 | Complete |
-| CART-03 | Phase 3 | Pending |
+| CART-03 | Phase 3 | Complete |
 | AUTH-01 | Phase 2 | Complete |
 | AUTH-02 | Phase 2 | Complete |
 | AUTH-03 | Phase 2 | Complete |
 | AUTH-04 | Phase 2 | Complete |
-| PAY-01 | Phase 3 | Pending |
-| PAY-02 | Phase 3 | Pending |
-| PAY-03 | Phase 3 | Pending |
-| PAY-04 | Phase 3 | Pending |
+| PAY-01 | Phase 3 | Complete |
+| PAY-02 | Phase 3 | Complete |
+| PAY-03 | Phase 3 | Complete |
+| PAY-04 | Phase 3 | Complete |
 | ORDR-01 | Phase 3 | Pending |
 | ORDR-02 | Phase 3 | Pending |
 | ADMN-01 | Phase 4 | Pending |
