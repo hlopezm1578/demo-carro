@@ -140,6 +140,20 @@ blocked: 0
 
 ## Gaps
 
-[none — el único hallazgo (info.version 0.1.0 vs contrato 0.2.0) se corrigió y verificó en
-caliente en ambos lugares: taller main.py 0.2.0 confirmado vía openapi.json y guia-05 paso
-8 con el bump + ítem de verificación (commit 9cbd4af)]
+[none — el único hallazgo de los tests (info.version 0.1.0 vs contrato 0.2.0) se corrigió y
+verificó en caliente en ambos lugares: taller main.py 0.2.0 confirmado vía openapi.json y
+guia-05 paso 8 con el bump + ítem de verificación (commit 9cbd4af)]
+
+## Post-UAT: verify:post hooks (2026-09-30)
+
+- **secure-phase** (security_enforcement): 02-SECURITY.md creado — 21/21 amenazas CLOSED
+  (evidencia L1 + runtime del propio UAT), threats_open: 0, short-circuit asvs_level 1
+  (commit 291ad2e).
+- **ui-review** (ui_review): 02-UI-REVIEW.md — 19/24 global, sin drift guías↔taller, cero
+  violaciones de sistema. 3 hallazgos de contrato corregidos en ambos lugares (regla
+  maura-uat, commit 5b1b718): (1) "Quitar" en la fila degradada del checkout (UI-SPEC:
+  "mismas reglas que /carro" — verificado runtime desde el propio panel); (2) copy de
+  fallback de red de login/registro unificado con la familia contratada "…e inténtalo de
+  nuevo." + fila nueva en el Copywriting Contract; (3) cuerpo del empty state del carro a
+  text-base (Tipografía Cuerpo). Build del taller OK tras los fixes.
+
