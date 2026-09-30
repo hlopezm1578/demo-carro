@@ -119,7 +119,7 @@ Versiones del stack autoritativo del proyecto (AGENTS.md / `.planning/research/S
 | Lenguaje backend | **Python 3.12** | Techo declarado por `transbank-sdk` (fase 3); fijado con `requires-python ">=3.12,<3.13"` ([ADR-006](adr/006-uv-como-gestor.md)) |
 | Pago (fase 3) | **Webpay Plus REST, ambiente de integración** | Pasarela real chilena en sandbox con credenciales públicas sin registro (597055555532); el retorno del navegador hacia la SPA queda firmado con evidencia runtime ([ADR-012](adr/012-retorno-de-webpay.md)) |
 | SDK Webpay | **transbank-sdk 6.1.0** | Único SDK oficial (repo TransbankDevelopers); `Transaction.build_for_integration(...)` trae las credenciales públicas — sin `.env` nuevo en esta fase; sync `requests` → rutas `def` sincronizadas ([ADR-012](adr/012-retorno-de-webpay.md), [ADR-013](adr/013-orden-nace-al-pagar-stock-al-aprobar.md)) |
-| IA (fase 4) | **google-genai** | SDK oficial de Gemini; la API key vive solo en el backend — llega en su fase |
+| IA (fase 4) | **google-genai 2.25.0** (pin `>=2.25,<3`) | SDK oficial de Gemini para la asesora de venta: JSON estructurado + validación de ids contra la BD (mini-RAG, D-56); la API key vive solo en el `.env` del backend y sin key el asistente degrada a 503 amable ([ADR-017](adr/017-asistente-ia-mini-rag-key-solo-backend.md)) |
 
 ---
 
@@ -148,15 +148,19 @@ maura/                          ← raíz del proyecto del alumno (D-11, ADR-003
 │       ├── schemas/usuario.py  # RegistroCreate, UsuarioPublico y Token — espejan el contrato 0.2.0
 │       ├── schemas/pedido.py   # CheckoutCreate, CheckoutRespuesta, OrdenLista y OrdenDetalle — espejan el contrato 0.3.0
 │       ├── repositories/       # solo acceso a datos: el almacén D1
+│       ├── repositories/producto.py # el almacén de productos: lecturas del catálogo y las escrituras admin (crear, editar, toggle activo — D-52)
 │       ├── repositories/usuario.py  # el almacén de usuarios: búsqueda por email y creación
-│       ├── repositories/pedido.py   # el almacén de pedidos: crear, buscar por numero/dueña y el UPDATE condicional de stock
+│       ├── repositories/pedido.py   # el almacén de pedidos: crear, buscar por numero/dueña, el UPDATE condicional de stock, la transición admin validada y las agregaciones de métricas (D-50, D-54)
 │       ├── services/           # las reglas del negocio: los procesos 1.0–3.0
 │       ├── services/cuentas.py # registrar (409 claro) y autenticar (401 genérico)
 │       ├── services/pedidos.py # iniciar_checkout (recalculo CART-03) y procesar_retorno (discriminador + commit + transición)
 │       ├── services/webpay.py  # wrapper de Transaction.build_for_integration — el ÚNICO lugar que importa transbank
+│       ├── services/admin.py   # las reglas del panel: escrituras de productos con allow-list, transición validada y métricas (ADMN-01..04)
+│       ├── services/asistente.py # la asesora: mini-RAG + structured output — el ÚNICO lugar que importa google.genai
 │       ├── routers/            # endpoints HTTP: /api/salud, /api/productos
 │       ├── routers/auth.py     # /api/auth/registro, /api/auth/login, /api/auth/perfil
-│       ├── routers/admin.py    # /api/admin/estado — protegido por rol admin (D-33)
+│       ├── routers/admin.py    # el CRUD real de administración: /api/admin/productos, /api/admin/pedidos y /api/admin/metricas — get_current_admin en cada endpoint (ADMN-01..04, ADR-015)
+│       ├── routers/asistente.py # POST /api/asistente — público, topes en el borde y 503/429 amables (AIAS-01..03, ADR-017)
 │       ├── routers/checkout.py # POST /api/checkout — Bearer, valida el carro y crea la orden PENDING (D-34)
 │       ├── routers/retorno.py  # GET+POST /api/pago/retorno — público, discrimina por params y responde 302 a la SPA (ADR-012)
 │       ├── routers/pedidos.py  # GET /api/pedidos y /api/pedidos/{numero} — Bearer con ownership 404 uniforme
@@ -166,6 +170,7 @@ maura/                          ← raíz del proyecto del alumno (D-11, ADR-003
     └── src/
         ├── main.tsx            # composición: BrowserRouter + QueryClientProvider
         ├── lib/api.ts          # ÚNICO punto de salida HTTP de la SPA
+        ├── lib/badges.ts       # BADGES a módulo propio: una sola verdad del estado del pedido (D-45) — voucher, historial y panel admin importan de aquí
         ├── types/api.ts        # interfaces TS que espejan los schemas (ADR-004)
         ├── stores/             # useAuthStore y useCarroStore: sesión y carro persistente en localStorage (ADR-009, ADR-010)
         ├── features/           # una carpeta por dominio: landing/, catalogo/
@@ -174,8 +179,11 @@ maura/                          ← raíz del proyecto del alumno (D-11, ADR-003
         ├── features/checkout/  # el resumen protegido del pedido (AUTH-04)
         ├── features/pago/      # la ruta única /pago/resultado: el voucher que renderiza los 4 flujos (D-42, D-43)
         ├── features/pedidos/   # el historial /pedidos: lista y detalle que reutiliza el voucher (D-46)
+        ├── features/admin/     # el panel /admin: LayoutAdmin con subnav + AdminProductos, AdminPedidos, AdminMetricas y NoAutorizado (D-55, ADR-015)
+        ├── features/asistente/ # la burbuja BurbujaAsesora en el layout de la tienda, con historial stateless (D-58/D-59)
         └── components/         # Navbar, Footer, layout compartido
-            └── RequireAuth.tsx # components/RequireAuth.tsx — guard de rutas protegidas con returnTo genérico (D-32)
+            ├── RequireAuth.tsx # guard de rutas protegidas con returnTo genérico (D-32)
+            └── RequireAdmin.tsx # guard por rol: espejo UX del 403 — sin sesión delega en RequireAuth, con sesión sin rol muestra NoAutorizado (ADR-015)
 ```
 
 **Reglas de dependencia** (verificables en revisión de código — las citan las guías):
@@ -184,7 +192,11 @@ maura/                          ← raíz del proyecto del alumno (D-11, ADR-003
    inyectada llega re-exportada desde `app/database`) y jamás escribe SQL.
 2. `repositories/` ejecuta SQL: **jamás decide reglas de negocio** — que un
    producto inactivo no aparezca lo decide el servicio; el repositorio solo consulta.
-3. `services/` decide: **jamás conoce HTTP** — ni códigos de estado, ni JSON, ni cabeceras.
+3. `services/` decide: **jamás conoce HTTP** — ni códigos de estado, ni JSON, ni
+   cabeceras. El wrapper del asistente (`services/asistente.py`) respeta la
+   regla con la misma técnica que `services/webpay.py`: traduce los errores
+   del SDK de Gemini a señales de dominio — el 503/429 lo decide el router
+   ([ADR-017](adr/017-asistente-ia-mini-rag-key-solo-backend.md)).
 4. Solo `main.py` arma la aplicación (`FastAPI()`, CORS, `include_router`).
    Nadie más instancia la app.
 5. En el frontend, **todo HTTP pasa por `src/lib/api.ts`**: ningún componente
@@ -192,7 +204,11 @@ maura/                          ← raíz del proyecto del alumno (D-11, ADR-003
    retorno de Webpay es navegación del navegador (302 del backend), no
    `fetch` — CORS no aplica ([ADR-012](adr/012-retorno-de-webpay.md)).*
 6. Los componentes de `features/` **no se importan cruzados** sin razón: lo
-   compartido baja a `components/`.
+   compartido baja a `components/`. *Excepciones narradas en las guías, con
+   su razón: `VoucherPedido` reutilizado por el historial (guia-11, D-46) y
+   ahora la `ProductCard` del catálogo reusada en el chat de la asesora
+   (fase 4, mismo patrón D-46) — la card completa es un Link a la ficha y
+   duplicarla serían dos verdades del mismo producto.*
 
 ---
 
@@ -214,6 +230,9 @@ maura/                          ← raíz del proyecto del alumno (D-11, ADR-003
 | [012](adr/012-retorno-de-webpay.md) | El retorno de Webpay: 302 hacia la ruta única de la SPA, discriminando por presencia de params | Cómo vuelve el navegador de Webpay a la tienda (PAY-02, D-40, D-41) |
 | [013](adr/013-orden-nace-al-pagar-stock-al-aprobar.md) | La orden nace al iniciar el pago y el stock se descuenta al aprobar | Cuándo nace la orden y cuándo se descuenta el stock (CART-03, ORDR-02, D-34, D-35) |
 | [014](adr/014-snapshot-de-precio-en-la-orden.md) | Snapshot de precio en la orden y numero legible como buy_order | Qué muestra un pedido viejo cuando el catálogo cambia (ORDR-01, D-36, D-37) |
+| [015](adr/015-panel-admin-protegido-por-rol.md) | El panel protegido por rol en los dos tiers: RequireAdmin como espejo UX del 403 | Cómo entra la dueña a `/admin` y quién responde cada endpoint (ADMN-01..04, D-55) |
+| [016](adr/016-maquina-de-estados-con-transicion-admin.md) | Máquina de estados de pedidos con UNA transición manual admin (PENDING→CANCELLED) | Qué transiciones existen, quién las ejecuta y cómo se gestionan las huérfanas (ADMN-03, D-50) |
+| [017](adr/017-asistente-ia-mini-rag-key-solo-backend.md) | Asistente IA con mini-RAG, structured output y key solo en el backend | Cómo recomienda la asesora sin alucinar y dónde vive la API key de Gemini (AIAS-01..03, D-56, D-60, D-61) |
 
 ---
 
