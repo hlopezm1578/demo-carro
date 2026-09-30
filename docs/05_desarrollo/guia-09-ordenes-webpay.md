@@ -463,9 +463,10 @@ con sus límites validados por el SDK ANTES de
 llamar a la API: `buy_order` máximo 26 caracteres (tu `MAURA-000001` de
 11 va sobrado), `session_id` 61, `return_url` 255, `amount` como float
 (tu total CLP entero viaja como `float(total)`, sin decimales). El
-`return_url` apunta al endpoint público del paso 8 — y su origen se
-reutiliza de `settings.cors_origins[0]`: la misma URL de la SPA que el
-CORS ya declara (la fase 5 la congelará al desplegar).*
+`return_url` apunta al endpoint público del paso 8 — y su base es la
+settings nueva del paso siguiente, `backend_url`: la URL pública del
+BACKEND, no la de la SPA (`cors_origins`) — Webpay devuelve el navegador
+a tu API, y recién el 302 del retorno salta a la SPA.*
 
 Crea **`backend/app/services/webpay.py`**:
 
@@ -546,11 +547,31 @@ un token huérfano sin orden, jamás una orden sin token). Cuando Webpay
 responde, recién ahí `commit()`: la orden PENDING queda persistida con su
 transacción viva esperando el retorno. ¿Y el `session_id` que viaja a
 Webpay? `str(usuario.id)` — un espejo informativo: el mapeo real
-token→orden lo hace el `buy_order` que el commit devuelve. Y una
+token→orden lo hace el `buy_order` que el commit devuelve. ¿Y el
+`return_url`? Una URL del BACKEND — por eso la settings nueva
+`backend_url` que agrega este paso, NO `cors_origins[0]` (esa es la SPA).
+La ida y la vuelta del pago viven en dos mundos: Webpay devuelve el
+navegador a TU API (`backend_url` + `/api/pago/retorno`, que responde el
+302), y ese 302 sí apunta a la SPA (`cors_origins[0]`, en `_hacia_spa`
+del paso 8). En dev el proxy `/api` de Vite (guía 2) disimula la
+diferencia; en el despliegue de la fase 5 — SPA estática sin proxy —
+escribirla al revés rompe el retorno completo. Y una
 honradez: si Webpay no responde (la red se cayó), la excepción del SDK
 sube tal cual y el navegador verá un error genérico — la orden muere con
 la transacción, que es lo que Pitfall 11 garantiza; endurecer ese camino
 con reintentos no está en el contrato de esta etapa.*
+
+Antes del service, una línea de configuración: la URL pública del
+backend que el `return_url` necesita. En **`backend/app/config.py`**,
+agrega dentro de la clase `Settings` (debajo del bloque de la etapa 2):
+
+```python
+    # --- Etapa 3: pago Webpay (ADR-012) ---
+    # La URL pública del BACKEND: a ella vuelve el navegador desde Webpay
+    # (return_url). NO es cors_origins — esa es la SPA. Dev y producción
+    # difieren; la fase 5 la congela junto con el origen público.
+    backend_url: str = "http://localhost:8000"
+```
 
 Crea **`backend/app/services/pedidos.py`** — primera parte (la ida y el
 historial; la vuelta llega en el paso 7):
@@ -631,7 +652,7 @@ class PedidosService:
             buy_order=pedido.numero,  # el numero ES el buy_order (D-37)
             session_id=str(usuario.id),  # espejo informativo — el mapeo real va por buy_order
             amount=float(total),  # CLP entero como float (RN-02)
-            return_url=f"{settings.cors_origins[0]}/api/pago/retorno",
+            return_url=f"{settings.backend_url}/api/pago/retorno",
         )
         self.db.commit()  # Webpay respondió: la orden PENDING queda persistida
         return CheckoutRespuesta(
@@ -655,10 +676,12 @@ class PedidosService:
 ✅ **Mini-verificación:** desde `backend/`, ejecuta:
 
 ```
-uv run python -c "from app.database import SessionLocal; from app.services.pedidos import PedidosService; print(type(PedidosService(SessionLocal())).__name__)"
+uv run python -c "from app.config import settings; from app.database import SessionLocal; from app.services.pedidos import PedidosService; print(settings.backend_url); print(type(PedidosService(SessionLocal())).__name__)"
 ```
 
-Debe imprimir `PedidosService` — el servicio se construye sobre la sesión
+Debe imprimir `http://localhost:8000` y `PedidosService` — la URL pública
+del backend vive en settings (el `return_url` del checkout la usa) y el
+servicio se construye sobre la sesión
 inyectada. Su comportamiento completo (el recalculo, el 400, la orden
 PENDING) se prueba con datos de verdad en el paso 10.
 
@@ -962,7 +985,9 @@ def _hacia_spa(resultado: RetornoResultado) -> RedirectResponse:
     """El 302 explícito hacia la ruta única de la SPA (D-41/D-42).
 
     El origen de la SPA se reutiliza de cors_origins[0]: la misma URL que
-    el CORS ya declara (la fase 5 la congelará al desplegar).
+    el CORS ya declara (la fase 5 la congelará al desplegar). Asimetría
+    deliberada con la ida: el return_url del checkout apunta al BACKEND
+    (settings.backend_url) — esta redirección, a la SPA.
     """
     params = {"estado": resultado.estado}
     if resultado.numero:
