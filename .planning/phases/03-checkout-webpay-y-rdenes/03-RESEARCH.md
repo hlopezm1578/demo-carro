@@ -711,20 +711,25 @@ Credenciales de integración (PÚBLICAS, sin registro — viven en el SDK):
 | A11 | El 400 del checkout por stock insuficiente (vs 409) | Pattern 7 | Bajo — la fila 400 "Regla de negocio violada" ya está reservada con ese texto en el contrato [VERIFIED: contrato_api.yaml:30]; 409 también es defendible, decidir al escribir el contrato |
 | A12 | `vci` y `payment_type_code` del commit se muestan solo como nota (no gating) — PAY-03 fija el par response_code+status como criterio único | Pattern 1 | Bajo — locked por REQUIREMENTS; mencionar vci (3DS) como nota educativa es optional |
 
-## Open Questions
+## Open Questions (RESOLVED)
+
+> Las tres preguntas quedaron resueltas por los planes de la fase 3 — el spike del plan 03-01 (onda 1) resuelve las tres antes de todo plan dependiente. Resolución inline citando plan/tarea (convención de 01/02-RESEARCH). Los valores empíricos los entrega el spike en runtime y aterrizan en 03-SPIKE-RETORNO.md (D-40).
 
 1. **¿El spike corrobora 3 o 4 flujos runtime? (impacto directo en D-39)**
    - What we know: las docs oficiales dicen que el flujo de error de formulario es "replicable solo en producción" [CITED]. El plugin oficial lo maneja (rama doble token) pero corre en producción.
    - What's unclear: si existe alguna forma de dispararlo en integración.
    - Recommendation: planificar el spike para corroborar runtime aprobado/anulado/timeout y DOCUMENTAR el 4° desde las docs + el patrón del plugin (A3). Si el spike encuentra forma de disparar el 4°, mejor — el plan no debe depender de ello.
+   - Resolution: (RESOLVED) adoptada la Recommendation — 03-01 Task 1 corre runtime los 3 flujos (aprobado/anulado/timeout) entregando el valor empírico por flujo: método real GET vs POST y params presentes, con veredicto fila a fila contra la tabla de Pattern 3; 03-01 Task 2(1) deja el 4° (error de formulario) como sección DOCUMENTADA (result: documented) desde las docs oficiales + la rama token_ws+TBK_TOKEN del plugin oficial (A3) — PAY-02 queda íntegro porque el discriminador por presencia de params lo maneja sin corrida. La evidencia aterriza en 03-SPIKE-RETORNO.md y alimenta contrato 0.3.0 + ADR-012 (onda 2, D-40/D-41).
 2. **¿Cómo se produce un REJECTED reproducible en integración (tarjeta rechazada)?**
    - What we know: solo la tarjeta de éxito está documentada verbatim; las docs no listan número de rechazo en la página principal.
    - What's unclear: si CVV errado / clave 3DS errada / tarjeta genérica producida en el formulario dan response_code != 0 con status FAILED (flujo normal sin aprobación).
    - Recommendation: el spike lo prueba empíricamente (5 minutos extra) y la guía documenta el camino que funcione; fallback garantizado: la carrera de stock produce REJECTED (D-35) y el UAT la ejercita igual.
+   - Resolution: (RESOLVED) adoptada la Recommendation — 03-01 Task 2(3a) prueba empíricamente en runtime CVV incorrecto y/o clave 3DS errada en el flujo normal y registra el camino que funcione con el response_code observado; si ninguno funciona, declara el fallback garantizado (la carrera de stock de D-35 también produce REJECTED y el UAT la ejercita igual). El hallazgo queda en 03-SPIKE-RETORNO.md y la guía documenta el camino verificado.
 3. **¿Cuál es el tiempo REAL del timeout en integración (¿exactamente 10 min)?**
    - What we know: "4 minutos en producción y de 10 minutos en integración" [CITED].
    - What's unclear: nada sustantivo — el spike lo cronometra y el hallazgo se documenta (D-40).
    - Recommendation: reservar ~15 min en la sesión de spike; la guía le dice al alumno cuánto esperar.
+   - Resolution: (RESOLVED) adoptada la Recommendation — 03-01 Task 1(4) cronometra en runtime la espera del flujo timeout (sesión del spike con los 15 min activos reservados, Pitfall 9) y 03-01 Task 2(3c) registra el tiempo real medido como hallazgo en 03-SPIKE-RETORNO.md; la guía (planes 03-04/03-05) le dice al alumno cuánto esperar con el dato cronometrado, no con el estimado de las docs.
 
 ## Environment Availability
 
