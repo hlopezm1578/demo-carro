@@ -2,18 +2,18 @@
 gsd_state_version: "1.0"
 current_phase: 3
 current_phase_name: Checkout Webpay y órdenes
-current_plan: 2
+current_plan: 3
 status: executing
-stopped_at: "Completed 03-01-PLAN.md (spike de retorno Webpay: 4 flujos con evidencia + mecánica 302 firmada)"
-last_updated: "2026-09-30T15:28:02.448Z"
+stopped_at: Completed 03-02-PLAN.md (contrato 0.3.0 + ADRs 012-014 + README de arquitectura)
+last_updated: "2026-09-30T15:41:26.109Z"
 last_activity: 2026-09-30
 last_activity_desc: Phase 3 execution started
-state_head: 0445089f4adcf20bc177cb11c01d2788584221c3
+state_head: 3cee63de07eb0bb5541836a1d990897e4dec4f2f
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 16
-  completed_plans: 12
+  completed_plans: 13
   percent: 40
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-09-30)
 ## Current Position
 
 Phase: 3 (Checkout Webpay y órdenes) — EXECUTING
-Current Plan: 2
+Current Plan: 3
 Total Plans in Phase: 5
 Status: Ready to execute
 Last activity: 2026-09-30 — Phase 3 execution started
@@ -71,6 +71,7 @@ Progress: [████░░░░░░] 40%
 | Phase 02 P04 | 13 min | 2 tasks | 2 files |
 | Phase 02 P05 | 3 min | 2 tasks | 4 files |
 | Phase 03 P03-01 | 60 min | 2 tasks | 1 files |
+| Phase 03 P02 | 8 min | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -129,6 +130,10 @@ Recent decisions affecting current work:
 - [Phase 03]: REJECTED reproducible en integración (Q2): elegir Rechazar/TSN en el simulador bancario → retorno normal token_ws → commit response_code=-1/FAILED; CVV errado NO rechaza (aprueba igual); clave 3DS errada → error.cgi+INITIALIZED sin commit; fallback: carrera de stock de D-35
 - [Phase 03]: Timeout cronometrado (Q3): 603 s (10:03) desde la carga del form con tab activo; PERO el redirect NO está garantizado si el tab duerme (13 min sin retorno observado) — PENDING huérfanas reales, D-48/D-49 las cubren con honestidad de estado
 - [Phase 03]: Idempotencia del commit de Webpay confirmada runtime (A1): segunda llamada con el mismo token devuelve respuesta idéntica — el guard de estado OUR-side sigue obligatorio (Pitfall 4); además el navegador puede repetir retornos (7 repeticiones observadas de un mismo timeout)
+- [Phase 03]: Contrato 0.3.0 aprobado ANTES de las guías (D-15 honrado): CheckoutCreate sin campo de precio (CART-03 estructural en el schema), retorno GET+POST público con 302 en ambos métodos (Pitfall 13), pedidos con 404 uniforme de ownership
+- [Phase 03]: ADR-012 firma la mecánica del retorno citando la evidencia por flujo del spike (D-40/D-41): discriminador por PRESENCIA de params jamás por método, 302 explícito contra la trampa del 307, security: [] deliberado
+- [Phase 03]: ADR-013 registra D-34/D-35 (cierra el blocker de STATE.md): orden PENDING nace al iniciar el pago, crear solo VALIDA stock, descuento atómico al aprobar (UPDATE condicional + rowcount; rowcount 0 → REJECTED); huérfana PENDING sin gestión hasta fase 4; recoge la regla 3 de ADR-010
+- [Phase 03]: ADR-014 fija D-36/D-37: snapshot nombre/precio obligatorio en la orden (asimetría con RN-08 como lección), soportado por el soft delete de docs/03 §2.3.5, y numero legible MAURA-{id:06d} como buy_order ≤26 chars distinto del id interno
 
 ### Pending Todos
 
@@ -151,6 +156,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-30T15:28:02.347Z
-Stopped at: Completed 03-01-PLAN.md (spike de retorno Webpay: 4 flujos con evidencia + mecánica 302 firmada)
+Last session: 2026-09-30T15:41:26.017Z
+Stopped at: Completed 03-02-PLAN.md (contrato 0.3.0 + ADRs 012-014 + README de arquitectura)
 Resume file: None
