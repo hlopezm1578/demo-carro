@@ -584,6 +584,7 @@ traduce el router (CART-03, PAY-02, ORDR-01).
 
 from dataclasses import dataclass
 
+from sqlalchemy import update
 from sqlalchemy.orm import Session
 
 from app.config import settings
@@ -715,10 +716,15 @@ orden.** El `commit` blindado por el wrapper del paso 5:
 acá como `None` — un token que Webpay no puede confirmar produce una 302
 con estado de error, jamás un 500. El mapeo token→orden lo hace el `buy_order` que el commit
 devuelve (por eso la orden nació ANTES del pago, D-34). Y el **guard
-ya-PAID** (Pitfall 4, PAY-03): si la orden ya está pagada, se re-muestra
-SIN ningún side effect — refrescar no paga dos veces; el descuento y la
-transición viven en UNA sola transacción SQLAlchemy, el patrón
-`checkIsAlreadyProcessed` del plugin oficial. El **criterio doble** es
+ya-PAID** (Pitfall 4, PAY-03) es la MISMA muralla del stock, ahora para
+el estado: la transición `pending → paid` es un UPDATE condicional cuyo
+`rowcount` decide — el check y el write en UNA sola operación, no un
+read-check-write con su ventana de carrera (el paso 4 lo condenó para el
+stock; para el estado vale igual). Si otro retorno ya decidió la orden,
+este re-muestra SIN ningún side effect — la navegación repetida no paga
+dos veces — y el descuento corre en la misma transacción SQLAlchemy que
+la transición (ADR-013): el patrón `checkIsAlreadyProcessed` del plugin
+oficial, hecho atómico. El **criterio doble** es
 literal del requisito: `response_code == 0` Y `status == "AUTHORIZED"` —
 ambos, jamás solo uno (RF-15): un commit puede traer `status` con
 `response_code != 0`, y ese pago NO aprobó. Si el criterio pasa, el
@@ -800,16 +806,27 @@ def clasificar_flujo(
         """
         if numero:
             pedido = self.pedidos.por_numero(numero)
-            if pedido is not None and pedido.estado == EstadoPedido.pending:
-                # El guard de los flujos locales: el navegador PUEDE repetir
-                # retornos (se observaron 7 repeticiones de un mismo timeout)
-                # y un retorno tardío jamás pisa un estado ya decidido.
-                pedido.estado = EstadoPedido.cancelled
+            if pedido is not None:
+                # El guard de los flujos locales, atómico como el del pago
+                # (Pitfall 4): la transición es un UPDATE condicional — el
+                # navegador PUEDE repetir retornos (se observaron 7
+                # repeticiones de un mismo timeout) y un retorno tardío
+                # jamás pisa un estado ya decidido: el WHERE solo encuentra
+                # la orden si sigue pending.
+                self.db.execute(
+                    update(Pedido)
+                    .where(
+                        Pedido.id == pedido.id,
+                        Pedido.estado == EstadoPedido.pending,
+                    )
+                    .values(estado=EstadoPedido.cancelled)
+                    .execution_options(synchronize_session=False)
+                )
                 self.db.commit()
         return RetornoResultado(estado=estado, numero=numero)
 
     def _confirmar(self, token_ws: str) -> RetornoResultado:
-        """Flujo normal: commit, criterio doble, guard ya-PAID y stock atómico."""
+        """Flujo normal: commit, criterio doble, guard ya-PAID atómico y stock atómico."""
         commit = webpay.commit(token_ws)
         if commit is None:
             # Un token que Webpay no puede confirmar (inventado, de una
@@ -823,12 +840,6 @@ def clasificar_flujo(
         if pedido is None:
             return RetornoResultado(estado="error", numero=None)
 
-        # Guard ya-PAID (Pitfall 4, PAY-03): refrescar no paga dos veces —
-        # la orden se re-muestra SIN ningún side effect (el patrón
-        # checkIsAlreadyProcessed del plugin oficial).
-        if pedido.estado == EstadoPedido.paid:
-            return RetornoResultado(estado="pagado", numero=pedido.numero)
-
         # Criterio doble de PAY-03 — AMBOS, jamás solo uno: un commit puede
         # traer status con response_code != 0, y ese pago NO aprobó.
         aprobado = commit["response_code"] == 0 and commit["status"] == "AUTHORIZED"
@@ -837,16 +848,33 @@ def clasificar_flujo(
             self.db.commit()
             return RetornoResultado(estado="rechazado", numero=pedido.numero)
 
+        # Guard ya-PAID (Pitfall 4, PAY-03): la MISMA muralla del stock,
+        # ahora para el estado. La transición pending → paid es un UPDATE
+        # condicional y el rowcount decide — el check y el write en UNA
+        # sola operación: dos retornos concurrentes del mismo token no
+        # pueden ambos ganarlo (el patrón checkIsAlreadyProcessed del
+        # plugin oficial, hecho atómico).
+        resultado = self.db.execute(
+            update(Pedido)
+            .where(Pedido.id == pedido.id, Pedido.estado == EstadoPedido.pending)
+            .values(estado=EstadoPedido.paid)
+            .execution_options(synchronize_session=False)  # el pedido queda stale: no releer
+        )
+        if resultado.rowcount == 0:
+            # Otro retorno ya decidió esta orden (pagada, o rechazada por
+            # perder la carrera del stock): re-mostrar SIN side effects —
+            # la navegación repetida no paga dos veces.
+            return RetornoResultado(estado="pagado", numero=pedido.numero)
+
         try:
             # Descuento + transición en UNA sola transacción (ADR-013):
             # o queda todo, o no queda nada.
             self.pedidos.descontar_stock_atomico(pedido.lineas)
         except StockInsuficiente:
-            self.db.rollback()  # revierte el descuento parcial de las líneas que sí alcanzaron
+            self.db.rollback()  # revierte la transición Y el descuento parcial de las líneas que sí alcanzaron
             pedido.estado = EstadoPedido.rejected
             self.db.commit()
             return RetornoResultado(estado="rechazado", numero=pedido.numero)
-        pedido.estado = EstadoPedido.paid
         self.db.commit()
         return RetornoResultado(estado="pagado", numero=pedido.numero)
 ```
@@ -1251,7 +1279,7 @@ Uso (con la API encendida en el puerto 8000):  uv run python carrera.py
 from concurrent.futures import ThreadPoolExecutor
 
 import httpx
-from sqlalchemy import select
+from sqlalchemy import select, update
 
 from app.config import settings
 from app.database import SessionLocal
@@ -1291,16 +1319,24 @@ def aprobar(numero: str) -> str:
     with SessionLocal() as sesion:
         repo = PedidoRepository(sesion)
         pedido = repo.por_numero(numero)
-        if pedido.estado != EstadoPedido.pending:
-            return f"{numero}: ya {pedido.estado.value} (guard, sin side effects)"
+        # El MISMO guard atómico del retorno (services/pedidos.py): la
+        # transición pending → paid es un UPDATE condicional y el rowcount
+        # decide quién sigue.
+        resultado = sesion.execute(
+            update(Pedido)
+            .where(Pedido.id == pedido.id, Pedido.estado == EstadoPedido.pending)
+            .values(estado=EstadoPedido.paid)
+            .execution_options(synchronize_session=False)
+        )
+        if resultado.rowcount == 0:
+            return f"{numero}: ya decidida (guard atómico, sin side effects)"
         try:
             repo.descontar_stock_atomico(pedido.lineas)
         except StockInsuficiente:
-            sesion.rollback()  # revierte el descuento parcial
+            sesion.rollback()  # revierte la transición y el descuento parcial
             pedido.estado = EstadoPedido.rejected
             sesion.commit()
             return f"{numero}: REJECTED (perdió la carrera)"
-        pedido.estado = EstadoPedido.paid
         sesion.commit()
         return f"{numero}: PAID (stock descontado)"
 
@@ -1534,7 +1570,7 @@ schemas — es la Gran verificación final de la guía 11, como en cada fase.)
 - El numero legible `MAURA-{id:06d}` nacido del autoincrement en la misma transacción: único por construcción, 11 chars bajo el límite 26, a la vez buy_order e identificador público (D-37, RN-13)
 - `iniciar_checkout` que recalcula con precio vigente desde ids+cantidades (la entrada no tiene precio — CART-03 estructural), valida stock sin tocarlo (400) y SOLO DESPUÉS llama a Webpay (D-34, Pitfall 11)
 - El discriminador de los 4 flujos por PRESENCIA de params en el orden del plugin oficial — jamás por método HTTP (ADR-012); commit solo en la rama `token_ws`-solo, con el error tipado atrapado DENTRO del wrapper (`None` → 302), nunca 500 (Pitfall 3)
-- El guard ya-PAID sin side effects + el criterio doble `response_code == 0` Y `status == AUTHORIZED` + descuento y transición en UNA transacción (PAY-03, Pitfall 4, ADR-013)
+- El guard ya-PAID atómico — UPDATE condicional `pending → paid` con `rowcount`, la misma muralla del stock aplicada al estado — sin side effects, más el criterio doble `response_code == 0` Y `status == AUTHORIZED` y el descuento en la misma transacción (PAY-03, Pitfall 4, ADR-013)
 - El UPDATE condicional `WHERE stock >= cantidad` con `rowcount` como veredicto — y la carrera de la mini-verificación: un PAID, un REJECTED, stock 0 (ORDR-02, RN-12)
 - El retorno GET+POST con `Form(default=None)` (la pieza del login, fase 2) y `RedirectResponse(url, status_code=302)` — la primera lección PRG del proyecto (Pitfall 1)
 - Las `responses` con el 302 declarado en ambos métodos: la lección G-01-4 con el primer response no-JSON (Pitfall 13)
