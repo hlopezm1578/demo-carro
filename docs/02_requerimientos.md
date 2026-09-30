@@ -14,22 +14,25 @@
 artesanal de Maura. En la primera etapa la tienda publicó el catálogo: una
 página de inicio con la identidad de la marca, la grilla de aromas filtrable
 por familia y precio, la ficha de cada producto y los datos demo que la pueblan.
-En la segunda etapa sumó las cuentas de clientas y el carro de compras. En esta
-tercera etapa la tienda suma el pago: la clienta paga con Webpay en modo de
-prueba, vuelve de la pasarela con el resultado a la vista y su compra queda
-registrada como un pedido con estado, revisable en su historial.
+En la segunda etapa sumó las cuentas de clientas y el carro de compras. En la
+tercera etapa sumó el pago: la clienta paga con Webpay en modo de prueba, vuelve
+de la pasarela con el resultado a la vista y su compra queda registrada como un
+pedido con estado, revisable en su historial. En esta cuarta etapa la tienda
+suma dos peticiones a la vez: el panel de administración con que la dueña
+gestiona su tienda (P7) y la asesora de venta con inteligencia artificial que
+recomienda aromas del catálogo real a cada clienta (P8).
 
 **Objetivo del sistema:** permitir que cualquier visitante **explore, filtre y
 conozca** el catálogo de aromas desde cualquier dispositivo, sobre datos demo
 reproducibles — y que cualquier clienta **cree su cuenta, arme su carro, pague
 con Webpay en modo de prueba y revise sus pedidos**, con su identidad y su
-compra registradas.
+compra registradas — y que la dueña **administre catálogo, stock, pedidos y
+métricas desde su panel**, con una asesora de aromas que atiende a sus clientas.
 
 > **Alcance temporal de este documento:** los requerimientos aquí cubren la
-> **etapa 1, la etapa 2 y la etapa 3 del proyecto** (cada etapa agrega su parte
-> sin renumerar lo anterior: las series RF/RNF/RN/HU continúan). Las peticiones
-> P7–P8 del cliente quedan documentadas y trazadas (§13) hacia sus etapas
-> futuras — no se olvidan: se calendarizan.
+> **etapa 1 a la etapa 4 del proyecto** (cada etapa agrega su parte sin
+> renumerar lo anterior: las series RF/RNF/RN/HU continúan). Con la etapa 4,
+> las ocho peticiones del cliente (P1–P8) quedan cubiertas y trazadas (§13).
 
 ---
 
@@ -57,9 +60,9 @@ compra registradas.
 - Historial de pedidos de la clienta con el estado visible de cada uno, incluidos los "en curso" (P6).
 - Stock descontado de forma atómica solo al aprobarse el pago, sin sobreventa (P6).
 
-**Fuera del alcance de las etapas 1 a 3** (peticiones que esperan su etapa, §4 doc 01):
-- Panel de administración de productos, stock y pedidos (P7) → **etapa 4**.
-- Asesora de venta con recomendación de aromas (P8) → **etapa 4**.
+**Dentro del alcance de la etapa 4** (lo que esta etapa suma al sistema):
+- Panel de administración para la dueña: crear y editar productos con desactivación reversible, gestionar el stock con alerta de stock bajo, administrar los pedidos con anulación de los huérfanos y ver métricas de la tienda (P7).
+- Asesora de venta con inteligencia artificial: un chat público que recomienda aromas del catálogo real a cada clienta, como lo haría Maura en persona (P8).
 
 **Fuera del alcance del proyecto** (lo que el cliente NO pide, §6 doc 01):
 - Logística de envíos con seguimiento, cobro de dinero real, marketplace
@@ -73,13 +76,13 @@ compra registradas.
 |---|---|---|---|
 | **Visitante (anónimo)** | Cualquier persona que llega a la tienda desde su celular o computador | P1, P2 | Ver la página de inicio, navegar el catálogo, filtrar, abrir fichas de producto y armar su carro sin cuenta |
 | **Clienta (con cuenta)** | Una visitante que creó su cuenta con email y contraseña | P5, P6 | Todo lo del visitante, más iniciar sesión, mantener la sesión entre recargas, llegar al checkout protegido, pagar con Webpay y revisar sus pedidos |
-| **Admin (dueña)** | Maura, la dueña del emprendimiento, con cuenta de rol administrador | P7 | Todo lo de la clienta, más acceder al endpoint de administración protegido por rol (RF-08); su panel de gestión llega en la etapa 4 |
+| **Admin (dueña)** | Maura, la dueña del emprendimiento, con cuenta de rol administrador | P7 | Todo lo de la clienta, más gestionar su tienda desde el panel de administración: productos (RF-19), stock (RF-20), pedidos (RF-21) y métricas (RF-22) |
 
-> La asesora de venta (P8) y el panel completo de la dueña (P7) siguen siendo
-> alcances de etapas futuras: aparecen en este documento únicamente en la tabla
-> de trazabilidad (§13), para que el hilo quede completo desde hoy. El admin ya
-> existe como actor desde esta etapa — vía el rol de su cuenta —, pero su
-> herramienta de trabajo (el panel) se construye en la etapa 4.
+> El panel de la dueña (P7) y la asesora de venta (P8) llegaron con la etapa 4.
+> El admin existía como actor desde la etapa 2 — vía el rol de su cuenta
+> (RF-08) —; esta etapa le entrega su herramienta de trabajo. La asesora, en
+> cambio, atiende a quien navega la tienda: cualquier visitante o clienta puede
+> consultarle (HU-13), sin necesidad de cuenta.
 
 ---
 
@@ -117,6 +120,16 @@ compra registradas.
 - **RF-17:** El sistema debe permitir a la clienta ver el historial de sus pedidos con el estado visible de cada uno — incluidos los que quedaron "en curso" porque saltaron a Webpay y no volvieron. *(ORDR-01, P6)*
 - **RF-18:** El sistema debe descontar el stock de cada producto pagado de forma atómica y transaccional — la condición de stock vive dentro de la propia sentencia de descuento — de modo que dos compras concurrentes disputando el último stock nunca se vendan ambas. *(ORDR-02, P6)*
 
+### Panel de administración de la dueña (soporta P7)
+- **RF-19:** El sistema debe permitir a la dueña administrar el catálogo desde su panel: crear y editar productos — con familia de la lista cerrada (RN-01), precio y stock como enteros mayores o iguales a 0, y la foto como ruta de texto, sin upload de archivos — y desactivar o reactivar cada producto con un toggle visible y reversible (soft delete): los inactivos desaparecen del catálogo público sin destruirse, y los pedidos viejos conservan su snapshot. *(ADMN-01, P7, D-51/D-52)*
+- **RF-20:** El sistema debe mostrar a la dueña el stock de cada producto en el listado del panel, con un badge de stock bajo cuando un producto activo tiene 5 unidades o menos (umbral fijo del backend, RN-14), y resumir cuántos productos activos están con stock bajo dentro de las métricas del panel. *(ADMN-02, P7, D-53)*
+- **RF-21:** El sistema debe permitir a la dueña ver todos los pedidos de todas las clientas y anular los que siguen en curso: la anulación es la única transición manual del admin (PENDING→CANCELLED, RN-15), el backend la valida contra la máquina de estados — rechazando la ilegal con 409 — y no toca el stock, que nunca se descontó. *(ADMN-03, P7, D-50)*
+- **RF-22:** El sistema debe mostrar a la dueña las métricas de su tienda en tarjetas y una tabla, sin gráficos: ingresos totales (suma de pedidos pagados), pedidos por estado, top 5 de aromas vendidos y cantidad de productos con stock bajo — todo computado desde los pedidos y sus líneas con snapshot. *(ADMN-04, P7, D-54)*
+
+### Asesora de venta con IA (soporta P8)
+- **RF-23:** El sistema debe ofrecer una asesora de venta en una burbuja de chat pública — visible en la tienda para quien navega, sin exigir cuenta — donde la clienta cuenta qué aromas le gustan y recibe una recomendación en una sola respuesta, con el historial visible de la conversación mantenido por el navegador y enviado en cada mensaje. *(AIAS-01, P8, D-57/D-58/D-59)*
+- **RF-24:** La asesora debe recomendar únicamente productos que existen: el catálogo activo completo viaja en el prompt del sistema, la respuesta del servicio de IA llega como JSON estructurado (texto + ids citados), el backend valida cada id contra la base de datos antes de responder, y el chat muestra los aromas citados como tarjetas clicables hacia la ficha — máximo 3 por respuesta. *(AIAS-02, P8, D-56)*
+
 ---
 
 ## 5. Requerimientos no funcionales (RNF)
@@ -130,6 +143,8 @@ compra registradas.
 | RNF-05 | Seguridad | Las contraseñas se transforman (hash) **solo en el servidor**, con un algoritmo moderno de hash lento (Argon2); el secreto que firma las sesiones vive en una variable de entorno del backend — jamás en el código ni escrito en la guía | P5, RN-05..RN-07 |
 | RNF-06 | Almacenamiento | La sesión iniciada y el carro de compras persisten en el **propio navegador del cliente** (localStorage): sobreviven recargas y cierres del navegador sin depender del servidor | P5, CART-02, RF-11 |
 | RNF-07 | Dependencia externa | El pago depende del servicio externo Webpay Plus operado en su **ambiente de integración** (sandbox): las credenciales son públicas y vienen con el propio SDK — sin registro en Transbank — y las tarjetas de prueba son las documentadas por Transbank; la tienda funciona en modo de prueba, sin cobros reales | P6 |
+| RNF-08 | Dependencia externa | La asesora de venta depende del servicio externo Google Gemini operado en su **tier gratuito**: cada alumno crea su propia API key gratis, sin tarjeta de crédito; si el servicio no está disponible — sin key, caído o con la cuota consumida — la tienda sigue 100% operativa y el asistente degrada a un mensaje amable (503/429), sin cifras de límites que no tienen fuente pública | P8 |
+| RNF-09 | Seguridad | La API key de Gemini vive **solo en el backend**, como variable de entorno del servidor — igual que el secreto de las sesiones en la etapa 2 —, jamás en el código ni en el frontend: ninguna pieza del cliente la conoce y el build del frontend no contiene rastro de ella | AIAS-03, D-60/D-61 |
 
 ---
 
@@ -148,6 +163,9 @@ compra registradas.
 - **RN-11:** El historial muestra **todas** las órdenes de la clienta con su estado real — las que quedaron "en curso" (saltaron a Webpay y no volvieron) incluidas — y en esta etapa ninguna orden expira ni se cierra sola: la honestidad del estado es la regla, y la gestión de las huérfanas llega con el panel de la etapa 4. *(P6; decisiones de la etapa 3 — D-48/D-49.)*
 - **RN-12:** El stock se **valida** al crear la orden y se **descuenta** solo cuando el pago aprueba, de forma atómica y transaccional: la condición (`stock >= cantidad`) vive **dentro** de la propia sentencia de descuento, no leída y comparada aparte. Es la segunda barrera contra la sobreventa — detrás del tope en pantalla de RN-09 — y la definitiva: si una compra concurrente ganó el stock en el intertanto, el pago aprobado no descuenta y la orden queda rechazada con honestidad. *(P6; decisión de la etapa 3 — D-35.)*
 - **RN-13:** El número de pedido es **legible y público** (p. ej. `MAURA-000001`): es el identificador que la clienta ve en el voucher y el historial, y el que viaja a Webpay como referencia de la compra — **jamás** el id interno de la base de datos. Identificador público y clave primaria son cosas distintas. *(P6; decisión de la etapa 3 — D-37.)*
+- **RN-14:** El umbral de stock bajo del panel es **5 unidades o menos, solo para productos activos**, fijado como una constante del backend. Es un umbral deliberadamente DISTINTO del aviso de "últimas unidades" de la tienda (1-3 unidades): el de la tienda crea urgencia de compra en la clienta; el del panel avisa a la dueña que hay que reabastecer. Dos conceptos con dos constantes y dos textos — usar un mismo número para ambos escondería que responden a preguntas distintas. *(P7; decisión de la etapa 4 — D-53.)*
+- **RN-15:** La máquina de estados de los pedidos tiene **dueño por transición**: el flujo de pago posee las suyas (aprobar, rechazar o anular desde la vuelta de Webpay) y la dueña posee exactamente **una** transición manual — **PENDING→CANCELLED**, la gestión de los pedidos huérfanos que la etapa 3 dejó visibles "en curso" (RN-11). El backend valida cada transición pedida contra la máquina y rechaza la ilegal con 409: es un conflicto de estado, no un dato mal formado. `PAID` es terminal en esta versión (el reembolso queda diferido) y cancelar una orden en curso no toca stock — nunca se descontó (RN-12). La misma lógica de dueño ordena el catálogo: su escritura es exclusiva del rol admin — RN-04 lo mantenía de solo lectura justamente reservándolo para esta etapa, y ahora la regla se cumple en vez de romperse. *(P7; decisión de la etapa 4 — D-50.)*
+- **RN-16:** El chat de la asesora tiene **topes fijos que protegen el tier gratuito** del servicio de IA: el mensaje nuevo mide máximo 500 caracteres, el historial que viaja en cada consulta lleva máximo 10 mensajes y la respuesta muestra máximo 3 tarjetas de producto. Los topes validan en el borde del backend (422 al pasarse), no en la buena voluntad del navegador. *(P8; decisiones de la etapa 4 — D-58/D-59.)*
 
 ---
 
@@ -258,6 +276,27 @@ compra registradas.
   **Cuando** reviso mi historial,
   **Entonces** ese pedido aparece visible con estado "en curso" — la tienda no me oculta nada (RN-11).
 
+### HU-12 — Gestionar la tienda desde el panel
+*Como* admin (dueña), *quiero* administrar productos, stock y pedidos, y ver cómo va mi tienda, *para* cuidar mi negocio sin depender de nadie.
+- **Dado** que soy la dueña con sesión iniciada y abro mi panel,
+  **Cuando** creo o edito un aroma, desactivo o reactivo un producto, o ajusto su stock,
+  **Entonces** el catálogo público refleja el cambio al momento y los pedidos viejos siguen mostrando lo que se compró (RF-19, RF-20).
+- **Dado** que una clienta quedó con un pedido "en curso" que nunca volvió de Webpay,
+  **Cuando** lo anulo desde mi panel,
+  **Entonces** el pedido pasa a anulado sin tocar el stock y la clienta lo ve así en su historial (RF-21, RN-15).
+- **Dado** que quiero saber cómo va la tienda,
+  **Cuando** abro las métricas del panel,
+  **Entonces** veo los ingresos, los pedidos por estado, los aromas más vendidos y cuáles están con stock bajo (RF-22).
+
+### HU-13 — Consultar a la asesora de aromas
+*Como* clienta, *quiero* preguntarle a la asesora de la tienda qué aroma me conviene, *para* elegir bien sin conocer el catálogo completo.
+- **Dado** que estoy en cualquier página de la tienda,
+  **Cuando** abro la burbuja "Pregúntale a Maura" y le cuento qué aromas me gustan,
+  **Entonces** la asesora me responde en un solo mensaje con una recomendación y, si citó aromas, veo sus tarjetas para abrir la ficha (RF-23, RF-24).
+- **Dado** que la asesora no está disponible — el servicio de IA está caído o sin configurar,
+  **Cuando** le envío mi consulta,
+  **Entonces** la tienda sigue funcionando igual y recibo un aviso amable para reintentar más tarde (RNF-08).
+
 ---
 
 ## 8. Modelo de datos preliminar (insumo para la fase de diseño)
@@ -280,6 +319,12 @@ compra registradas.
 > es la cara pública del pedido (RN-13) y cada línea guarda un **snapshot** de
 > nombre y precio porque un pedido viejo debe mostrar siempre lo que se pagó
 > (RN-10).*
+>
+> *La decisión de datos de la etapa 4: **ninguna** — el panel y la asesora no
+> suman entidades ni tablas. El asistente es multi-turno stateless (el
+> historial de la conversación vive en el navegador y viaja en cada consulta)
+> y las métricas se computan sobre los pedidos y líneas existentes: la etapa 4
+> usa el esquema tal como está.*
 
 ---
 
@@ -296,6 +341,10 @@ compra registradas.
 9. **Iniciar el pago:** clienta → presiona "Pagar con Webpay" → el sistema recalcula el pedido contra el catálogo vigente, crea la orden "en curso" y la lleva al formulario de pago de Webpay (HU-09).
 10. **Procesar el retorno del pago:** Webpay devuelve el navegador → el sistema discrimina el flujo por los parámetros presentes, confirma la transacción solo en el flujo normal y devuelve a la clienta a la tienda con el resultado (HU-10).
 11. **Ver mis pedidos:** clienta → abre su historial → el sistema lista sus pedidos con estado real y muestra el detalle de cada uno (HU-11).
+12. **Gestionar el catálogo:** dueña → crea o edita un aroma, o alterna su estado comercial → el sistema valida (familia RN-01, precio y stock ≥ 0) y escribe el catálogo — la primera escritura fuera de la siembra, sin destruir historial (HU-12).
+13. **Anular pedido huérfano:** dueña → anula un pedido en curso → el sistema aplica la transición única del admin con un UPDATE condicional sobre el estado y rechaza con 409 si ya no está en curso (HU-12, RN-15).
+14. **Ver métricas:** dueña → abre las métricas del panel → el sistema agrega pedidos y líneas en solo lectura → ingresos, conteos por estado, top 5 y stock bajo (HU-12).
+15. **Conversar con la asesora:** visitante → envía su consulta con los topes del chat (RN-16) → el sistema arma el prompt con el catálogo activo, consulta al servicio de IA, valida los ids citados contra el catálogo y responde con texto y tarjetas (HU-13).
 
 ---
 
@@ -310,6 +359,9 @@ compra registradas.
 | Formulario de login | Clienta / Admin | Email con formato válido; contraseña; credenciales incorrectas → mensaje genérico sin revelar si el email existe (RN-06) |
 | Carro hacia el checkout | Clienta (con sesión) | Lista de pares `{producto_id, cantidad}` sin precios ni nombres (RN-08): el backend recalcula todo contra el catálogo vigente al crear la orden (RF-12, CART-03) |
 | Retorno de Webpay | Webpay (el navegador de la clienta vuelve de la pasarela) | Parámetros opacos `token_ws` / `TBK_TOKEN` / `TBK_ID_SESION` / `TBK_ORDEN_COMPRA`: el sistema discrimina el flujo SOLO por su presencia (RF-14), jamás por el método HTTP, y jamás interpreta su contenido |
+| Editor de producto | Admin (dueña) | Nombre no vacío; familia ∈ {citricas, florales, frutales, dulces} (RN-01); precio y stock enteros ≥ 0; notas separadas por comas; foto como ruta de texto `/products/{sku}.jpg` sin upload (D-51); sin campo de estado comercial — el toggle es una escritura propia (RF-19) |
+| Transición de pedido | Admin (dueña) | `estado` = `cancelled`, el único destino manual (RN-15); sobre un pedido que ya no está en curso → rechazo 409 (RF-21) |
+| Mensaje a la asesora | Visitante / Clienta | Mensaje de máximo 500 caracteres; historial de máximo 10 mensajes; respuesta con máximo 3 tarjetas de producto — ids validados contra el catálogo activo por el backend (RN-16, RF-24) |
 
 ## 11. Salidas del sistema
 
@@ -331,6 +383,11 @@ compra registradas.
 7. **Checkout (protegido):** resumen del pedido con líneas y total hidratados con precios vigentes, subtítulo con la cuenta activa y — desde la etapa 3 — la acción de pago encendida: el botón "Pagar con Webpay" que inicia el pago real.
 8. **Resultado del pago:** la vuelta de Webpay en una sola dirección: el voucher de la tienda cuando el pago aprobó (número legible, fecha, líneas con lo pagado, total y estado), o la cara de anulado/timeout/error con el carro intacto para reintentar (RF-16, HU-10).
 9. **Mis pedidos:** la lista de los pedidos de la clienta con número, fecha, total y estado visible (los "en curso" incluidos), que navega al detalle — la misma vista del voucher de la vuelta del pago (RF-17, HU-11).
+10. **Panel — Productos:** la trastienda del catálogo: tabla de todos los productos (activos e inactivos) con precio, stock con badge de stock bajo y estado comercial, editor inline como estado de la pantalla y toggle desactivar/reactivar sin confirmación (RF-19, RF-20, HU-12).
+11. **Panel — Pedidos:** la lista de todos los pedidos de todas las clientas con número, fecha, clienta, total y estado — y la acción "Anular" solo en los en curso, con confirmación en dos pasos en el lugar (RF-21, HU-12).
+12. **Panel — Métricas:** cuatro métricas sin gráficos: tarjetas de ingresos totales, pedidos por estado y stock bajo, más la tabla top 5 de aromas vendidos desde el snapshot de las líneas (RF-22, HU-12).
+13. **No autorizado:** lo que ve una clienta con sesión que fuerza la dirección del panel: un aviso claro de que el panel es solo para la dueña y la vuelta a la tienda — el espejo de cortesía del 403 del backend (RF-08).
+14. **Asesora de aromas (burbuja):** el chat flotante "Pregúntale a Maura" que acompaña toda la tienda: panel desplegable con historial en el navegador, respuesta única con tarjetas clicables y estados amables cuando el servicio no está disponible (RF-23, RF-24, HU-13).
 
 ---
 
@@ -346,8 +403,8 @@ El hilo completo del ciclo de vida. **Ninguna petición queda sin requerimiento 
 | P4 Datos de prueba sin duplicar | RF-05, RNF-04 | HU-04, CS3 |
 | P5 Carro y cuentas | RF-06..RF-09 (cuentas: AUTH-01..04), RF-10, RF-11 (carro: CART-01..02), RNF-05, RNF-06, RN-05..RN-09 | HU-05, HU-06, HU-07, HU-08 |
 | P6 Pago online con Webpay | RF-12..RF-18 (recalculo del carro: CART-03; pago: PAY-01..04; órdenes: ORDR-01..02), RNF-07, RN-10..RN-13 | HU-09, HU-10, HU-11 |
-| P7 Panel de administración | *(llegan con la etapa 4: ADMN-01..04)* | Etapa 4 |
-| P8 Asesora de venta | *(llegan con la etapa 4: AIAS-01..03)* | Etapa 4 |
+| P7 Panel de administración | RF-19..RF-22 (productos: ADMN-01; stock: ADMN-02; pedidos: ADMN-03; métricas: ADMN-04), RN-14, RN-15 | HU-12 |
+| P8 Asesora de venta | RF-23, RF-24 (chat: AIAS-01; recomendación sobre el catálogo real: AIAS-02), RNF-08, RNF-09 (key solo en el backend: AIAS-03), RN-16 | HU-13 |
 | C1 Presupuesto mínimo | RNF-04 (estado reproducible sin pagar servicios); el resto se resuelve en la fase 4 (arquitectura gratuita) | Fase 4 |
 | C2 Maura sola, etapas revisables | Estructura por fases del propio proyecto (docs/README.md, regla del proyecto) | CS5 |
 | C3 Celular y notebook | RNF-01 | HU-01, CS4 |
@@ -377,6 +434,13 @@ El hilo completo del ciclo de vida. **Ninguna petición queda sin requerimiento 
 | Cliente (validación de requerimientos) | Maura — Maura · Body Splash | ☐ Aprobado ☐ Con observaciones | 2026-09-29 |
 
 **Etapa 3 — pago con Webpay y órdenes (documentada el 2026-09-30):**
+
+| Rol | Nombre | Decisión | Fecha |
+|---|---|---|---|
+| Analista | ______________ | ☐ Aprobado ☐ Con observaciones | 2026-09-30 |
+| Cliente (validación de requerimientos) | Maura — Maura · Body Splash | ☐ Aprobado ☐ Con observaciones | 2026-09-30 |
+
+**Etapa 4 — panel de administración y asesora de venta (documentada el 2026-09-30):**
 
 | Rol | Nombre | Decisión | Fecha |
 |---|---|---|---|
