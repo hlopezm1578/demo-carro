@@ -1,8 +1,8 @@
 ---
 phase: 03-checkout-webpay-y-rdenes
-fixed_at: 2026-09-30T18:05:00Z
+fixed_at: 2026-09-30T19:00:48Z
 review_path: .planning/phases/03-checkout-webpay-y-rdenes/03-REVIEW.md
-iteration: 1
+iteration: 2
 findings_in_scope: 6
 fixed: 6
 skipped: 0
@@ -11,20 +11,20 @@ status: all_fixed
 
 # Phase 3: Code Review Fix Report
 
-**Fixed at:** 2026-09-30T18:05:00Z
+**Fixed at:** 2026-09-30T19:00:48Z (iteration 2) · iteration 1: 2026-09-30T18:05:00Z
 **Source review:** .planning/phases/03-checkout-webpay-y-rdenes/03-REVIEW.md
-**Iteration:** 1
+**Iteration:** 2 — acumulativo (CR/WR cerrados en la 1; IN cerrados en la 2)
 
 **Summary:**
-- Findings in scope: 6 (CR-01, WR-01..WR-05 — Critical + Warning; los 6 Info quedan fuera del scope por instrucción del orquestador)
-- Fixed: 6
-- Skipped: 0
+- Iteration 1 — scope default (Critical + Warning): 6 in scope (CR-01, WR-01..WR-05) · 6 fixed, 0 skipped
+- Iteration 2 — `--fix --all` (incluye Info): 6 in scope (IN-01..IN-06) · 6 fixed, 0 skipped
+- Total acumulado: **12/12 findings del 03-REVIEW.md corregidos**
 
 **Modo de trabajo:** `workflow.use_worktrees=false` → todos los edits y commits se hicieron
 directamente en el checkout principal (rama `master`), sin worktree. Toda la verificación de abajo
 corrió en ese mismo checkout principal (reproducible desde el árbol actual).
 
-## Fixed Issues
+## Fixed Issues — Iteration 1 (Critical + Warning)
 
 ### CR-01: `routers/retorno.py` importa `Error` desde un módulo que no lo define — ImportError al copiar la guía tal cual
 
@@ -109,6 +109,86 @@ diccionario §2.2 PEDIDO == columnas `mapped_column` del modelo de guia-09, camp
 mismo orden (`id, numero, estado, total, fecha, usuario_id`) — la afirmación "campo a campo… ni
 una más" del paso 2 de la guía 9 ahora es cierta sin tocar la guía.
 
+## Fixed Issues — Iteration 2 (Info, `--fix --all`)
+
+**Modo de trabajo iteración 2:** el subagent `gsd-code-fixer` no pudo despacharse
+(límite de cuota del plan, reset 2026-10-05), por lo que el orquestador ejecutó la
+misma instrucción inline: fixes quirúrgicos, un commit atómico por finding, y el
+sync espejo en `D:/Repos/maura-uat` para los dos findings de código embebido
+(IN-02, IN-06) según la regla del workspace (fix en guías + espejo en maura-uat).
+maura-uat no es repo git: los espejos quedaron en su working tree.
+
+### IN-01: Typo en HU-09/HU-10 — "se descuento stock una segunda vez"
+
+**Files modified:** `docs/02_requerimientos.md`
+**Commit:** dc38220
+**Applied fix:** "sin que se me cobre ni se descuento stock" → "se descuente" en el
+tercer criterio de HU-10 (RF-15). Verificado: 0 ocurrencias de "se descuento" en `docs/`.
+
+### IN-02: El título de `ResultadoPago` no cubre el estado `cancelled` del pedido fetcheado
+
+**Files modified:** `docs/05_desarrollo/guia-10-retorno-voucher.md` + espejo `D:/Repos/maura-uat/frontend/src/features/pago/ResultadoPago.tsx`
+**Commit:** a9402c6 (maura-uat: working tree)
+**Applied fix:** `titulo` agrega la rama `cancelled` → "Tu compra quedó anulada" antes
+del fallback "Tu pago fue rechazado" (ternario anidado, mismo estilo del bloque). Un
+pedido anulado fetcheado por la rama con fetch (link viejo del voucher, caso admin de
+fase 4) ahora muestra título y badge "Anulado" coherentes. Verificado: `tsc --noEmit`
+PASS sobre el frontend de maura-uat con el cambio aplicado.
+
+### IN-03: Contrato declara `requestBody.required: true` en POST /api/pago/retorno, pero la implementación enseñada acepta body ausente
+
+**Files modified:** `docs/04_arquitectura/contrato_api.yaml`
+**Commit:** 521769d
+**Applied fix:** Se eliminó `required: true` del requestBody del POST retorno — los
+cuatro params son opcionales por diseño (el flujo se discrimina por PRESENCIA), y el
+schema ya lo declaraba así en su `description`. El requestBody del login (también
+`security: []` + form-urlencoded, la otra coincidencia estructural) NO se tocó: ese
+cuerpo sí es requerido. Verificado: `yaml.safe_load` OK y `required` ausente solo en
+retorno; la comparación uno a uno de la fila 12 de la Gran verificación ya no topa
+con la divergencia.
+
+### IN-04: El 400 de `/api/checkout` por "aroma no disponible/inexistente" no está documentado en el contrato
+
+**Files modified:** `docs/04_arquitectura/contrato_api.yaml`
+**Commit:** ef89c67
+**Applied fix:** (a) `description` del `'400'` ahora dice "Stock insuficiente o aroma
+no disponible — regla de negocio (CART-03); la orden no se crea" — texto idéntico al
+`responses` del router que la guia-09 enseña, para que la comparación contrato ↔ `/docs`
+calle sin desvíos. (b) La `description` del endpoint extendida: "Stock insuficiente en
+alguna línea, o un aroma del carro que ya no está disponible, → 400 con el detalle de
+la fila que no alcanzó". El `example` del 400 se conserva (sigue siendo el caso de
+stock). Verificado: `yaml.safe_load` OK.
+
+### IN-05: Wireframe de la pantalla 9 muestra "Carro (0)", contradiciendo la regla "contador oculto en cero" de la pantalla 6
+
+**Files modified:** `docs/03_diseno.md`
+**Commit:** 5489a43
+**Applied fix:** El navbar del wireframe de Mis pedidos (§4.10) dibuja `Carro` sin
+contador, con el ancho del recuadro preservado. Verificado: 0 ocurrencias de
+"Carro (0)" en `03_diseno.md`; la regla de §4.7 ("oculto en cero") queda sin
+contradicción.
+
+### IN-06: Una falla de red durante `webpay.commit` escapa como 500 al navegador — la promesa "jamás un 500" solo cubre `TransactionCommitError`
+
+**Files modified:** `docs/05_desarrollo/guia-09-ordenes-webpay.md` + espejo `D:/Repos/maura-uat/backend/app/services/webpay.py`
+**Commit:** 86c2297 (maura-uat: working tree)
+**Applied fix:** El `except` del wrapper se amplió a
+`except (TransbankError, requests.ConnectionError, requests.Timeout): return None`
+(import base `transbank.error.transbank_error.TransbankError` en vez del específico,
+más `import requests`). Como `TransactionCommitError` es subclase de `TransbankError`
+(verificado contra el SDK 6.1.0 instalado), el comportamiento previo se conserva y la
+misma señal de dominio (`None` → 302 `estado=error`) cubre ahora timeouts y conexiones
+rotas hacia `webpay3gint.transbank.cl`. Narrativas actualizadas en tres puntos: el
+"error tipado del commit" del paso 5 (ahora menciona los errores de red), la
+explicación de la mini-verificación del token inventado (`except` de `TransbankError`
+y errores de red) y la prosa de "tres defensas" del paso 7 (una red que se cae a mitad
+del commit también produce la 302, jamás un 500). El docstring de `commit()` documenta
+la frontera ampliada ("ni de transbank ni de su transporte"). La mini-verificación de
+aislamiento (`grep -r transbank backend/app` → solo `services/webpay.py`) sigue
+pasando. Verificado en runtime contra el venv real de maura-uat: `from app.services
+import webpay` OK, `issubclass(TransactionCommitError, TransbankError)` True,
+requests 2.34.2 presente.
+
 ## Verification
 
 **Dónde corrió:** checkout principal (`D:/Repos/demo-carro`, rama `master`) — `workflow.use_worktrees=false`.
@@ -133,15 +213,26 @@ una más" del paso 2 de la guía 9 ahora es cierta sin tocar la guía.
 los cambios de comportamiento embebido (WR-01 señal `None`, WR-02 URL `backend_url`, WR-03 guard
 atómico — incluida la corrida de `carrera.py`) deben espejarse y re-verificarse en el próximo pase
 UAT delegado al agente sobre `maura-uat`, siguiendo las guías ya corregidas (regla del workspace:
-bug fix en guías + espejo en maura-uat para desbloquear la verificación runtime).
+bug fix en guías + espejo en maura-uat para desbloquear la verificación runtime). **Actualización
+iteración 2:** IN-02 e IN-06 YA están espejados en maura-uat (working tree); los de la iteración 1
+siguen pendientes de espejo según esa nota.
+
+**Verificaciones iteración 2:**
+- IN-01/IN-05: greps — 0 ocurrencias de "se descuento" en `docs/`; 0 de "Carro (0)" en `03_diseno.md`.
+- IN-03/IN-04: `yaml.safe_load` del contrato OK; `required` ausente solo en el requestBody del POST retorno; `description` del 400 == texto del `responses` del router en guia-09.
+- IN-02: `tsc --noEmit` PASS en `maura-uat/frontend` con la rama `cancelled` aplicada.
+- IN-06: import del wrapper fixeado OK en el venv de `maura-uat/backend`; jerarquía
+  `TransactionCommitError ⊂ TransbankError` confirmada contra el SDK instalado; `except` ampliado
+  presente en guía y espejo.
 
 ## Skipped Issues
 
-Ninguno — los 6 hallazgos en scope fueron corregidos. Los 6 Info (IN-01..IN-06) quedan sin tocar
-por decisión del orquestador (fuera del scope de este fix).
+Ninguno — 6/6 hallazgos en scope corregidos en cada iteración. Los 6 Info (IN-01..IN-06),
+fuera del scope de la iteration 1 por instrucción del orquestador, fueron cerrados por la
+iteration 2 (`--fix --all`): 12/12 findings del review resueltos.
 
 ---
 
-_Fixed: 2026-09-30T18:05:00Z_
-_Fixer: Claude (gsd-code-fixer)_
-_Iteration: 1_
+_Fixed: 2026-09-30T18:05:00Z (iteration 1) · 2026-09-30T19:00:48Z (iteration 2)_
+_Fixer: Claude (gsd-code-fixer; iteration 2 ejecutada por el orquestador inline tras límite de cuota del subagent)_
+_Iteration: 2_
