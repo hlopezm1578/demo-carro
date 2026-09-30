@@ -66,7 +66,7 @@ Plans:
 
 ### Phase 2: Cuentas de cliente y carro persistente
 
-**Goal**: Un visitante se convierte en cliente identificado: crea cuenta, inicia sesión con JWT que persiste entre recargas, arma un carro que sobrevive los full-page loads (los que impondrá la redirección de Webpay) y el checkout le exige sesión iniciada.
+**Goal**: As a visitante de la tienda, I want to crear una cuenta, iniciar sesión con un token que persiste entre recargas y armar un carro que sobreviva los full-page loads hasta un checkout que me exige sesión, so that la tienda me reconoce en cada visita y mi compra queda lista para el pago real que llega con Webpay en la fase 3.
 **Mode:** mvp
 **Depends on**: Phase 1
 **Requirements**: AUTH-01, AUTH-02, AUTH-03, AUTH-04, CART-01, CART-02
