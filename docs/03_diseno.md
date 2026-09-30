@@ -16,9 +16,9 @@
 
 | Sección | Diseña | Responde a |
 |---|---|---|
-| §2 | Los **datos** (modelo relacional + diccionario) | RF-02, RF-04, RF-05, RF-06, RF-08, RN-01, RN-02, RN-03, RN-05..RN-09, RNF-04 |
-| §3 | Los **procesos** (diagrama de contexto + DFD) | HU-01…HU-08, procesos de `02_requerimientos.md` §9 |
-| §4 | La **interfaz** (7 pantallas, wireframes) | RF-01…RF-04, RF-06…RF-11, RNF-01, C3 (celular primero) |
+| §2 | Los **datos** (modelo relacional + diccionario) | RF-02, RF-04, RF-05, RF-06, RF-08, RF-12, RF-17, RF-18, RN-01, RN-02, RN-03, RN-05..RN-13, RNF-04 |
+| §3 | Los **procesos** (diagrama de contexto + DFD) | HU-01…HU-11, procesos de `02_requerimientos.md` §9 |
+| §4 | La **interfaz** (9 pantallas, wireframes) | RF-01…RF-04, RF-06…RF-18, RNF-01, C3 (celular primero) |
 
 Se diseña QUÉ: la tecnología con la que se construye — y las alternativas
 descartadas — se decide y documenta en la fase 4 (`04_arquitectura/`, con ADRs).
@@ -49,16 +49,38 @@ erDiagram
         string hashed_password "hash Argon2; jamas cruza la frontera de la API (RN-07)"
         string rol "cliente | admin, por defecto cliente (RF-08)"
     }
+    PEDIDO {
+        int id PK
+        string numero UK "legible y publico: MAURA-000001 = buy_order (RN-13)"
+        string estado "pending | paid | cancelled | rejected (RF-17)"
+        int total "CLP entero recalculado por el backend (RF-12)"
+        int usuario_id FK "la orden pertenece a una clienta (RF-17)"
+    }
+    LINEA {
+        int id PK
+        int pedido_id FK
+        int producto_id FK "el soft delete mantiene la referencia viva (2.3.5)"
+        string nombre_snapshot "congelado al comprar (RN-10)"
+        int precio_snapshot "lo que se pago, congelado al comprar (RN-10)"
+        int cantidad "unidades del aroma en esta compra (RN-12)"
+    }
+
+    USUARIO ||--o{ PEDIDO : "hace"
+    PEDIDO ||--|{ LINEA : "contiene"
+    LINEA }o--|| PRODUCTO : "elige"
 ```
 
 **Lectura del diagrama:** la etapa 1 tenía una sola entidad (PRODUCTO); la
-etapa 2 suma **USUARIO**, todavía sin relaciones entre ambas — nada del carro
-vive en la base de datos: el carro es del navegador (almacén A2, §3.2). Los
-pedidos siguen reservados para la etapa 3 y serán quienes conecten USUARIO con
-PRODUCTO por relaciones nuevas (una clienta hace pedidos; un pedido elige
-productos). Diseñar solo lo que cada etapa necesita evita inventar tablas que
-todavía nadie pide — pero los campos clave (`id`, `sku`, `activo`, `email`) ya
-se eligen pensando en ese futuro cercano.
+etapa 2 sumó **USUARIO**, todavía sin relaciones entre ambas — nada del carro
+vive en la base de datos: el carro es del navegador (almacén A2, §3.2). La
+etapa 3 suma **PEDIDO** y **LÍNEA**, y con ellas llegan las primeras
+relaciones del sistema: una clienta hace pedidos, un pedido contiene líneas y
+cada línea elige un producto — USUARIO y PRODUCTO quedan conectados al fin.
+El carro sigue sin tocar la base de datos: lo que se guarda acá es la compra
+ya confirmada, con su nombre y precio congelados (RN-10). Diseñar solo lo que
+cada etapa necesita evitó inventar estas tablas antes de que el pago
+existiera — y los campos clave (`id`, `sku`, `activo`, `email`) ya se habían
+elegido pensando en este momento.
 
 ### 2.2 Diccionario de datos
 
@@ -85,6 +107,27 @@ se eligen pensando en ese futuro cercano.
 | email | Texto | 255 | Sí | **Único**, con índice de búsqueda; clave natural de las cuentas: la siembra de credenciales demo de la etapa 2 actualiza por email sin duplicar, igual que el catálogo por sku (RF-06, D-23/D-24) |
 | hashed_password | Texto | 255 | Sí | Hash de la contraseña con Argon2 (prefijo reconocible `$argon2id$…`); **jamás cruza la frontera de la API**: ninguna respuesta del sistema lo incluye (RN-07, RNF-05) |
 | rol | Lista cerrada | — | Sí | Uno de `cliente` o `admin`; por defecto `cliente` al registrarse; el rol viaja en la sesión desde el primer inicio (RF-08) |
+
+**Entidad PEDIDO** (soporta RF-12, RF-13, RF-15, RF-17, RN-11, RN-13)
+
+| Atributo | Tipo | Longitud | Obligatorio | Restricción / origen |
+|---|---|---|---|---|
+| id | Entero | — | Sí | Identificador (clave primaria); interno: no se muestra ni viaja a Webpay (RN-13) |
+| numero | Texto | 26 | Sí | **Único**; legible y público (`MAURA-000001`): la cara del pedido que la clienta ve en voucher e historial, y la referencia de la compra que viaja a Webpay como `buy_order` (límite 26 caracteres de la pasarela) — jamás el id interno (RN-13, D-37) |
+| estado | Lista cerrada | — | Sí | Uno de `pending`, `paid`, `cancelled`, `rejected`; nace `pending` al iniciar el pago (D-34) y el historial lo muestra siempre con su valor real — `pending` visible como "en curso" (RF-17, RN-11) |
+| total | Entero | — | Sí | CLP **sin decimales** (RN-02); **recalculado por el backend** contra el catálogo vigente al crear la orden — jamás un valor enviado por el cliente (RF-12, CART-03) |
+| usuario_id | Entero (FK) | — | Sí | FK a USUARIO: la orden pertenece a la clienta que la pagó; el historial lista solo las órdenes de la dueña del token (RF-17) |
+
+**Entidad LÍNEA** (soporta RN-10; el corazón congelado del pedido)
+
+| Atributo | Tipo | Longitud | Obligatorio | Restricción / origen |
+|---|---|---|---|---|
+| id | Entero | — | Sí | Identificador (clave primaria) |
+| pedido_id | Entero (FK) | — | Sí | FK a PEDIDO: la línea pertenece a un pedido (PEDIDO contiene LÍNEA, §2.1) |
+| producto_id | Entero (FK) | — | Sí | FK a PRODUCTO; el soft delete (§2.3.5) mantiene la referencia viva aunque el producto se oculte después — el pedido viejo no queda apuntando a un producto borrado |
+| nombre_snapshot | Texto | 120 | Sí | El nombre del aroma **congelado al momento de comprar**: el pedido muestra siempre lo que se compró, aunque el catálogo cambie después (RN-10, D-36) |
+| precio_snapshot | Entero | — | Sí | El precio **pagado**, congelado al comprar: el histórico de la compra, no el precio vigente del catálogo (RN-10, D-36) |
+| cantidad | Entero | — | Sí | Unidades compradas de ese aroma; es el insumo del descuento atómico de stock al aprobar el pago (RN-12) |
 
 ### 2.3 Decisiones de diseño de datos (y por qué)
 
@@ -141,6 +184,36 @@ se eligen pensando en ese futuro cercano.
    cantidad guardada si el stock bajó mientras el aroma esperaba (D-30,
    RN-09). Es una barrera de honestidad en pantalla, no la muralla: la
    validación definitiva la hará el backend al crear la orden (etapa 3).
+11. **La orden nace al iniciar el pago — no al aprobarlo.** Presionar "Pagar
+   con Webpay" crea la orden en estado `pending` con sus líneas ya congeladas,
+   y solo entonces se crea la transacción en la pasarela. ¿Por qué antes del
+   pago y no después? Porque la vuelta de Webpay necesita aterrizar en una
+   orden existente que actualizar (la referencia de compra ya viajó en la
+   ida), y porque el historial puede ser honesto con las compras que saltaron
+   a pagar y no volvieron ("en curso", RN-11). *(D-34; su capa técnica es
+   ADR-013.)*
+12. **El stock se valida al crear la orden y se descuenta solo al aprobar el
+   pago, de forma atómica.** Crear la orden no toca el stock: solo comprueba
+   que alcance — la segunda barrera contra la sobreventa, detrás del tope en
+   pantalla de RN-09. El descuento real ocurre cuando el pago aprueba, con la
+   condición (`stock >= cantidad`) viviendo **dentro** de la propia sentencia
+   de descuento: dos compras que disputan el último stock se resuelven en la
+   base de datos, no en la buena suerte, y la que llega tarde queda rechazada
+   con honestidad (RN-12). *(D-35; su capa técnica es ADR-013.)*
+13. **La línea guarda un snapshot de nombre y precio — la asimetría con el
+   carro es la lección.** En el carro, guardar el precio está prohibido
+   (RN-08): sería un precio viejo esperando el momento de engañar. En la
+   orden, guardarlo es obligatorio (RN-10): es el histórico de lo que se pagó,
+   y un pedido viejo debe mostrarlo aunque el catálogo cambie después. La
+   misma columna, dos verdades distintas: el carro describe una intención, la
+   orden documenta un hecho. *(D-36; su capa técnica es ADR-014.)*
+14. **El número de pedido es legible y público — y no es la clave primaria.**
+   `MAURA-000001` es lo que la clienta ve en el voucher y el historial, y la
+   referencia que viaja a Webpay como `buy_order` (tope de 26 caracteres de la
+   pasarela); el `id` interno queda solo para las relaciones entre tablas.
+   Identificador público y clave primaria son cosas distintas: exponer el
+   correlativo interno regala información y encima topo con límites ajenos
+   (RN-13). *(D-37; su capa técnica es ADR-014.)*
 
 > **Pregunta para la clase:** ¿por qué no usar el `id` (número correlativo)
 > como llave de la siembra en lugar del sku? (pista: qué pasa con los números
@@ -153,11 +226,22 @@ se eligen pensando en ese futuro cercano.
 > consigue?). El diseño elige el navegador: el visitante anónimo puede armar
 > su carro desde el primer clic (RF-11).
 
+> **Pregunta para la clase (etapa 3):** ¿por qué el mismo dato — un precio
+> guardado — es un defecto en el carro (RN-08) y un requisito en la línea de
+> la orden (RN-10)? (pista: ¿cuál de los dos describe lo que la clienta
+> *quiere* comprar y cuál lo que *pagó*?). Esa es la diferencia entre una
+> intención y un hecho.
+
 > Las decisiones 7 a 10 son de diseño (el QUÉ); su capa técnica (el CÓMO) se
 > decidió en la fase 4 y quedó registrada en los ADRs de la etapa: la sesión
 > que persiste y dónde vive en **ADR-009**, el carro del lado del cliente y su
 > hidratación contra precios vigentes en **ADR-010**, y las cuentas con rol
 > sembradas por variables de entorno en **ADR-011**.
+
+> Las decisiones 11 a 14 siguen la misma regla: son el QUÉ. Su CÓMO quedó
+> registrado en los ADRs de la etapa 3 — el retorno de Webpay en **ADR-012**,
+> la orden que nace al pagar y el stock que se descuenta al aprobar en
+> **ADR-013**, y el snapshot de precio con el número legible en **ADR-014**.
 
 ---
 
@@ -165,8 +249,11 @@ se eligen pensando en ese futuro cercano.
 
 ### 3.1 Diagrama de contexto
 
-El sistema como un único proceso, con sus entidades externas (la etapa 2 suma
-a la clienta identificada y a la dueña con rol de administración):
+El sistema como un único proceso, con sus entidades externas (la etapa 2 sumó
+a la clienta identificada y a la dueña con rol de administración; la etapa 3
+suma a **Webpay**, el primer servicio externo del sistema — la ida es el
+formulario de pago que redirige a la clienta hacia la pasarela y la vuelta es
+el retorno del navegador con el resultado, en cuatro flujos posibles):
 
 ```mermaid
 flowchart LR
@@ -174,16 +261,19 @@ flowchart LR
     CC["Clienta (con cuenta)"]
     AD["Admin (dueña)"]
     D["Desarrollador de la guía"]
-    SISTEMA(["TIENDA MAURA (etapas 1 y 2: catálogo, cuentas y carro)"])
+    WP["Webpay (pasarela de pago)"]
+    SISTEMA(["TIENDA MAURA (etapas 1 a 3: catálogo, cuentas, carro, pago y pedidos)"])
 
     V -->|"abre la tienda, filtra, abre fichas,<br>arma su carro anónimo"| SISTEMA
     SISTEMA -->|"landing, catálogo filtrable, fichas<br>con notas y stock, carro persistente"| V
-    CC -->|"crea cuenta, inicia sesión,<br>llega al checkout protegido"| SISTEMA
-    SISTEMA -->|"sesión que persiste,<br>resumen del pedido"| CC
+    CC -->|"crea cuenta, inicia sesión,<br>llega al checkout protegido, paga"| SISTEMA
+    SISTEMA -->|"sesión que persiste, resumen del pedido,<br>voucher e historial de pedidos"| CC
     AD -->|"entra con su rol de administración"| SISTEMA
     SISTEMA -->|"endpoint de administración (el panel: etapa 4)"| AD
     D -->|"ejecuta la siembra de datos demo"| SISTEMA
     SISTEMA -->|"catálogo y cuentas demo en estado conocido"| D
+    SISTEMA -->|"crea la transacción y lleva a la clienta<br>al formulario de pago (form POST)"| WP
+    WP -->|"retorno del navegador con el resultado<br>(cuatro flujos posibles)"| SISTEMA
 ```
 
 ### 3.2 Almacenes de datos
@@ -192,6 +282,7 @@ flowchart LR
 |---|---|---|---|
 | D1 | Productos | El catálogo (12 aromas demo) | Entidad PRODUCTO |
 | D2 | Usuarios | Las cuentas: clientas y la dueña (email único, hash de contraseña, rol) | Entidad USUARIO |
+| D3 | Pedidos | Las órdenes de las clientas: numero legible, estado, total y líneas con nombre y precio congelados | Entidades PEDIDO y LÍNEA |
 | A1 | Imágenes de producto | Fotos guardadas como archivos del proyecto (§2.3.4) | — |
 | A2 | localStorage del navegador | La sesión iniciada y el carro del cliente, guardados en el propio navegador | — |
 
@@ -334,6 +425,73 @@ flowchart TD
 exactamente a donde iba (D-32); las líneas se hidratan con precios vigentes
 igual que en el carro (RN-08); y la acción de pago nace deshabilitada con su
 nota a la vista — el pago llega en la etapa siguiente (D-31).
+
+### 3.11 DFD — Proceso 9.0: Iniciar el pago (HU-09)
+
+```mermaid
+flowchart TD
+    CLI["Clienta"] -->|"presiona Pagar con Webpay<br/>(items: ids y cantidades)"| P9(["9.0 Iniciar el pago"])
+    P9 -->|"recalcula el total y valida el stock<br/>contra el catálogo vigente"| D1[("D1 Productos")]
+    P9 -->|"crea la orden pending con sus líneas<br/>congeladas y numero legible"| D3[("D3 Pedidos")]
+    P9 -->|"crea la transacción<br/>(buy_order = numero)"| WP["Webpay"]
+    WP -->|"formulario de pago<br/>(url + token: form POST)"| CLI
+    P9 -->|"stock insuficiente (400):<br/>el pago no arranca"| CLI
+```
+
+**Reglas del proceso:** la entrada trae **solo** identificadores y cantidades
+— ni precios ni nombres (RN-08) — y el backend recalcula el total contra el
+catálogo vigente sin confiar en nada del cliente (RF-12); crear la orden
+solo **valida** el stock, no lo toca (RN-12 — el descuento llega con el pago
+aprobado, proceso 10.0); la orden nace `pending` con sus líneas ya congeladas
+(RN-10) y su numero legible como referencia de compra (RN-13, D-34); si el
+stock no alcanza, la orden no nace y la clienta vuelve a su carro intacto.
+
+### 3.12 DFD — Proceso 10.0: Procesar el retorno del pago (HU-10)
+
+```mermaid
+flowchart TD
+    WP["Webpay"] -->|"retorno del navegador:<br/>token_ws / TBK_* según el flujo"| P10(["10.0 Procesar el retorno"])
+    P10 -->|"busca la orden por su numero<br/>(la referencia de la compra)"| D3[("D3 Pedidos")]
+    P10 -->|"confirmación de la transacción<br/>(solo en el flujo normal)"| WP
+    P10 -->|"descuento atómico del stock<br/>en la misma transacción"| D1[("D1 Productos")]
+    P10 -->|"actualiza el estado de la orden"| D3
+    P10 -->|"302 a /pago/resultado<br/>con el resultado y la orden"| CLI["Clienta (navegador)"]
+```
+
+**Reglas del proceso:** el flujo se discrimina **solo por la presencia de los
+parámetros** que llegan — `token_ws` solo es el flujo normal;
+`TBK_ID_SESION` + `TBK_TOKEN` es la compra anulada; `TBK_ID_SESION` solo es
+el timeout del formulario; los cuatro juntos son el error de formulario —
+**jamás por el método HTTP** (la evidencia runtime lo demostró: hasta la
+documentación oficial se equivocó con el método del anulado); la transacción
+se confirma únicamente en el flujo normal; la orden pasa a `paid` solo con
+`response_code == 0` **y** `status == AUTHORIZED` — ambos (RF-15); si la orden
+ya está `paid`, se vuelve a mostrar sin repetir ningún efecto — refrescar no
+paga dos veces; el descuento de stock lleva la condición dentro de la propia
+sentencia y ocurre en la misma transacción que la transición de estado
+(RN-12); la respuesta es siempre una redirección 302 hacia la ruta única de
+resultado de la SPA (`/pago/resultado`), que fuerza la navegación GET del
+navegador (D-41/D-42).
+
+### 3.13 DFD — Proceso 11.0: Ver mis pedidos (HU-11)
+
+```mermaid
+flowchart TD
+    CLI["Clienta"] -->|"abre Mis pedidos (con sesión)"| P11(["11.0 Ver historial de pedidos"])
+    P11 -->|"lista las órdenes de la clienta<br/>dueña del token (ownership)"| D3[("D3 Pedidos")]
+    P11 -->|"lista: numero, fecha, total,<br/>badge de estado"| CLI
+    CLI -->|"abre un pedido de la lista"| P11
+    P11 -->|"detalle con líneas congeladas<br/>(la misma vista del voucher)"| D3
+    P11 -->|"voucher del pedido"| CLI
+```
+
+**Reglas del proceso:** la lista devuelve **todas** las órdenes de la clienta
+con su estado real — las `pending` visibles como "en curso" — porque la
+honestidad del estado es la regla (RN-11, D-48); el pedido de otra clienta no
+existe para el sistema: responder igual para "no existe" y "no es tuyo" no
+regala información; el detalle reutiliza la vista del voucher del proceso
+10.0 — se construye una vez y el historial la hereda (D-43/D-46); en esta
+etapa ninguna orden expira ni se cierra sola (D-49).
 
 ---
 
@@ -672,6 +830,112 @@ resumen sin líneas no existe) / carga (esqueletos de líneas) / error de carga
   queda construida para que la etapa 3 solo agregue el pago con Webpay
   (D-31).
 
+**Variante de la etapa 3 — el CTA se enciende (RF-13):**
+
+```
+│  [    Pagar con Webpay    ]  (activo)                   │
+```
+
+- Al presionar "Pagar con Webpay", la SPA envía el carro — solo ids y
+  cantidades (RN-08) — al backend, que recalcula el pedido, crea la orden y
+  devuelve la url y el token de la pasarela; la SPA arma el form POST hacia
+  Webpay y la clienta viaja al formulario de pago (proceso 9.0).
+- El botón se deshabilita mientras crea la orden: un doble clic no debe
+  iniciar dos pagos.
+- El carro **no** se limpia acá: solo se limpia al llegar al voucher con el
+  pago aprobado (pantalla 8); si el pago no aprueba, el carro sigue intacto
+  para reintentar (RF-16).
+
+### 4.9 Pantalla 8 — Resultado del pago (/pago/resultado)
+
+**Origen:** RF-14, RF-15, RF-16, HU-10 · **Estados:** carga (esqueleto del
+voucher mientras llega el pedido) / error de carga (mensaje con la causa y
+Reintentar) / degradado sin sesión (el resultado y el numero del pedido
+visibles + "inicia sesión para ver el detalle", con link al login que
+recuerda volver acá) / cuatro caras según el flujo de vuelta (voucher
+pagado, anulado, timeout, error)
+
+La cara del pago aprobado — el voucher de la tienda:
+
+```
+┌────────────────────────────────────────────────────────┐
+│  ← Seguir comprando                                     │
+│                                                         │
+│  ¡Gracias por tu compra!                                │
+│  Pedido MAURA-000001 · 30-09-2026 · Pagado              │
+│  ┌──────────────────────────────────────────────────┐  │
+│  │ Brisa de Naranja                × 2      $15.980 │  │
+│  │ Rosa de Río                     × 1      $10.990 │  │
+│  │ ──────────────────────────────────────────────── │  │
+│  │ Total pagado                           $26.970   │  │
+│  └──────────────────────────────────────────────────┘  │
+│                [    Seguir comprando    ]               │
+└────────────────────────────────────────────────────────┘
+```
+
+La cara de compra no aprobada (anulada por la clienta, timeout del
+formulario o error de formulario — el mensaje dice cuál fue):
+
+```
+┌────────────────────────────────────────────────────────┐
+│  ← Volver al carro                                      │
+│                                                         │
+│  Tu compra no se concretó                               │
+│  (la anulaste en el formulario de pago / se agotó       │
+│   el tiempo del formulario / el formulario falló)       │
+│                                                         │
+│  Tu carro sigue intacto: reintenta cuando quieras.      │
+│                                                         │
+│                [    Volver al carro    ]                │
+└────────────────────────────────────────────────────────┘
+```
+
+- Una sola dirección para las cuatro vueltas (D-42): el backend del retorno
+  discrimina el flujo (proceso 10.0) y redirige aquí con el resultado — la
+  pantalla lee lo que le entregaron, no adivina.
+- El voucher es el detalle completo del pedido (D-43): numero legible,
+  fecha, líneas con nombre y precio congelados (RN-10), total y estado
+  pagado — el voucher de la tienda, no el de la pasarela (RF-16).
+- El carro se limpia al llegar a esta pantalla solo con el pago aprobado —
+  el único punto donde se limpia (D-44); en anulado, timeout y error queda
+  intacto: no hubo que restituir nada porque nunca se borró.
+- Sin sesión (el token expiró o el link se abrió en otro dispositivo) la
+  pantalla degrada con honestidad: el resultado y el numero visibles, e
+  "inicia sesión para ver el detalle" con retorno a esta misma pantalla — la
+  sesión que sobrevivió la vuelta de Webpay es el caso feliz, no el único.
+
+### 4.10 Pantalla 9 — Mis pedidos (/pedidos)
+
+**Origen:** RF-17, HU-11, RN-11 · **Estados:** carga (filas esqueleto) /
+error de carga (mensaje con la causa y Reintentar) / vacío ("Todavía no
+tienes pedidos" + botón Ver catálogo que reemplaza la página)
+
+```
+┌────────────────────────────────────────────────────────┐
+│  Maura · Body Splash   Inicio  Catálogo  Carro (0)     │
+│                                 Mis pedidos  (sesión)  │
+├────────────────────────────────────────────────────────┤
+│  Mis pedidos                                            │
+│  ┌──────────────────────────────────────────────────┐  │
+│  │ MAURA-000001 · 30-09-2026            $26.970     │  │
+│  │ [Pagado]                            Ver detalle → │  │
+│  ├──────────────────────────────────────────────────┤  │
+│  │ MAURA-000002 · 30-09-2026            $10.990     │  │
+│  │ [En curso]                          Ver detalle → │  │
+│  └──────────────────────────────────────────────────┘  │
+└────────────────────────────────────────────────────────┘
+```
+
+- Ruta protegida por sesión con el mismo guard del checkout: sin sesión se
+  entra al login y se vuelve aquí (D-47).
+- La lista muestra **todas** las órdenes de la clienta con su badge de
+  estado — las "en curso" (pending) incluidas: la honestidad del estado es la
+  regla y la tienda no oculta nada (RN-11, D-48).
+- "Ver detalle" abre el voucher — la misma vista de la pantalla 8 (D-43): el
+  detalle se construye una vez y el historial lo hereda (D-46).
+- El pedido de otra clienta no existe para esta pantalla: el detalle ajeno
+  se trata exactamente como el inexistente.
+
 ---
 
 ## 5. Trazabilidad: requerimiento → diseño
@@ -702,6 +966,21 @@ resumen sin líneas no existe) / carga (esqueletos de líneas) / error de carga
 | RN-09 (cantidades tapadas al stock) | §3.9 regla del tope · §4.4 botón deshabilitado por stock · §4.7 pantalla 6 (tope del stepper) |
 | RNF-05 (hash y secreto en el servidor) | §3.7/§3.8 procesos 5.0 y 6.0: credenciales y firma de la sesión viven del lado del sistema |
 | RNF-06 (sesión y carro en el navegador) | §3.2 almacén A2 (el estado del cliente vive en el cliente) |
+| RF-12 (backend recalcula al crear la orden) | §2.2 `total` de PEDIDO recalculado · §3.11 proceso 9.0 (reglas del recalculo) |
+| RF-13 (iniciar el pago hacia Webpay) | §3.11 proceso 9.0 · §4.8 pantalla 7 (variante del CTA encendido) |
+| RF-14 (retorno que discrimina los 4 flujos) | §3.1 Webpay como entidad externa · §3.12 proceso 10.0 (reglas del discriminador) |
+| RF-15 (pagada solo con criterio doble; sin doble pago) | §3.12 proceso 10.0 (criterio `response_code`+`status` y guard ya pagada) |
+| RF-16 (voucher propio; carro conservado) | §3.12 proceso 10.0 (302 con el resultado) · §4.9 pantalla 8 (voucher y caras) |
+| RF-17 (historial con estados visibles) | §2.2 `estado` de PEDIDO · §3.13 proceso 11.0 · §4.10 pantalla 9 |
+| RF-18 (stock atómico sin sobreventa) | §3.11 proceso 9.0 (valida) · §3.12 proceso 10.0 (descuenta atómico) · RN-12 |
+| RN-10 (snapshot congelado en la orden) | §2.1/§2.2 LÍNEA `nombre_snapshot`/`precio_snapshot` · §2.3.13 decisión 13 |
+| RN-11 (estados honestos, pending "en curso") | §2.2 `estado` de PEDIDO · §3.13 proceso 11.0 · §4.10 badge de la pantalla 9 |
+| RN-12 (validar al crear, descontar atómico al aprobar) | §2.3.12 decisión 12 · §3.11 (valida) · §3.12 (descuenta) |
+| RN-13 (numero legible, jamás el id interno) | §2.2 `numero` de PEDIDO · §2.3.14 decisión 14 |
+| RNF-07 (dependencia del servicio externo sandbox) | §3.1 Webpay como entidad externa (ida y vuelta con la pasarela) |
+| HU-09 (pagar con Webpay) | §3.11 proceso 9.0 · §4.8 pantalla 7 (variante) · §4.9 pantalla 8 |
+| HU-10 (volver del pago) | §3.12 proceso 10.0 · §4.9 pantalla 8 (las cuatro caras) |
+| HU-11 (ver mis pedidos) | §3.13 proceso 11.0 · §4.10 pantalla 9 |
 | C3 (celular y notebook) | §4.1 · §4.3 · §4.4 (apilado en celular) |
 
 ---
