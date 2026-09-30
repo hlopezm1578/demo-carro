@@ -551,7 +551,9 @@ export default function ResultadoPago() {
       ? "¡Gracias por tu compra!"
       : pedido.data.estado === "pending"
         ? "Tu pago está en curso"
-        : "Tu pago fue rechazado";
+        : pedido.data.estado === "cancelled"
+          ? "Tu compra quedó anulada"
+          : "Tu pago fue rechazado";
   return (
     <main className="max-w-2xl mx-auto px-4 py-16">
       <h1 className="text-2xl md:text-3xl font-extrabold text-neutral-900">
