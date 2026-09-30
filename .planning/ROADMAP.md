@@ -135,12 +135,12 @@ Plans:
   3. Cliente usa la burbuja de chat de la tienda y el asistente recomienda solo productos existentes del catálogo real, con product cards clicables desde el chat (mini-RAG + validación de ids contra BD) (AIAS-01, AIAS-02)
   4. La API key de Gemini vive solo en el backend (variable de entorno): no aparece en el código ni en el bundle del frontend, verificable con grep sobre el build (AIAS-03)
 
-**Plans**: 5 plans *(planeados 2026-09-30 — orden D-62: contrato 0.4.0 + ADRs 015-017 y docs 02/03 primero (D-15, en paralelo sin solape de archivos como la fase 3), luego panel admin completo (backend → SPA), después asistente IA (backend → burbuja), cierre con READMEs; sin spike — la pieza de riesgo (structured output) ya quedó firmada con evidencia en 04-RESEARCH.md contra el README del SDK @ v2.25.0)*
+**Plans**: 1/5 plans executed *(planeados 2026-09-30 — orden D-62: contrato 0.4.0 + ADRs 015-017 y docs 02/03 primero (D-15, en paralelo sin solape de archivos como la fase 3), luego panel admin completo (backend → SPA), después asistente IA (backend → burbuja), cierre con READMEs; sin spike — la pieza de riesgo (structured output) ya quedó firmada con evidencia en 04-RESEARCH.md contra el README del SDK @ v2.25.0)*
 **UI hint**: yes
 
 Plans:
 **Wave 1** *(paralelos — sin solape de archivos)*
-- [ ] 04-01-PLAN.md — TRACER API-first: contrato 0.4.0 (paths admin reales que reemplazan /api/admin/estado + /api/asistente público con 422/429/503) + ADRs 015-017 + README de arquitectura (ADMN-01..04, AIAS-01..03)
+- [x] 04-01-PLAN.md — TRACER API-first: contrato 0.4.0 (paths admin reales que reemplazan /api/admin/estado + /api/asistente público con 422/429/503) + ADRs 015-017 + README de arquitectura (ADMN-01..04, AIAS-01..03)
 - [ ] 04-02-PLAN.md — Especificación de la etapa 4: docs 02 (RF-19+/RNF-08+/RN-14+/HU-12+, filas P7/P8 reales) + docs 03 (pantallas 10-14, DFDs 12.0+, decisiones 15-18, Gemini como 2° servicio externo)
 
 **Wave 2** *(blocked on Wave 1)*
@@ -175,5 +175,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 1. Fundaciones de dos tiers y catálogo | 6/6 | Complete    | 2026-09-29 |
 | 2. Cuentas de cliente y carro persistente | 5/5 | Complete    | 2026-09-30 |
 | 3. Checkout Webpay y órdenes | 5/5 | Complete    | 2026-09-30 |
-| 4. Panel de administración y asistente IA | 0/TBD | Not started | - |
+| 4. Panel de administración y asistente IA | 1/5 | In Progress|  |
 | 5. Despliegue y cierre de la guía | 0/TBD | Not started | - |
