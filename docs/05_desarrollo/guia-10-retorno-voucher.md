@@ -652,8 +652,14 @@ iniciado, y el botón "Anular compra y volver" del propio formulario —
 la vuelta trae los `TBK_*`, el backend marca la orden CANCELLED sin
 llamar a la API, y la cara de "Tu compra no se concretó" recibe a la
 clienta CON su carro intacto. **Y el F5:** refrescar el voucher NO paga
-dos veces — el guard ya-PAID del backend re-muestra sin side effects
-(Pitfall 4) y el vaciado del paso 6 es idempotente. Si quieres ver el
+dos veces — y conviene saber exactamente por qué: el F5 sobre
+`/pago/resultado` re-pide la ruta de la SPA y la pantalla re-fetchea `GET
+/api/pedidos/{numero}`, una lectura sin efectos; el endpoint
+`/api/pago/retorno` NO se ejecuta de nuevo. El guard ya-PAID del backend
+entra en escena cuando es la navegación al `return_url` lo que se repite
+(back/forward, un retry del navegador en vuelo — el spike observó 7
+repeticiones de un mismo retorno): ahí re-muestra sin side effects
+(Pitfall 4). Y el vaciado del paso 6 es idempotente. Si quieres ver el
 rechazo de tarjeta, en la segunda página del 3DS cambia el select de
 Aceptar a Rechazar (TSN): el pago sigue el flujo normal y el commit
 devuelve `response_code` -1 — la cara "Tu pago fue rechazado" con su
@@ -691,9 +697,14 @@ borró.
 
 ✅ **Mini-verificación (F5 — no paga dos veces):** con un voucher pagado
 en pantalla, presiona **F5**. El voucher sigue en pie — mismo numero,
-mismo total, badge Pagado — y el carro sigue vacío. Detrás, el navegador
-repitió el retorno y el guard ya-PAID del backend re-muestra la orden
-sin tocar el stock ni la transición (PAY-03): refrescar es gratis.
+mismo total, badge Pagado — y el carro sigue vacío. Detrás no hay
+retorno ninguno: el F5 re-carga la ruta de la SPA y la pantalla
+re-fetchea el pedido (`GET /api/pedidos/{numero}`), una lectura sin
+efectos — refrescar es gratis. El escenario que SÍ repite el retorno es
+otro: back/forward hacia el `return_url` del backend o un retry del
+navegador en vuelo (el spike observó 7 repeticiones de un mismo retorno)
+— y ahí el guard ya-PAID del backend re-muestra la orden sin tocar el
+stock ni la transición (PAY-03).
 
 ---
 
@@ -792,8 +803,10 @@ clienta:
    líneas snapshot, total y badge Pagado — carro en 0 y stock descontado.
 6. Pago ANULADO con el botón del formulario: cara "Tu compra no se
    concretó" con el carro intacto para reintentar (PAY-04, D-44).
-7. F5 sobre el voucher pagado: sigue en pie sin pagar dos veces — el
-   guard ya-PAID del backend y el vaciado idempotente (PAY-03).
+7. F5 sobre el voucher pagado: sigue en pie sin pagar dos veces — el F5
+   solo re-fetcha el pedido (lectura sin efectos); el guard ya-PAID del
+   backend cubre la navegación repetida al retorno y el vaciado es
+   idempotente (PAY-03).
 
 ## 📝 Punto de control (respóndelas sin mirar la guía)
 
@@ -820,7 +833,7 @@ clienta:
 - El voucher de la tienda como componente `VoucherPedido` (D-43): numero legible, fecha, líneas con snapshot, total y badge de estado — presentation pura, lista para que el historial de la guía 11 la herede (D-46)
 - El vaciado del carro en UN punto (D-44): SOLO el pedido fetcheado llega `paid`, junto con `invalidateQueries` del stock — la restitución de PAY-04 como ausencia
 - Las caras del resultado espejando al discriminador del backend (D-42): no aprobadas sin fetch con su causa y el carro intacto; aprobadas/rechazadas con el voucher cuyo badge dice la verdad
-- El pago real de ida y vuelta con la tarjeta oficial — y el F5 que no paga doble: el guard ya-PAID del backend hecho experiencia (PAY-03)
+- El pago real de ida y vuelta con la tarjeta oficial — y el F5 que no paga doble: re-fetch de lectura del pedido; el guard ya-PAID del backend cubre la navegación repetida al retorno (PAY-03)
 
 **Siguiente:** guia-11-pedidos-cierre.md — el historial "/pedidos" con
 sus badges honestos (las "en curso" incluidas), "Mis pedidos" en el

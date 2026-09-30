@@ -1554,10 +1554,11 @@ schemas — es la Gran verificación final de la guía 11, como en cada fase.)
 2. Dos clientas pagan a la vez la última unidad: recorre la carrera paso
    a paso — ¿qué ve cada una, quién decide, y por qué el `WHERE stock >=
    cantidad` del UPDATE es la muralla y no el `if` de Python?
-3. La clienta refresca la pantalla de resultado tres veces después de
-   pagar: ¿qué guarda evita el segundo descuento, en qué rama vive, y por
-   qué el commit de Webpay ser idempotente NO le quita el trabajo a ese
-   guard? (Pitfall 4, PAY-03.)
+3. El navegador repite DOS VECES la navegación al retorno del backend
+   (back/forward) con un pago ya aprobado: ¿qué guarda evita el segundo
+   descuento, en qué operación vive (pista: no es un `if` de Python), y
+   por qué el commit de Webpay ser idempotente NO le quita el trabajo a
+   ese guard? (Pitfall 4, PAY-03.)
 4. ¿Por qué el endpoint del retorno no lleva candado de sesión si el
    checkout y los pedidos sí? ¿Y por qué su respuesta es un 302 explícito
    y no la redirección por defecto de `RedirectResponse`?
