@@ -465,7 +465,7 @@ export default function Carro() {
         <h1 className="text-2xl md:text-3xl font-extrabold text-neutral-900">
           Tu carro está vacío
         </h1>
-        <p className="mt-2 text-sm text-neutral-600">
+        <p className="mt-2 text-base text-neutral-600">
           Explora los aromas de Maura y agrega tus favoritos.
         </p>
         <Link

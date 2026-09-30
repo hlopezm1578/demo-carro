@@ -227,6 +227,7 @@ Estructura vigente de guia-02 (`sticky top-0 z-10 bg-orange-50/90 backdrop-blur 
 | Error state (validación registro) | "Escribe un email válido." / "La contraseña debe tener al menos 8 caracteres." |
 | Error state (carga carro) | "No pudimos cargar tu carro" · "Revisa que el backend esté corriendo en el puerto 8000 e inténtalo de nuevo." + "Reintentar" |
 | Error state (carga checkout) | "No pudimos cargar tu pedido" · misma causa + "Reintentar" |
+| Error de red (login/registro, banner en card) | "No pudimos conectar con el servidor. Revisa que el backend esté corriendo en el puerto 8000 e inténtalo de nuevo." (misma familia de causa que carro/checkout) |
 | Ítem no disponible (hidratación 404) | **"Este aroma ya no está disponible"** + acción "Quitar" |
 | Tope de stock (ficha) | "Ya tienes todo el stock disponible en tu carro." |
 | Aviso sesión expirada (login, `?expirada=1`) | **"Tu sesión expiró, ingresa de nuevo"** (locked D-22, interceptor 401) |

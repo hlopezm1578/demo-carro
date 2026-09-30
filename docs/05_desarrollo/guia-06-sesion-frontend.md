@@ -507,7 +507,7 @@ export default function Login() {
           <p className="mt-4 bg-red-50 text-red-600 rounded-2xl p-4 text-sm">
             {mutation.error instanceof ApiError && mutation.error.status === 401
               ? "Credenciales incorrectas" // copy locked (D-26), genérico deliberado
-              : "No pudimos conectar con el servidor. Revisa que el backend esté corriendo en el puerto 8000."}
+              : "No pudimos conectar con el servidor. Revisa que el backend esté corriendo en el puerto 8000 e inténtalo de nuevo."}
           </p>
         )}
 
@@ -652,7 +652,7 @@ export default function Registro() {
           <p className="mt-4 bg-red-50 text-red-600 rounded-2xl p-4 text-sm">
             {mutation.error instanceof ApiError && mutation.error.status === 409
               ? "Ese email ya tiene cuenta, inicia sesión" // copy locked (D-26)
-              : "No pudimos conectar con el servidor. Revisa que el backend esté corriendo en el puerto 8000."}
+              : "No pudimos conectar con el servidor. Revisa que el backend esté corriendo en el puerto 8000 e inténtalo de nuevo."}
           </p>
         )}
 

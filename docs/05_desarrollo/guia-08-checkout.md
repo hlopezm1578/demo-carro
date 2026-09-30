@@ -67,6 +67,7 @@ export default function Checkout() {
   const navegar = useNavigate();
   const email = useAuthStore((s) => s.usuario?.email ?? null);
   const items = useCarroStore((s) => s.items);
+  const quitar = useCarroStore((s) => s.quitar);
 
   // Misma hidratación por ítem que /carro: el MISMO queryKey (con String),
   // la misma caché — llegar al checkout desde el carro no consulta nada
@@ -158,9 +159,15 @@ export default function Checkout() {
               return (
                 <li
                   key={item.producto_id}
-                  className="py-4 text-sm text-neutral-600"
+                  className="py-4 text-sm text-neutral-600 flex flex-wrap gap-2 items-center justify-between"
                 >
                   Este aroma ya no está disponible
+                  <button
+                    onClick={() => quitar(item.producto_id)}
+                    className="text-sm text-red-600 min-h-11 focus-visible:ring-2 focus-visible:ring-orange-600 focus:outline-none"
+                  >
+                    Quitar
+                  </button>
                 </li>
               );
             }
@@ -230,8 +237,9 @@ Tres notas del bloque, antes de que pregunten:
 
 - **La línea del checkout no importa a `FilaCarro`**: regla 6 de las reglas
   de dependencia — features no se importan cruzados. La línea de acá es más
-  simple (sin stepper, sin foto), así que vive local: quien la necesite, la
-  escribe.
+  simple (sin stepper, sin foto — pero la fila degradada conserva su acción
+  "Quitar", la misma del Copywriting Contract), así que vive local: quien la
+  necesite, la escribe.
 - **La hidratación es literalmente la misma de `/carro`**: mismo `useQueries`
   con el mismo `queryKey` — por eso llegar al checkout desde el carro es
   instantáneo: los productos ya están en caché.
