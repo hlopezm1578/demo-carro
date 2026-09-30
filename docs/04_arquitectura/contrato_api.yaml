@@ -10,24 +10,29 @@ openapi: 3.0.3
 
 info:
   title: Maura API
-  version: 0.2.0
+  version: 0.3.0
   description: |
     API del catálogo de la tienda Maura · Body Splash (tier servidor de los
     dos tiers: la SPA React la consume; el backend solo expone JSON, jamás
     plantillas HTML).
 
-    **Autenticación:** sesión JWT Bearer — `/api/auth/perfil` y
-    `/api/admin/estado` piden token (`Authorization: Bearer`); el registro y
-    el login son públicos. El token lo emite `/api/auth/login` y vive 7 días
-    (D-20); no existe endpoint de renovación (D-19).
+    **Autenticación:** sesión JWT Bearer — `/api/auth/perfil`,
+    `/api/admin/estado`, `/api/checkout` y `/api/pedidos*` piden token
+    (`Authorization: Bearer`); el registro y el login son públicos. El
+    retorno de Webpay (`/api/pago/retorno`) también es público — por diseño:
+    quien llega es el navegador de la clienta recién salido del formulario
+    de Webpay, sin Bearer; la sesión se retoma después en la SPA. El token
+    lo emite `/api/auth/login` y vive 7 días (D-20); no existe endpoint de
+    renovación (D-19).
 
     **Convención de errores:**
 
     | Código | Significado | Estado |
     |---|---|---|
     | 200 | OK (listado, ficha, salud) | En uso (fase 1) |
-    | 201 | Creado (registro de una cuenta) | En uso (fase 2) |
-    | 400 | Regla de negocio violada | Reservado (fases 2+) |
+    | 201 | Creado (registro de una cuenta; orden PENDING al iniciar el pago) | En uso (fases 2-3) |
+    | 302 | Redirección del navegador (retorno de Webpay hacia la SPA) | En uso (fase 3) |
+    | 400 | Regla de negocio violada (stock insuficiente al crear la orden) | En uso (fase 3) |
     | 401 | Sin sesión o credenciales incorrectas | En uso (fase 2) |
     | 403 | Con sesión, pero sin permiso | En uso (fase 2) |
     | 404 | Recurso inexistente | En uso (fase 1) |
@@ -45,6 +50,10 @@ tags:
     description: Catálogo público con filtros (STORE-02, STORE-03)
   - name: Autenticación
     description: Cuentas de clienta con JWT — registro, login, sesión y claim de rol (AUTH-01, AUTH-02, AUTH-03)
+  - name: Pago
+    description: Checkout y retorno de Webpay Plus en ambiente de integración (PAY-01, PAY-02, PAY-03, PAY-04, CART-03)
+  - name: Pedidos
+    description: Historial y detalle de los pedidos de la clienta, con estados honestos (ORDR-01, ORDR-02)
   - name: Administración
     description: Endpoints protegidos por rol admin (AUTH-03, D-33)
   - name: Operación
@@ -172,6 +181,104 @@ components:
           description: Largo mínimo 8 y sin reglas de composición — longitud sobre complejidad (D-25)
           example: una-clave-larga
       required: [email, password]
+
+    CheckoutCreate:
+      type: object
+      description: |
+        Lo que la SPA envía al iniciar el pago (CART-03): el carro tal como
+        vive en el navegador — SOLO pares {producto_id, cantidad} (D-27,
+        RN-08). No existe campo de precio ni total en este schema: el
+        servidor consulta el catálogo, recarga el precio vigente y
+        recalcula el total; el monto que viaja a Webpay sale únicamente de
+        ese recálculo, jamás de lo que mande el cliente.
+      properties:
+        items:
+          type: array
+          minItems: 1
+          description: Pares producto-cantidad del carro persistido en localStorage (ADR-010)
+          items:
+            type: object
+            properties:
+              producto_id:
+                type: integer
+                description: Id del producto en el catálogo
+                example: 1
+              cantidad:
+                type: integer
+                minimum: 1
+                description: Unidades a comprar
+                example: 2
+            required: [producto_id, cantidad]
+      required: [items]
+
+    CheckoutRespuesta:
+      type: object
+      description: Los tres datos que la SPA necesita para armar el form POST hacia Webpay (PAY-01) — el numero es el de la orden recién nacida en estado pending (D-34)
+      properties:
+        url:
+          type: string
+          description: URL del formulario hosted de Webpay; es el action del form POST que la SPA construye y submitea
+          example: https://webpay3gint.transbank.cl/webpayserver/init_transaction.cgi
+        token_ws:
+          type: string
+          description: Token de la transacción; viaja como input hidden de nombre token_ws — el nombre exacto que exige Webpay en el wire
+          example: 01abd2e7cc25bbf19f3c...
+        numero:
+          type: string
+          description: Número legible de la orden recién creada (D-37); a la vez es el buy_order que viajó a Webpay
+          example: MAURA-000001
+      required: [url, token_ws, numero]
+
+    OrdenLista:
+      type: object
+      description: Una orden tal como aparece en el historial de pedidos (ORDR-01) — liviana, sin líneas
+      properties:
+        numero:
+          type: string
+          description: Número público legible (D-37) — jamás el id interno de la BD
+          example: MAURA-000001
+        fecha:
+          type: string
+          format: date-time
+          description: Momento en que la orden nació al iniciar el pago (D-34)
+          example: '2026-09-30T14:49:29Z'
+        total:
+          type: integer
+          description: Total en CLP recalculado por el servidor con el precio vigente al comprar (CART-03)
+          example: 15980
+        estado:
+          type: string
+          description: Estado real de la orden, en minúsculas por el cable — pending se muestra en pantalla como "en curso" (D-48)
+          enum: [pending, paid, cancelled, rejected]
+          example: paid
+      required: [numero, fecha, total, estado]
+
+    OrdenDetalle:
+      allOf:
+        - $ref: '#/components/schemas/OrdenLista'
+        - type: object
+          description: La orden completa que renderizan el voucher y el detalle del historial (D-43) — las líneas traen el snapshot congelado al comprar
+          properties:
+            lineas:
+              type: array
+              description: Líneas del pedido con nombre y precio congelados al momento de comprar (D-36) — lo que se pagó, no lo que vale hoy
+              items:
+                type: object
+                properties:
+                  nombre_snapshot:
+                    type: string
+                    description: Nombre del producto congelado al comprar (D-36); el detalle jamás consulta el catálogo vigente
+                    example: Brisa de Naranja
+                  precio_snapshot:
+                    type: integer
+                    description: Precio en CLP pagado por unidad — lo que se pagó, no el precio vigente (D-36)
+                    example: 7990
+                  cantidad:
+                    type: integer
+                    description: Unidades compradas de este producto
+                    example: 2
+                required: [nombre_snapshot, precio_snapshot, cantidad]
+          required: [lineas]
 
 # ---------------------------------------------------------------------------
 # Operaciones
@@ -427,3 +534,245 @@ paths:
                 $ref: '#/components/schemas/Error'
               example:
                 detail: Requiere rol admin
+
+  /api/checkout:
+    post:
+      tags: [Pago]
+      summary: Iniciar el pago — validar el carro, crear la orden PENDING y obtener el form de Webpay
+      description: |
+        PAY-01, CART-03 · Requiere sesión (Bearer) — el pedido es de ESTA
+        cuenta (AUTH-04): el usuario dueño sale del token, jamás del cuerpo.
+        El servidor recalcula el total con el precio vigente y valida el
+        stock sin tocarlo (la segunda barrera de CART-03; la primera es
+        RN-09 en pantalla); solo entonces crea la orden PENDING (D-34) y la
+        transacción en Webpay. Stock insuficiente en alguna línea → 400 con
+        el detalle de la fila que no alcanzó.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CheckoutCreate'
+      responses:
+        '201':
+          description: Orden PENDING creada — los tres datos del form POST hacia Webpay (PAY-01)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckoutRespuesta'
+        '400':
+          description: Stock insuficiente para alguna línea — regla de negocio (CART-03); la orden no se crea
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                detail: Stock insuficiente en Brisa de Naranja (quedan 1)
+        '401':
+          description: Sin sesión, o token inválido/expirado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                detail: Credenciales incorrectas
+        '422':
+          description: Cuerpo mal formado (items vacío, cantidad menor a 1) — validación declarativa (Pydantic), sin código manual
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/pago/retorno:
+    get:
+      tags: [Pago]
+      summary: Retorno de Webpay (GET) — discriminar el flujo y redirigir a la SPA
+      description: |
+        PAY-02 · Público por diseño (`security: []`): quien llama NO es la
+        SPA — es el navegador de la clienta recién salido del formulario de
+        Webpay, sin Bearer; la sesión se retoma después en la SPA. El
+        endpoint lee los params y discrimina el flujo por PRESENCIA de
+        ellos, jamás por método HTTP (el spike de retorno observó el flujo
+        anulado por GET en integración cuando las docs oficiales declaraban
+        POST — la presencia de params es la firma estable). Responde
+        SIEMPRE un 302 hacia la ruta única de resultado de la SPA.
+      security: []
+      parameters:
+        - name: token_ws
+          in: query
+          required: false
+          description: Presente SOLO en el flujo normal (aprobado o rechazado por la tarjeta) — sin params TBK_*
+          schema:
+            type: string
+        - name: TBK_TOKEN
+          in: query
+          required: false
+          description: Token del flujo anulado por la clienta — llega junto a TBK_ID_SESION y TBK_ORDEN_COMPRA, sin token_ws
+          schema:
+            type: string
+        - name: TBK_ID_SESION
+          in: query
+          required: false
+          description: Id de sesión que el backend envió al create — presente en anulado, timeout y error de formulario
+          schema:
+            type: string
+        - name: TBK_ORDEN_COMPRA
+          in: query
+          required: false
+          description: El buy_order de la transacción (= numero de la orden, D-37) — presente en anulado, timeout y error de formulario
+          schema:
+            type: string
+      responses:
+        '302':
+          description: |
+            Redirección del navegador a la ruta única /pago/resultado de la
+            SPA con el resultado como query params (D-42) — el primer
+            response no-JSON del contrato: este endpoint le habla al
+            NAVEGADOR, no a la SPA. 302 explícito (no 307) para forzar el
+            GET del navegador (patrón PRG).
+          headers:
+            Location:
+              description: URL de la SPA con el estado del flujo discriminado y el numero de la orden cuando existe
+              schema:
+                type: string
+                example: http://localhost:5173/pago/resultado?estado=pagado&orden=MAURA-000001
+        '400':
+          description: Flujo irreconocible (params que no calzan con ningún flujo de Webpay) — defensivo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                detail: Retorno de Webpay irreconocible
+    post:
+      tags: [Pago]
+      summary: Retorno de Webpay (POST) — el mismo discriminador, leyendo el form
+      description: |
+        PAY-02 · Público por diseño (`security: []`). Mismo endpoint y mismo
+        discriminador que el GET: Webpay redirige por GET o por POST según
+        el flujo y el ambiente, y el método no es confiable como firma —
+        solo la PRESENCIA de los params lo es. El cuerpo llega
+        form-urlencoded (el mismo parseo del login de la fase 2). En el
+        POST el 302 explícito es crítico: un 307 preservaría método+body y
+        re-POSTearía el form de Webpay contra la SPA.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              description: Los cuatro params de Webpay, todos opcionales — el flujo se discrimina por PRESENCIA, no por cuál falta
+              properties:
+                token_ws:
+                  type: string
+                  description: Presente SOLO en el flujo normal (aprobado o rechazado por la tarjeta)
+                  example: 01abd2e7cc25bbf19f3c...
+                TBK_TOKEN:
+                  type: string
+                  description: Token del flujo anulado por la clienta (nombre literal de Transbank)
+                TBK_ID_SESION:
+                  type: string
+                  description: Id de sesión del create — presente en anulado, timeout y error de formulario
+                TBK_ORDEN_COMPRA:
+                  type: string
+                  description: El buy_order de la transacción (= numero de la orden, D-37)
+                  example: MAURA-000001
+      responses:
+        '302':
+          description: |
+            Redirección del navegador a la ruta única /pago/resultado de la
+            SPA con el resultado como query params (D-42) — el primer
+            response no-JSON del contrato. En el POST el 302 (no el 307
+            default de RedirectResponse) es el que evita que el navegador
+            re-POSTee el form de Webpay contra la SPA.
+          headers:
+            Location:
+              description: URL de la SPA con el estado del flujo discriminado y el numero de la orden cuando existe
+              schema:
+                type: string
+                example: http://localhost:5173/pago/resultado?estado=anulado&orden=MAURA-000001
+        '400':
+          description: Flujo irreconocible (params que no calzan con ningún flujo de Webpay) — defensivo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                detail: Retorno de Webpay irreconocible
+
+  /api/pedidos:
+    get:
+      tags: [Pedidos]
+      summary: Listar los pedidos de la clienta
+      description: |
+        ORDR-01 · Requiere sesión (Bearer). Devuelve TODAS las órdenes de la
+        dueña del token, pendientes incluidas, con su estado real (D-48):
+        una orden pending ("saltó a Webpay y no volvió") se muestra como
+        "en curso" — la honestidad del estado es la lección. El filtro por
+        dueña lo hace el servidor (usuario_id del token), nunca el cliente.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Las órdenes de la clienta, la más reciente primero
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OrdenLista'
+        '401':
+          description: Sin sesión, o token inválido/expirado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                detail: Credenciales incorrectas
+
+  /api/pedidos/{numero}:
+    get:
+      tags: [Pedidos]
+      summary: Ver el detalle de un pedido
+      description: |
+        ORDR-01 · Requiere sesión (Bearer). El 404 es uniforme a propósito:
+        cubre el pedido que NO existe y el pedido que existe pero NO es de
+        la clienta — ownership sin revelar existencia (un numero secuencial
+        legible sería enumerable de otra forma). El detalle es el mismo
+        render del voucher (D-43): líneas con snapshot, total y estado.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: numero
+          in: path
+          required: true
+          description: Número público legible de la orden (D-37) — el mismo que viajó a Webpay como buy_order
+          schema:
+            type: string
+          example: MAURA-000001
+      responses:
+        '200':
+          description: La orden completa con sus líneas snapshot
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrdenDetalle'
+        '401':
+          description: Sin sesión, o token inválido/expirado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                detail: Credenciales incorrectas
+        '404':
+          description: Pedido inexistente — o existente pero de otra clienta (uniforme a propósito)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                detail: Pedido no encontrado
