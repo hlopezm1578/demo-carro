@@ -26,7 +26,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Fundaciones de dos tiers y catálogo** - Esqueleto SPA React + API FastAPI en capas con guía paso a paso, ADRs fundacionales, contrato de API, landing, catálogo filtrable y páginas de producto con seed demo. (completed 2026-09-29)
 - [x] **Phase 2: Cuentas de cliente y carro persistente** - Registro/login JWT con roles desde el primer token, carro en localStorage que sobrevive full-page loads y checkout protegido por sesión. (completed 2026-09-30)
-- [ ] **Phase 3: Checkout Webpay y órdenes** - Spike de retorno, form POST a Webpay Plus sandbox, 4 flujos de retorno, voucher propio, idempotencia, stock atómico e historial de pedidos.
+- [x] **Phase 3: Checkout Webpay y órdenes** - Spike de retorno, form POST a Webpay Plus sandbox, 4 flujos de retorno, voucher propio, idempotencia, stock atómico e historial de pedidos. (completed 2026-09-30)
 - [ ] **Phase 4: Panel de administración y asistente IA** - CRUD de productos, stock con alertas, pedidos con máquina de estados y métricas para la dueña; asistente Gemini con mini-RAG y API key solo en backend.
 - [ ] **Phase 5: Despliegue y cierre de la guía** - Frontend estático + API en free tier con CORS de producción, verificación de los 4 flujos Webpay en el ambiente desplegado y cierre del ciclo de vida documentado.
 
@@ -106,7 +106,7 @@ Plans:
   4. El backend recalcula y valida precios y stock al crear la orden — nunca confía en los valores del cliente (CART-03)
   5. El stock se descuenta de forma atómica y transaccional al aprobarse el pago (sin oversell ante compras concurrentes) y el cliente ve su historial de pedidos con estados PENDING / PAID / CANCELLED / REJECTED (ORDR-02, ORDR-01)
 
-**Plans**: 5/5 plans executed *(planeados 2026-09-30 — spike primero D-38: el retorno se corrobora runtime ANTES de firmar contrato/ADRs/guías; luego API-first D-15 con docs 02/03 en paralelo)*
+**Plans**: 5/5 plans complete *(planeados 2026-09-30 — spike primero D-38: el retorno se corrobora runtime ANTES de firmar contrato/ADRs/guías; luego API-first D-15 con docs 02/03 en paralelo)*
 **UI hint**: yes
 
 Plans:
@@ -160,6 +160,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 |-------|----------------|--------|-----------|
 | 1. Fundaciones de dos tiers y catálogo | 6/6 | Complete    | 2026-09-29 |
 | 2. Cuentas de cliente y carro persistente | 5/5 | Complete    | 2026-09-30 |
-| 3. Checkout Webpay y órdenes | 5/5 | In Progress|  |
+| 3. Checkout Webpay y órdenes | 5/5 | Complete    | 2026-09-30 |
 | 4. Panel de administración y asistente IA | 0/TBD | Not started | - |
 | 5. Despliegue y cierre de la guía | 0/TBD | Not started | - |

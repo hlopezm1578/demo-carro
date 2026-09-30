@@ -22,16 +22,15 @@ catálogo real.
 
 ### Validated
 
-(None yet — ship to validate)
+- ✓ Aplicación de dos tiers separados: SPA React que consume API FastAPI (sin renderizado de plantillas en el servidor), backend organizado en capas — Phases 01-03 (verificado runtime en maura-uat)
+- ✓ Recorrido de tienda completo: landing, catálogo, carro de compras, checkout con Webpay en ambiente de integración, órdenes y cuentas de cliente (JWT) con historial — Phase 03 (UAT delegado 3/3, Gran verificación final 12/12 runtime)
+- ✓ Pago operativo en ambiente de integración de Transbank con credenciales públicas sin registro, incluyendo la vuelta de la redirección de Webpay a la SPA React — Phase 03 (4 flujos runtime reales: aprobado/anulado/timeout/F5)
 
 ### Active
 
 - [ ] Guía educativa completa estilo demo-cine: fases documentadas con ADRs, contrato de API y guías de desarrollo paso a paso, con trazabilidad entre fases
-- [ ] Aplicación de dos tiers separados: SPA React que consume API FastAPI (sin renderizado de plantillas en el servidor), backend organizado en capas
-- [ ] Recorrido de tienda completo: landing, catálogo, carro de compras, checkout con Webpay en ambiente de integración, órdenes y cuentas de cliente (JWT) con historial
 - [ ] Panel de administración para la dueña de la PYME: productos, stock y pedidos
 - [ ] Asistente de venta (burbuja de chat) que recomienda productos del catálogo real usando Gemini vía el SDK oficial `google-genai`, con la API key solo en el backend (variable de entorno)
-- [ ] Pago operativo en ambiente de integración de Transbank con credenciales públicas sin registro, incluyendo la vuelta de la redirección de Webpay a la SPA React
 
 ### Out of Scope
 
@@ -77,7 +76,7 @@ catálogo real.
 | Arquitectura: en capas + dos tiers cliente-servidor separados | Objetivo pedagógico: integración real entre frontend y backend | — Phase 01 shipped (enseñada en guías 1-4 y verificada runtime) — Phase 02 shipped (capas de cuentas + stores cliente verificados runtime) |
 | Frontend React (SPA), backend FastAPI (Python) | Decisión de la exploración 2026-09-28 | — Phase 01 shipped (scaffold + API verificados en maura-uat) — Phase 02 shipped (JWT/Argon2 + Zustand persist verificados runtime en maura-uat) |
 | Repositorio guide-only (D-17): el código vive dentro de las guías, no en el repo | Corrección de alcance del usuario a mitad de la fase 1: el producto es la guía documental | — Phase 01 shipped (ADR-008; UAT delegado al agente en maura-uat) — Phase 02 cerró igual (UAT delegado construyó las guías 5-08 en el taller y las verificó 12/12) |
-| Pago: Transbank Webpay Plus en sandbox | Pasarela real chilena con credenciales públicas sin registro; Stripe no opera en Chile | — Pending (Phase 3) |
+| Pago: Transbank Webpay Plus en sandbox | Pasarela real chilena con credenciales públicas sin registro; Stripe no opera en Chile | — Phase 03 shipped (spike del retorno con evidencia runtime, contrato 0.3.0, ADRs 012-014, guías 09-11; UAT delegado 3/3 con Gran verificación 12/12 runtime contra Webpay integración) |
 | IA: asistente de venta en chat (recomendador sobre catálogo, mini-RAG) con Gemini | Integración de servicio externo con contratos y manejo de errores; API key solo backend | — Pending |
 | Alcance funcional completo con panel admin | La PYME ficticia necesita gestionar productos, stock y pedidos | — Pending |
 
@@ -99,4 +98,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-09-30 after Phase 02*
+*Last updated: 2026-09-30 after Phase 03*

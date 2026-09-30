@@ -1,20 +1,20 @@
 ---
 gsd_state_version: "1.0"
-current_phase: 3
-current_phase_name: Checkout Webpay y órdenes
-current_plan: 5
-status: verifying
-stopped_at: Completed 03-05-PLAN.md (guia-11 + cierre de fase 3)
-last_updated: "2026-09-30T16:42:22.567Z"
+current_phase: 4
+current_phase_name: Panel de administración y asistente IA
+current_plan: Not started
+status: planning
+stopped_at: Phase 03 complete, ready to plan Phase 4
+last_updated: "2026-09-30T18:42:56.003Z"
 last_activity: 2026-09-30
-last_activity_desc: Phase 3 execution started
-state_head: dde677408fd449a5e39b4876dfa41d4fab13a1c5
+last_activity_desc: Phase 03 complete, transitioned to Phase 4
+state_head: 0a8a7cb240afdb66dff11ab07330c06e7aa3624f
 progress:
   total_phases: 5
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 16
   completed_plans: 16
-  percent: 40
+  percent: 60
 ---
 
 # Project State
@@ -24,22 +24,22 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-30)
 
 **Core value:** La guía documenta el ciclo de vida completo y, siguiéndola en orden, la aplicación queda construida y operativa: tienda con catálogo, carro, checkout Webpay sandbox, cuentas JWT, panel admin y asistente IA sobre el catálogo real.
-**Current focus:** Phase 3 — Checkout Webpay y órdenes
+**Current focus:** Phase 4 — Panel de administración y asistente IA
 
 ## Current Position
 
-Phase: 3 (Checkout Webpay y órdenes) — EXECUTING
-Current Plan: 5
+Phase: 4 — Panel de administración y asistente IA
+Current Plan: Not started
 Total Plans in Phase: 5
-Status: Phase complete — ready for verification
-Last activity: 2026-09-30 — Phase 3 execution started
+Status: Ready to plan
+Last activity: 2026-09-30 — Phase 03 complete, transitioned to Phase 4
 
-Progress: [████░░░░░░] 40%
+Progress: [██████░░░░] 60%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 11
+- Total plans completed: 16
 - Average duration: -
 - Total execution time: -
 
@@ -49,6 +49,7 @@ Progress: [████░░░░░░] 40%
 |-------|-------|-------|----------|
 | 01 | 6 | - | - |
 | 02 | 5 | - | - |
+| 03 | 5 | - | - |
 
 **Recent Trend:**
 - Last 5 plans: -
@@ -147,6 +148,10 @@ Recent decisions affecting current work:
 - [Phase 03]: La tabla BADGES se copia una vez por pantalla (historial y voucher): con dos consumidoras copiar es mas honesto que adelantar un modulo compartido — el dia que nazca la tercera, baja
 - [Phase 03]: Gran verificacion final de fase 3 (guia-11): 12 filas con Origen citando RF-12..18/RN-10..13/HU-09..11/ADR-012..014 y la fila contrato 0.3.0 vs /docs suma dos piezas — el 302 con Location en ambos metodos y el endpoint publico del retorno — con Authorize probado clienta 200 / admin-endpoint 403
 - [Phase 03]: Cierre de fase 3 en los indices (D-13/D-18): guias 1-11 listas + 14 ADRs + Webpay construido en el stack, fila 5 honesta en Parcial (fases 4+) y gate documental en verde (11 guia-*.md + repo guide-only)
+- [Phase 03 cierre]: UAT delegado 3/3 PASS (03-UAT.md): guias 09-11 construidas literales en maura-uat, Gran verificación final 12/12 runtime real contra Webpay integración (aprobado/anulado/timeout ~603 s/F5/carrera/404/contrato↔docs), huérfanas PENDING visibles "en curso"
+- [Phase 03 cierre]: 3 desvíos corregidos en ambos lugares (regla maura-uat): D-1 default _numero_provisorio() para el INSERT NOT NULL de pedidos.numero, D-2 carrera.py importa app.models.usuario (FK metadata), D-3 timeout con pestaña activa CANCELA la orden (guias 10/11 decían "en curso")
+- [Phase 03 cierre]: El usuario aceptó la evidencia runtime del flujo anulado (GET, no POST) como canónica (03-UAT test 2) y decidió cerrar IN-01..IN-06 del review vía /gsd-code-review 3 --fix --all (pendiente de ejecutar)
+- [Phase 03 cierre]: Seguridad 03-SECURITY.md 14/14 amenazas cerradas (threats_open 0, ASVS 1, register plan-time, evidencia runtime en 7 de ellas); verificación re-ejecutada passed 12/12 con digest fresco (26 archivos)
 
 ### Pending Todos
 
@@ -154,8 +159,7 @@ None yet.
 
 ### Blockers/Concerns
 
-- Phase 3: spike de retorno Webpay obligatorio antes de redactar la guía (flujos anulado/timeout llegan por POST que el JS no puede leer)
-- Phase 3: decisión pendiente de ADR — momento de creación de la orden y del descuento de stock (requisito v1 fija descuento al aprobarse el pago)
+- [Phase 3 → carried]: ejecutar /gsd-code-review 3 --fix --all para cerrar IN-01..IN-06 (decisión del usuario, no bloquea fase 4)
 - Phase 4: confirmar límites RPM/RPD del free tier de Gemini logueado en aistudio.google.com/rate-limit antes de fijar material
 - Phase 5: elegir plataforma de despliegue free tier (pendiente en PROJECT.md); el deploy congela `return_url`
 
@@ -170,5 +174,5 @@ Items acknowledged and deferred at milestone close, most recent first:
 ## Session Continuity
 
 Last session: 2026-09-30T16:42:22.441Z
-Stopped at: Completed 03-05-PLAN.md (guia-11 + cierre de fase 3)
+Stopped at: Phase 03 complete, ready to plan Phase 4
 Resume file: None
