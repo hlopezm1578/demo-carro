@@ -2,18 +2,18 @@
 gsd_state_version: "1.0"
 current_phase: 3
 current_phase_name: Checkout Webpay y órdenes
-current_plan: 3
+current_plan: 4
 status: executing
-stopped_at: Completed 03-02-PLAN.md (contrato 0.3.0 + ADRs 012-014 + README de arquitectura)
-last_updated: "2026-09-30T15:41:26.109Z"
+stopped_at: Completed 03-03-PLAN.md (etapa 3 en docs/02 y docs/03)
+last_updated: "2026-09-30T15:59:00.107Z"
 last_activity: 2026-09-30
 last_activity_desc: Phase 3 execution started
-state_head: 3cee63de07eb0bb5541836a1d990897e4dec4f2f
+state_head: ba8eb1512feaf2a1014535792d0acb2e17b95fee
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 16
-  completed_plans: 13
+  completed_plans: 14
   percent: 40
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-09-30)
 ## Current Position
 
 Phase: 3 (Checkout Webpay y órdenes) — EXECUTING
-Current Plan: 3
+Current Plan: 4
 Total Plans in Phase: 5
 Status: Ready to execute
 Last activity: 2026-09-30 — Phase 3 execution started
@@ -72,6 +72,7 @@ Progress: [████░░░░░░] 40%
 | Phase 02 P05 | 3 min | 2 tasks | 4 files |
 | Phase 03 P03-01 | 60 min | 2 tasks | 1 files |
 | Phase 03 P02 | 8 min | 3 tasks | 5 files |
+| Phase 03 P03 | 13 min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -134,6 +135,8 @@ Recent decisions affecting current work:
 - [Phase 03]: ADR-012 firma la mecánica del retorno citando la evidencia por flujo del spike (D-40/D-41): discriminador por PRESENCIA de params jamás por método, 302 explícito contra la trampa del 307, security: [] deliberado
 - [Phase 03]: ADR-013 registra D-34/D-35 (cierra el blocker de STATE.md): orden PENDING nace al iniciar el pago, crear solo VALIDA stock, descuento atómico al aprobar (UPDATE condicional + rowcount; rowcount 0 → REJECTED); huérfana PENDING sin gestión hasta fase 4; recoge la regla 3 de ADR-010
 - [Phase 03]: ADR-014 fija D-36/D-37: snapshot nombre/precio obligatorio en la orden (asimetría con RN-08 como lección), soportado por el soft delete de docs/03 §2.3.5, y numero legible MAURA-{id:06d} como buy_order ≤26 chars distinto del id interno
+- [Phase 03]: docs/02 etapa 3: RF-12..18 en orden de flujo de la clienta (recalculo CART-03 primero), RNF-07 sandbox sin registro, RN-10..13 con su porqué (snapshot/asimetría RN-08, estados honestos en curso, stock atómico en el UPDATE, numero legible), HU-09..11; fila P6 real y bloque de aprobación — series 1-2 intactas
+- [Phase 03]: docs/03 etapa 3: PEDIDO/LÍNEA con snapshot conectan USUARIO↔PRODUCTO (primeras relaciones), Webpay como primer servicio externo, D3, DFDs 9.0-11.0 con las reglas del retorno por presencia de params (evidencia del spike), pantallas 8-9 con degradado sin sesión y variante del CTA en la 7; decisiones 11-14 citan ADR-012..014
 
 ### Pending Todos
 
@@ -156,6 +159,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-30T15:41:26.017Z
-Stopped at: Completed 03-02-PLAN.md (contrato 0.3.0 + ADRs 012-014 + README de arquitectura)
+Last session: 2026-09-30T15:58:59.998Z
+Stopped at: Completed 03-03-PLAN.md (etapa 3 en docs/02 y docs/03)
 Resume file: None
