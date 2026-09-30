@@ -116,6 +116,7 @@ elegido pensando en este momento.
 | numero | Texto | 26 | Sí | **Único**; legible y público (`MAURA-000001`): la cara del pedido que la clienta ve en voucher e historial, y la referencia de la compra que viaja a Webpay como `buy_order` (límite 26 caracteres de la pasarela) — jamás el id interno (RN-13, D-37) |
 | estado | Lista cerrada | — | Sí | Uno de `pending`, `paid`, `cancelled`, `rejected`; nace `pending` al iniciar el pago (D-34) y el historial lo muestra siempre con su valor real — `pending` visible como "en curso" (RF-17, RN-11) |
 | total | Entero | — | Sí | CLP **sin decimales** (RN-02); **recalculado por el backend** contra el catálogo vigente al crear la orden — jamás un valor enviado por el cliente (RF-12, CART-03) |
+| fecha | Fecha-hora | — | Sí | Momento en que la orden nace al iniciar el pago (D-34); viaja en `OrdenLista` del contrato y se muestra en voucher e historial (RF-17) |
 | usuario_id | Entero (FK) | — | Sí | FK a USUARIO: la orden pertenece a la clienta que la pagó; el historial lista solo las órdenes de la dueña del token (RF-17) |
 
 **Entidad LÍNEA** (soporta RN-10; el corazón congelado del pedido)
