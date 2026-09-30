@@ -628,9 +628,9 @@ clienta:
   el carro vacío SOLO en el aprobado — y el contrato 0.3.0 ↔ `/docs` con
   el 302 y el botón Authorize (ADR-007, ADR-012)
 
-**Siguiente:** fase 4 — el panel de administración y el asistente: la
-dueña gestiona productos, stock y pedidos (incluidas las huérfanas PENDING
-que esta fase dejó visibles y honestas), y la tienda suma su asesora de
-venta con IA sobre el catálogo real. Las cuentas con rol admin desde la
-guía 5, el stock atómico de la 9 y los estados honestos de hoy son
-exactamente lo que esa etapa necesita.
+**Siguiente:** guia-12-panel-backend.md — el backend del panel: la dueña
+gestiona productos, stock y pedidos (incluidas las huérfanas PENDING que
+esta guía dejó visibles y honestas), con el CRUD real, la transición
+validada y las métricas. Las cuentas con rol admin desde la guía 5, el
+stock atómico de la 9 y los estados honestos de hoy son exactamente lo
+que esa etapa necesita.
