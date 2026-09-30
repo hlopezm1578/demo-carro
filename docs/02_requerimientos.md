@@ -247,7 +247,7 @@ compra registradas.
   **Entonces** la tienda me recibe con la cara de compra anulada y mi carro sigue intacto para reintentar (RF-14, RF-16).
 - **Dado** que ya vi el voucher de un pago aprobado,
   **Cuando** refresco la pantalla del resultado,
-  **Entonces** vuelvo a ver el mismo voucher, sin que se me cobre ni se descuento stock una segunda vez (RF-15).
+  **Entonces** vuelvo a ver el mismo voucher, sin que se me cobre ni se descuente stock una segunda vez (RF-15).
 
 ### HU-11 — Ver mis pedidos
 *Como* clienta, *quiero* revisar el historial de mis pedidos, *para* ver qué compré y en qué estado quedó cada compra.
