@@ -5,9 +5,9 @@ current_phase_name: Panel de administración y asistente IA
 current_plan: Not started
 status: planning
 stopped_at: Phase 03 complete, ready to plan Phase 4
-last_updated: "2026-09-30T18:42:56.003Z"
+last_updated: "2026-09-30T19:26:00.000Z"
 last_activity: 2026-09-30
-last_activity_desc: Phase 03 complete, transitioned to Phase 4
+last_activity_desc: Phase 03 canónicamente cerrada (verificación passed post code-review fixes)
 state_head: 0a8a7cb240afdb66dff11ab07330c06e7aa3624f
 progress:
   total_phases: 5
@@ -151,6 +151,7 @@ Recent decisions affecting current work:
 - [Phase 03 cierre]: UAT delegado 3/3 PASS (03-UAT.md): guias 09-11 construidas literales en maura-uat, Gran verificación final 12/12 runtime real contra Webpay integración (aprobado/anulado/timeout ~603 s/F5/carrera/404/contrato↔docs), huérfanas PENDING visibles "en curso"
 - [Phase 03 cierre]: 3 desvíos corregidos en ambos lugares (regla maura-uat): D-1 default _numero_provisorio() para el INSERT NOT NULL de pedidos.numero, D-2 carrera.py importa app.models.usuario (FK metadata), D-3 timeout con pestaña activa CANCELA la orden (guias 10/11 decían "en curso")
 - [Phase 03 cierre]: El usuario aceptó la evidencia runtime del flujo anulado (GET, no POST) como canónica (03-UAT test 2) y decidió cerrar IN-01..IN-06 del review vía /gsd-code-review 3 --fix --all (pendiente de ejecutar)
+- [Phase 03 cierre]: Code review fixer ejecutado (decisión del test 3 del 03-UAT): IN-01..IN-06 cerrados 6/6 con espejos en maura-uat (IN-06: wrapper Webpay atrapa TransbankError y errores de red → 302 estado=error, jamás 500); disposition 12/12 fixed. Verificación re-ejecutada passed 12/12 con digest fresco v2 sobre el texto post-fixes — fase 03 canónicamente completa (sesión /gsd-verify-work 3 del 2026-09-30)
 - [Phase 03 cierre]: Seguridad 03-SECURITY.md 14/14 amenazas cerradas (threats_open 0, ASVS 1, register plan-time, evidencia runtime en 7 de ellas); verificación re-ejecutada passed 12/12 con digest fresco (26 archivos)
 
 ### Pending Todos
@@ -159,7 +160,6 @@ None yet.
 
 ### Blockers/Concerns
 
-- [Phase 3 → carried]: ejecutar /gsd-code-review 3 --fix --all para cerrar IN-01..IN-06 (decisión del usuario, no bloquea fase 4)
 - Phase 4: confirmar límites RPM/RPD del free tier de Gemini logueado en aistudio.google.com/rate-limit antes de fijar material
 - Phase 5: elegir plataforma de despliegue free tier (pendiente en PROJECT.md); el deploy congela `return_url`
 
@@ -173,6 +173,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-30T16:42:22.441Z
-Stopped at: Phase 03 complete, ready to plan Phase 4
+Last session: 2026-09-30T19:26:00.000Z
+Stopped at: Phase 03 canónicamente cerrada (UAT 3/3 + verificación passed post code-review fixes), ready to plan Phase 4
 Resume file: None
