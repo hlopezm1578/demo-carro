@@ -1,10 +1,11 @@
 ---
 phase: "4"
 slug: "panel-de-administraci-n-y-asistente-ia"
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: "2026-09-30"
+reviewed_at: "2026-09-30"
 ---
 
 # Phase 4 — UI Design Contract
@@ -327,15 +328,15 @@ verificación). Sin fuentes, íconos ni bloques de registro que vetar.
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS
-- [ ] Dimension 2 Visuals: PASS
-- [ ] Dimension 3 Color: PASS
-- [ ] Dimension 4 Typography: PASS
-- [ ] Dimension 5 Spacing: PASS
-- [ ] Dimension 6 Registry Safety: PASS
-- [ ] Dimension 7 Inventory Provenance: PASS
+- [ ] Dimension 1 Copywriting: FLAG (no bloqueante — labels secundarios de una palabra; patrones de casa ya adjudicados)
+- [ ] Dimension 2 Visuals: FLAG (no bloqueante — falta punto focal explícito en pantallas 10-12)
+- [x] Dimension 3 Color: PASS
+- [ ] Dimension 4 Typography: FLAG (no bloqueante — presupuesto 6 tamaños/3 pesos heredado y congelado del amendment aprobado; delta fase 4 = 0)
+- [x] Dimension 5 Spacing: PASS
+- [x] Dimension 6 Registry Safety: PASS
+- [x] Dimension 7 Inventory Provenance: PASS
 
-**Approval:** pending
+**Approval:** approved (2026-09-30) — gsd-ui-checker: APPROVED con 3 FLAGs no bloqueantes (D1/D2/D4); recomendaciones registradas arriba y en la revisión.
 
 ---
 
