@@ -103,12 +103,21 @@ Crea **`backend/app/models/pedido.py`**:
 """Modelos Pedido, LineaPedido y enum EstadoPedido (tablas `pedidos` y `pedidos_lineas`)."""
 
 import enum
+import uuid
 from datetime import datetime, timezone
 
 from sqlalchemy import DateTime, Enum, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
+
+
+def _numero_provisorio() -> str:
+    """Matrícula única provisoria para el INSERT (la columna es NOT NULL y
+    el id — del que nace el numero legible — recién existe DESPUÉS del
+    INSERT). Vive solo dentro de la transacción: el numero definitivo
+    `MAURA-{id:06d}` la reemplaza antes del commit (D-37)."""
+    return f"TMP-{uuid.uuid4().hex[:20]}"  # 24 chars ≤ 26 — único por construcción
 
 
 class EstadoPedido(str, enum.Enum):
@@ -130,7 +139,9 @@ class Pedido(Base):
     __tablename__ = "pedidos"
 
     id: Mapped[int] = mapped_column(primary_key=True)  # interno: jamás se muestra ni viaja (RN-13)
-    numero: Mapped[str] = mapped_column(String(26), unique=True, index=True)  # "MAURA-000001"
+    numero: Mapped[str] = mapped_column(
+        String(26), unique=True, index=True, default=_numero_provisorio
+    )  # "MAURA-000001" — provisorio único en el INSERT, definitivo antes del commit
     estado: Mapped[EstadoPedido] = mapped_column(
         Enum(EstadoPedido), default=EstadoPedido.pending
     )
@@ -158,6 +169,18 @@ class LineaPedido(Base):
     precio_snapshot: Mapped[int] = mapped_column(Integer)  # lo que se PAGÓ — el histórico
     cantidad: Mapped[int] = mapped_column(Integer)
 ```
+
+Un gallina-y-huevo que la columna `numero` esconde, y conviene mirar de
+frente: el numero legible NACE del `id`… pero el `id` nace del INSERT, y
+el INSERT ya exige un `numero` (la columna es NOT NULL y única). La
+salida es el `default=_numero_provisorio`: una matrícula única (`uuid`,
+24 caracteres bajo el límite de 26) que ocupa el lugar en el INSERT y
+vive SOLO dentro de la transacción — el `crear` del paso 4 reemplaza el
+provisorio por el `MAURA-{id:06d}` definitivo antes de que nada llegue a
+commit, así que ninguna otra conexión jamás lo lee. Sin ese default, el
+`flush()` del repositorio revienta con `IntegrityError: NOT NULL
+constraint failed: pedidos.numero` en tu propia cara — pruébalo: comenta
+el default y corre el checkout del paso 10.
 
 La tabla contra el diccionario de §2.2 del diseño, campo a campo: PEDIDO
 (`id`, `numero` único de 26, `estado` de 4 valores, `total` entero,
@@ -1283,6 +1306,7 @@ from sqlalchemy import select, update
 
 from app.config import settings
 from app.database import SessionLocal
+from app.models import usuario  # noqa: F401 — la FK pedidos.usuario_id necesita la tabla usuarios en el metadata
 from app.models.pedido import EstadoPedido, Pedido
 from app.models.producto import Producto
 from app.repositories.pedido import PedidoRepository, StockInsuficiente
