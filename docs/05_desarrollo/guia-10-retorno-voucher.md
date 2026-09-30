@@ -664,8 +664,11 @@ rechazo de tarjeta, en la segunda página del 3DS cambia el select de
 Aceptar a Rechazar (TSN): el pago sigue el flujo normal y el commit
 devuelve `response_code` -1 — la cara "Tu pago fue rechazado" con su
 voucher REJECTED. Y el timeout, si tienes paciencia: ~10 minutos con la
-pestaña activa (cronometrado: 603 s) — la orden queda "en curso" y el
-historial de la guía 11 la mostrará así por siempre (RN-11).*
+pestaña activa (cronometrado: 603 s) — el retorno del timeout marca la
+orden CANCELLED y la cara "Se agotó el tiempo" recibe a la clienta con su
+carro intacto; la orden queda "en curso" SOLO si la pestaña durmió en
+background y el retorno nunca llegó — el historial de la guía 11 la
+mostrará así por siempre (RN-11).*
 
 Con ambos servidores corriendo y la sesión de la clienta iniciada:
 

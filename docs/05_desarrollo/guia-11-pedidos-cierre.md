@@ -449,8 +449,10 @@ sus líneas congeladas y su total al peso — `/pedidos/MAURA-00000X` en la
 barra de direcciones.
 
 ✅ **Mini-verificación (la huérfana "en curso", D-48):** inicia un pago más
-y, ya en el formulario de Webpay, simplemente CIERRA la pestaña (o déjalo
-abierto sin pagar). Esa orden saltó y no volverá: en **/pedidos** aparece
+y, ya en el formulario de Webpay, simplemente CIERRA la pestaña (o déjala
+en background sin pagar — con la pestaña ACTIVA el retorno del timeout
+llega a los ~10 minutos y cancela la orden). Esa orden saltó y no
+volverá: en **/pedidos** aparece
 con el badge ámbar **En curso** — y se queda así, porque esta fase no
 expira ni cierra órdenes (D-49): la gestión de huérfanas llega con el
 panel de la dueña en la fase 4. Esa es la honestidad de RN-11 en pantalla:
@@ -477,7 +479,7 @@ para el ambiente de integración:
 | 2 | Pago APROBADO con la tarjeta oficial — VISA `4051 8856 0044 6623`, CVV `123`, RUT `11.111.111-1` (con puntos), clave `123` —: voucher de la TIENDA con Pedido `MAURA-00000X`, fecha de hoy, líneas con lo comprado y el total al peso | RF-13, RF-16, HU-09, ADR-014 |
 | 3 | El carro se vació SOLO en el aprobado: badge del navbar en 0 y `maura-carro` en `{"items":[]}` — y el stock descontado de la ficha del aroma comprado | RF-16, D-44, RN-12 |
 | 4 | Pago ANULADO con el botón "Anular compra y volver" del propio formulario: cara "Tu compra no se concretó" con su causa — y el CARRO INTACTO (mismas unidades en el badge) para reintentar sin rearmar nada | RF-14, RF-16, HU-10, ADR-012 |
-| 5 | Timeout: el formulario abandonado con la pestaña ACTIVA devuelve solo a los ~10 minutos (cronometrado en integración: 603 s — el alumno sabe cuánto esperar); la orden queda PENDING visible "en curso" y el carro intacto | RF-14, RN-11, ADR-012 |
+| 5 | Timeout: el formulario abandonado con la pestaña ACTIVA devuelve solo a los ~10 minutos (cronometrado en integración: 603 s — el alumno sabe cuánto esperar); el retorno trae `TBK_ID_SESION`+`TBK_ORDEN_COMPRA` y la orden queda CANCELLED (badge "Anulado") con el carro intacto — si la pestaña duerme en background el retorno puede no llegar nunca, y ahí sí la orden queda PENDING "en curso" para siempre (huérfana, D-48) | RF-14, RN-11, ADR-012 |
 | 6 | Cuarto flujo (error de formulario, `token_ws` + `TBK_TOKEN` juntos): explicado como documentado — replicable solo en producción; el discriminador por presencia de params lo cubre sin corrida | RF-14, PAY-02, ADR-012 |
 | 7 | F5 sobre el voucher pagado: el MISMO voucher en pie, sin cobrar dos veces — el F5 re-fetcha el pedido (lectura sin efectos); el guard ya-PAID del backend cubre la navegación repetida al `return_url` (back/forward, retries del navegador — el spike observó 7 repeticiones) y el vaciado del carro es idempotente | RF-15, PAY-03, ADR-013 |
 | 8 | Carrera de stock (`carrera.py` de la guía 9 con stock=1): dos checkouts concurrentes → dos PENDING (validar no reserva); el commit aprobado en dos threads → exactamente un PAID y un REJECTED, y stock 0 | RF-18, ORDR-02, RN-12, ADR-013 |
