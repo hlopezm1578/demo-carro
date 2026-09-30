@@ -1,45 +1,45 @@
 ---
 gsd_state_version: "1.0"
-current_phase: 2
-current_phase_name: Cuentas de cliente y carro persistente
-current_plan: 5
-status: verifying
-stopped_at: Phase 2 executed + verified (human_needed) — awaiting delegated UAT (verify-work)
-last_updated: "2026-09-29T18:29:29.790Z"
-last_activity: 2026-09-29
-last_activity_desc: Phase 01 complete, transitioned to Phase 2
-state_head: 31b25137d2520f5308b4515a8af559488fbd4517
+current_phase: 3
+current_phase_name: Checkout Webpay y órdenes
+current_plan: Not started
+status: planning
+stopped_at: Phase 02 complete, ready to plan Phase 3
+last_updated: "2026-09-30T12:03:19.123Z"
+last_activity: 2026-09-30
+last_activity_desc: Phase 02 complete, transitioned to Phase 3
+state_head: af83a544451ee4b05e8dd5f5eed23afda930e79e
 progress:
   total_phases: 5
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 11
   completed_plans: 11
-  percent: 20
+  percent: 40
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-09-29)
+See: .planning/PROJECT.md (updated 2026-09-30)
 
 **Core value:** La guía documenta el ciclo de vida completo y, siguiéndola en orden, la aplicación queda construida y operativa: tienda con catálogo, carro, checkout Webpay sandbox, cuentas JWT, panel admin y asistente IA sobre el catálogo real.
-**Current focus:** Phase 2 — Cuentas de cliente y carro persistente
+**Current focus:** Phase 3 — Checkout Webpay y órdenes
 
 ## Current Position
 
-Phase: 2 (Cuentas de cliente y carro persistente) — EXECUTING
-Current Plan: 5
+Phase: 3 — Checkout Webpay y órdenes
+Current Plan: Not started
 Total Plans in Phase: 5
-Status: Phase complete — ready for verification
-Last activity: 2026-09-29 — Completed 02-03-PLAN.md (guías 05-06)
+Status: Ready to plan
+Last activity: 2026-09-30 — Phase 02 complete, transitioned to Phase 3
 
-Progress: [██░░░░░░░░] 20%
+Progress: [████░░░░░░] 40%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 6
+- Total plans completed: 11
 - Average duration: -
 - Total execution time: -
 
@@ -48,6 +48,7 @@ Progress: [██░░░░░░░░] 20%
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01 | 6 | - | - |
+| 02 | 5 | - | - |
 
 **Recent Trend:**
 - Last 5 plans: -
@@ -118,6 +119,10 @@ Recent decisions affecting current work:
 - [Phase 02]: [02-05] El Siguiente de guia-04 enlaza guia-05 por nombre de archivo (misma forma que los demas Siguiente): la cadena 04->05->06->07->08->fase 3 quedo grep-verificada sin eslabones sueltos
 - [Phase 02]: [02-05] Portadas cuentan 11 ADRs (= numero real del directorio 001-011) y el stack del README raiz agrega cuentas JWT y Zustand en tono telegrafico
 - [Phase 02]: [02-05] Gate de cierre de fase documental replicable (fases 3-5): greps de estado + conteo de guias + invariant guide-only (git ls-files vacio para backend/frontend, D-17/ADR-008)
+- [Phase 02 cierre]: UAT delegado 4/4 PASS (sesión 02-UAT.md): guías 05-08 construidas literales en maura-uat, Gran verificación final 12/12 incluido Authorize en /docs (admin 200 / clienta 403); WR-02 verificado en su caso borde (sinAuth con token viejo en store) y WR-03 (write-back + badge coherentes); 7 prohibiciones judgment-tier ratificadas con muestreo propio
+- [Phase 02 cierre]: Goal de fase 2 reescrito como User Story canónica en ROADMAP (mvp-phase equivalente --force, validada por user-story.validate; SPIDR omitido con causa: fase ya ejecutada como slice vertical)
+- [Phase 02 cierre]: 3 bugs de guía corregidos en caliente en ambos lugares (regla maura-uat): version 0.2.0 en main.py (guia-05 paso 8 + ítem de MV), Quitar en fila degradada del checkout (guia-08 + taller, verificado runtime), copy fallback "…e inténtalo de nuevo." unificado (guia-06 + fila nueva en Copywriting Contract) y empty state text-base (guia-07)
+- [Phase 02 cierre]: Seguridad 02-SECURITY.md 21/21 cerradas con evidencia runtime (threats_open 0, ASVS 1); ui-review 19/24 sin drift guías↔taller (los 3 hallazgos de contrato = los fixes arriba); verificación re-ejecutada passed 45/45 con digest fresco
 
 ### Pending Todos
 
@@ -140,6 +145,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-29T18:29:29.703Z
-Stopped at: Phase 2 executed + verified (human_needed) — awaiting delegated UAT (verify-work)
-Resume file: .planning/phases/02-cuentas-de-cliente-y-carro-persistente/02-UAT.md
+Last session: 2026-09-30
+Stopped at: Phase 02 complete, ready to plan Phase 3
+Resume file: None

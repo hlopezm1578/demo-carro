@@ -73,11 +73,11 @@ catálogo real.
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Formato: guía educativa del ciclo de vida completo, hermana de demo-cine | Continuidad pedagógica del ciclo de guías | — Phase 01 shipped (guías 1-4, ADRs 001-008, contrato; UAT 4/4) |
-| Arquitectura: en capas + dos tiers cliente-servidor separados | Objetivo pedagógico: integración real entre frontend y backend | — Phase 01 shipped (enseñada en guías 1-4 y verificada runtime) |
-| Frontend React (SPA), backend FastAPI (Python) | Decisión de la exploración 2026-09-28 | — Phase 01 shipped (scaffold + API verificados en maura-uat) |
-| Repositorio guide-only (D-17): el código vive dentro de las guías, no en el repo | Corrección de alcance del usuario a mitad de la fase 1: el producto es la guía documental | — Phase 01 shipped (ADR-008; UAT delegado al agente en maura-uat) |
-| Pago: Transbank Webpay Plus en sandbox | Pasarela real chilena con credenciales públicas sin registro; Stripe no opera en Chile | — Pending |
+| Formato: guía educativa del ciclo de vida completo, hermana de demo-cine | Continuidad pedagógica del ciclo de guías | — Phase 01 shipped (guías 1-4, ADRs 001-008, contrato; UAT 4/4) — Phase 02 shipped (guías 5-8, ADRs 009-011, contrato 0.2.0; UAT delegado 4/4 con Gran verificación 12/12) |
+| Arquitectura: en capas + dos tiers cliente-servidor separados | Objetivo pedagógico: integración real entre frontend y backend | — Phase 01 shipped (enseñada en guías 1-4 y verificada runtime) — Phase 02 shipped (capas de cuentas + stores cliente verificados runtime) |
+| Frontend React (SPA), backend FastAPI (Python) | Decisión de la exploración 2026-09-28 | — Phase 01 shipped (scaffold + API verificados en maura-uat) — Phase 02 shipped (JWT/Argon2 + Zustand persist verificados runtime en maura-uat) |
+| Repositorio guide-only (D-17): el código vive dentro de las guías, no en el repo | Corrección de alcance del usuario a mitad de la fase 1: el producto es la guía documental | — Phase 01 shipped (ADR-008; UAT delegado al agente en maura-uat) — Phase 02 cerró igual (UAT delegado construyó las guías 5-08 en el taller y las verificó 12/12) |
+| Pago: Transbank Webpay Plus en sandbox | Pasarela real chilena con credenciales públicas sin registro; Stripe no opera en Chile | — Pending (Phase 3) |
 | IA: asistente de venta en chat (recomendador sobre catálogo, mini-RAG) con Gemini | Integración de servicio externo con contratos y manejo de errores; API key solo backend | — Pending |
 | Alcance funcional completo con panel admin | La PYME ficticia necesita gestionar productos, stock y pedidos | — Pending |
 
@@ -99,4 +99,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-09-29 after Phase 01*
+*Last updated: 2026-09-30 after Phase 02*
