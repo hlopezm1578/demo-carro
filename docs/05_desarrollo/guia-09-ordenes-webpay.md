@@ -440,10 +440,10 @@ del paso 10: con datos, con threads y con un perdedor.
 ESTE es el único archivo del proyecto que escribe `import transbank`.
 ¿Por qué aislarlo? Porque el SDK es una dependencia externa con sus
 propios ritmos (versiones, errores tipados, `requests` síncrono) — y
-queremos que ese ritmo se note en UN lugar, no regado por services y
+quieremos que ese ritmo se note en UN lugar, no regado por services y
 routers. El wrapper habla el vocabulario del negocio (`crear` con
 `buy_order`/`session_id`/`amount`/`return_url`, `commit` con el token) y
-esconde los detalles del SDK. Dos de esos detalles importan hoy. **La
+esconde los detalles del SDK. Tres de esos detalles importan hoy. **La
 instancia:** en el SDK 6.x no existe el estilo clase-estática de los
 ejemplos viejos de internet — se construye con
 `Transaction.build_for_integration(IntegrationCommerceCodes.WEBPAY_PLUS,
@@ -453,7 +453,13 @@ instancia tiene `.create` y `.commit`. **El nombre del token:** el
 pero el `input` del formulario hacia Webpay SÍ se llama `token_ws` (es el
 nombre que exige el wire). El wrapper normaliza esa rareza a la entrada:
 devuelve `{"url": …, "token_ws": …}` y el resto del proyecto vive feliz
-sin saberla. Y las firmas, con sus límites validados por el SDK ANTES de
+sin saberla. **El error tipado del commit:** un token que Webpay no puede
+confirmar (inventado, de una transacción anulada) hace que el SDK lance
+`TransactionCommitError` — y el wrapper lo atrapa y devuelve `None`: el
+service del paso 7 recibirá una señal de dominio, jamás una excepción de
+transbank. La regla del aislamiento se cumple así completa: ni imports,
+ni errores, ni vocabulario del SDK fuera de este archivo. Y las firmas,
+con sus límites validados por el SDK ANTES de
 llamar a la API: `buy_order` máximo 26 caracteres (tu `MAURA-000001` de
 11 va sobrado), `session_id` 61, `return_url` 255, `amount` como float
 (tu total CLP entero viaja como `float(total)`, sin decimales). El
@@ -474,6 +480,7 @@ SDK usa requests (sync): las rutas que hablan con Webpay son `def`.
 
 from transbank.common.integration_api_keys import IntegrationApiKeys
 from transbank.common.integration_commerce_codes import IntegrationCommerceCodes
+from transbank.error.transaction_commit_error import TransactionCommitError
 from transbank.webpay.webpay_plus.transaction import Transaction
 
 tx = Transaction.build_for_integration(
@@ -493,14 +500,20 @@ def crear(buy_order: str, session_id: str, amount: float, return_url: str) -> di
     return {"url": resp["url"], "token_ws": resp["token"]}
 
 
-def commit(token_ws: str) -> dict:
+def commit(token_ws: str) -> dict | None:
     """Confirma la transacción — el veredicto (PAY-03).
 
     Devuelve el dict de Webpay: response_code, status, buy_order, amount,
     authorization_code, transaction_date… Con response_code == 0 Y
-    status == "AUTHORIZED" (ambos) el pago aprobó.
+    status == "AUTHORIZED" (ambos) el pago aprobó. None si Webpay no puede
+    confirmar el token (inventado, de una transacción anulada…): la
+    excepción tipada del SDK se traduce a señal de dominio AQUÍ — ninguna
+    excepción de transbank cruza la frontera de este archivo.
     """
-    return tx.commit(token_ws)
+    try:
+        return tx.commit(token_ws)
+    except TransactionCommitError:
+        return None
 ```
 
 ✅ **Mini-verificación:** desde `backend/`, ejecuta:
@@ -559,7 +572,6 @@ from app.repositories.pedido import PedidoRepository, StockInsuficiente
 from app.repositories.producto import ProductoRepository
 from app.schemas.pedido import CheckoutCreate, CheckoutRespuesta
 from app.services import webpay
-from transbank.error.transaction_commit_error import TransactionCommitError
 
 
 class CarroNoComprable(Exception):
@@ -668,15 +680,17 @@ error de formulario (el form se submiteó dos veces); `TBK_ID_SESION` +
 `token_ws` solo es el flujo normal, donde aprobado y rechazado por la
 tarjeta viajan IGUAL y los decide el commit. **Los flujos no-normales NO
 llaman a la API** (Pitfall 3): commitear una transacción anulada revienta
-con `TransactionCommitError` y un 500 al navegador — las docs oficiales
+con `TransactionCommitError` (la excepción tipada del SDK — sin el wrapper
+del paso 5, un 500 al navegador) — las docs oficiales
 lo dicen con todas las letras: "no es necesario confirmar la
 transacción". Se marca la orden CANCELLED localmente y listo, con un
 guard: solo si sigue `pending` — el navegador puede REPETIR retornos (se
 observaron 7 repeticiones de un mismo timeout) y un retorno tardío jamás
 pisa un estado ya decidido. **En el flujo normal, tres defensas en
-orden.** El `commit` envuelto en `try/except TransactionCommitError`: un
-token que Webpay no puede confirmar produce una 302 con estado de error,
-jamás un 500. El mapeo token→orden lo hace el `buy_order` que el commit
+orden.** El `commit` blindado por el wrapper del paso 5:
+`TransactionCommitError` se atrapa DENTRO de `services/webpay.py` y llega
+acá como `None` — un token que Webpay no puede confirmar produce una 302
+con estado de error, jamás un 500. El mapeo token→orden lo hace el `buy_order` que el commit
 devuelve (por eso la orden nació ANTES del pago, D-34). Y el **guard
 ya-PAID** (Pitfall 4, PAY-03): si la orden ya está pagada, se re-muestra
 SIN ningún side effect — refrescar no paga dos veces; el descuento y la
@@ -757,7 +771,8 @@ def clasificar_flujo(
         """Flujos no-normales: CANCELLED local, SIN llamar a la API (Pitfall 3).
 
         Commitear una transacción anulada revienta con
-        TransactionCommitError y un 500 al navegador; las docs oficiales
+        TransactionCommitError (excepción tipada del SDK, atrapada en el
+        wrapper del paso 5); las docs oficiales
         lo dicen explícito: "no es necesario confirmar la transacción".
         """
         if numero:
@@ -772,11 +787,12 @@ def clasificar_flujo(
 
     def _confirmar(self, token_ws: str) -> RetornoResultado:
         """Flujo normal: commit, criterio doble, guard ya-PAID y stock atómico."""
-        try:
-            commit = webpay.commit(token_ws)
-        except TransactionCommitError:
+        commit = webpay.commit(token_ws)
+        if commit is None:
             # Un token que Webpay no puede confirmar (inventado, de una
-            # transacción anulada…): 302 con estado de error, JAMÁS un 500.
+            # transacción anulada…): el wrapper del paso 5 ya atrapó la
+            # excepción tipada del SDK y la tradujo a None — 302 con
+            # estado de error, JAMÁS un 500.
             return RetornoResultado(estado="error", numero=None)
         # El commit devuelve el buy_order — así se mapea token → orden
         # (D-34): por eso la orden tuvo que nacer ANTES del pago.
@@ -1184,8 +1200,10 @@ uv run python -c "import httpx; r = httpx.get('http://localhost:8000/api/pago/re
 
 Debe imprimir `302` y
 `http://localhost:5173/pago/resultado?estado=error` — Webpay rechazó el
-commit, el `except TransactionCommitError` lo convirtió en la redirección
-de error, y el navegador jamás vio un 500 (Pitfall 3). Fíjate en el
+commit, el wrapper devolvió `None` (su `except TransactionCommitError`,
+adentro de `services/webpay.py`) y el service lo convirtió en la
+redirección de error: el navegador jamás vio un 500 (Pitfall 3). Fíjate
+en el
 `follow_redirects=False`: httpx sigue redirecciones solo si se lo pides —
 acá quieres VER la 302, no seguirla.
 
@@ -1353,7 +1371,8 @@ Timeout del formulario: ~10 minutos (cronometrado: 603 s) con la pestaña
 
 ```python
 # ❌ La API rechaza el commit de una transacción sin autorización:
-# TransactionCommitError → la 302 nunca sale → el navegador ve un 500
+# TransactionCommitError — sin nadie que la atrape, la 302 nunca sale
+# y el navegador ve un 500
 commit = webpay.commit(tbk_token)  # el token del flujo anulado
 
 # ✅ El commit va SOLO en la rama token_ws-solo; los demás flujos
@@ -1365,8 +1384,9 @@ else:
 ```
 
 Las docs oficiales lo dicen explícito: "no es necesario confirmar la
-transacción" anulada. El síntoma es inconfundible: un 500 crudo al volver
-de anular, con la clienta mirando una pantalla rota.
+transacción" anulada. El síntoma es inconfundible: una llamada inútil a
+la pasarela — y, sin nadie que atrape la excepción tipada, un 500 crudo
+al volver de anular, con la clienta mirando una pantalla rota.
 
 **2. El stock leído en Python (el falso atómico).**
 
@@ -1484,11 +1504,11 @@ schemas — es la Gran verificación final de la guía 11, como en cada fase.)
 ## Lo que acabas de aprender
 
 - `transbank-sdk` con `Transaction.build_for_integration(...)`: credenciales PÚBLICAS de integración dentro del SDK (597055555532 — sin registro, sin `.env` nuevo, RNF-07), rutas `def` porque el SDK usa `requests`
-- `services/webpay.py` como ÚNICO importador de transbank — y el gotcha del SDK: el token del `create` viaja como `"token"`, el input del form como `token_ws`
+- `services/webpay.py` como ÚNICO importador de transbank — y el gotcha del SDK: el token del `create` viaja como `"token"`, el input del form como `token_ws` — y el `commit` devolviendo `None` cuando Webpay no confirma: la excepción tipada del SDK no sale del wrapper
 - `EstadoPedido` con nombre == valor (tercera vuelta del gotcha: familias → roles → estados) y el modelo con snapshot `nombre_snapshot`/`precio_snapshot` — la asimetría con RN-08 hecha columnas (D-36, ADR-014)
 - El numero legible `MAURA-{id:06d}` nacido del autoincrement en la misma transacción: único por construcción, 11 chars bajo el límite 26, a la vez buy_order e identificador público (D-37, RN-13)
 - `iniciar_checkout` que recalcula con precio vigente desde ids+cantidades (la entrada no tiene precio — CART-03 estructural), valida stock sin tocarlo (400) y SOLO DESPUÉS llama a Webpay (D-34, Pitfall 11)
-- El discriminador de los 4 flujos por PRESENCIA de params en el orden del plugin oficial — jamás por método HTTP (ADR-012); commit solo en la rama `token_ws`-solo, `TransactionCommitError` atrapado → 302, nunca 500 (Pitfall 3)
+- El discriminador de los 4 flujos por PRESENCIA de params en el orden del plugin oficial — jamás por método HTTP (ADR-012); commit solo en la rama `token_ws`-solo, con el error tipado atrapado DENTRO del wrapper (`None` → 302), nunca 500 (Pitfall 3)
 - El guard ya-PAID sin side effects + el criterio doble `response_code == 0` Y `status == AUTHORIZED` + descuento y transición en UNA transacción (PAY-03, Pitfall 4, ADR-013)
 - El UPDATE condicional `WHERE stock >= cantidad` con `rowcount` como veredicto — y la carrera de la mini-verificación: un PAID, un REJECTED, stock 0 (ORDR-02, RN-12)
 - El retorno GET+POST con `Form(default=None)` (la pieza del login, fase 2) y `RedirectResponse(url, status_code=302)` — la primera lección PRG del proyecto (Pitfall 1)
