@@ -168,7 +168,21 @@ Plans:
   2. El refresh de rutas de la SPA no da 404 (fallback a index.html) y los 4 flujos de retorno de Webpay se verifican contra el ambiente desplegado (DEPL-02)
   3. La guía documenta el ciclo de vida completo (necesidad → requerimientos → diseño → arquitectura con ADRs → desarrollo guiado → pruebas → despliegue → mantenimiento) con trazabilidad entre fases: un alumno que la sigue en orden termina con la aplicación construida, desplegada y operativa (GUIDE-01)
 
-**Plans**: TBD
+**Plans**: 5 plans *(planeados 2026-10-01 — D-73 gobierna toda la fase: SOLO escritura, sin spike runtime (D-72 superseded), sin deploy del taller y sin UAT de despliegue; la evidencia de ADR-019 es documental (docs oficiales citadas en 05-RESEARCH.md). Orden D-15: ADRs + doc 07 primero, docs del ciclo y guías en paralelo por archivos disjuntos, guía de cierre y índices al final)*
+
+Plans:
+**Wave 1** *(spec primero — D-15)*
+- [ ] 05-01-PLAN.md — TRACER: ADR-019 (despliegue free tier Vercel+Render con evidencia documental, D-69/D-73) + ADR-020 (persistencia efímera + seed, D-70) + docs/07_despliegue.md + índice de ADRs a 20 (DEPL-01)
+
+**Wave 2** *(paralelos — sin solape de archivos; blocked on Wave 1)*
+- [ ] 05-02-PLAN.md — Docs del cierre del ciclo: 06_pruebas.md (síntesis del método, no suite) + 08_mantenimiento.md (diferidos v2 + PostgreSQL mencionado) (GUIDE-01)
+- [ ] 05-03-PLAN.md — Guías 16-17: deploy API en Render (env vars congeladas, seed al build) y deploy SPA en Vercel (vercel.json rewrite, VITE_API_URL) + eslabón guia-15 → 16 (DEPL-01, DEPL-02)
+
+**Wave 3** *(blocked on Wave 2)*
+- [ ] 05-04-PLAN.md — Guía 18: los 4 flujos contra el ambiente desplegado + Gran verificación final de la SERIE definida para el alumno (D-73) + Siguiente al ciclo documental (DEPL-02, GUIDE-01)
+
+**Wave 4** *(blocked on Waves 2-4)*
+- [ ] 05-05-PLAN.md — Cierre de índices: READMEs ×3 con las 8 filas del ciclo en ✅ Listo (quinta corrida D-13/D-18, conteos 18 guías/20 ADRs) + gate documental de fase (GUIDE-01)
 
 ## Progress
 
@@ -181,4 +195,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 2. Cuentas de cliente y carro persistente | 5/5 | Complete    | 2026-09-30 |
 | 3. Checkout Webpay y órdenes | 5/5 | Complete    | 2026-09-30 |
 | 4. Panel de administración y asistente IA | 8/8 | Complete    | 2026-10-01 |
-| 5. Despliegue y cierre de la guía | 0/TBD | Not started | - |
+| 5. Despliegue y cierre de la guía | 0/5 | Not started | - |
