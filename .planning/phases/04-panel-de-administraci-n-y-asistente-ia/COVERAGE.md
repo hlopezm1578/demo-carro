@@ -14,7 +14,7 @@
 | capability | decision | reason |
 |---|---|---|
 | `client.models.generate_content` (texto) | INTEGRATE | el corazón del asistente: la recomendación de la asesora (AIAS-01) |
-| structured output (`response_json_schema`) | INTEGRATE | la respuesta `{respuesta, productos}` conforme al schema Pydantic `Recomendacion`, vía `response_mime_type='application/json'` + `response_json_schema` — D-56 exige exactamente la forma documentada en el README v2.25.0 (no `response_schema`, Pitfall 2) |
+| structured output (`response_json_schema`) | INTEGRATE | la respuesta `{respuesta, productos}` conforme al schema `Recomendacion` — D-56 exige la forma del README v2.25.0: `response_json_schema`, no `response_schema` (Pitfall 2) |
 | API key por env var (`GEMINI_API_KEY` auto-pickup del Client) | INTEGRATE | D-60/AIAS-03: key en el `.env` del backend vía pydantic-settings; el Client la levanta solo |
 | manejo de errores tipados (`errors.APIError` con `.code`/`.message`) | INTEGRATE | wrapper que traduce 429 (cuota) y resto (red/timeout/servicio) a respuestas amables — jamás un 500 crudo (D-61, patrón IN-06) |
 | retries nativos del SDK (transitorios 4x, ~1s→60s) | INTEGRATE | de forma pasiva: se documentan como comportamiento del SDK; el wrapper NO duplica el retry (anti-pattern: doble-retry presiona el free tier) |
