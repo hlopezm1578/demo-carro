@@ -515,7 +515,7 @@ key de AI Studio (guía 14); las filas 9 y 10 no necesitan key:
 | # | Verificación | Origen |
 |---|---|---|
 | 1 | Roles en `/docs` con las cuentas del seed: el admin ejecuta los 7 paths de administración → 200; la clienta (token PERFECTAMENTE válido) → 403 "Requiere rol admin" en cada uno — la seguridad es del servidor, el guard de la SPA es UX | RF-19..RF-22, D-55, ADR-015 |
-| 2 | La clienta con sesión fuerza **/admin** → "No tienes acceso al panel" SIN expulsión al login (su navbar sigue en pie: le falta permiso, no identidad) — y sin sesión, login → vuelta AL panel (returnTo) | D-55, HU-12, ADR-015 |
+| 2 | La clienta con sesión fuerza **/admin** → "No tienes acceso al panel" SIN expulsión al login y A SECAS (sin navbar ni subnav: el guard vetó la rama entera) — "Volver a la tienda" la recibe con su sesión viva: le falta permiso, no identidad — y sin sesión, login → vuelta AL panel (returnTo) | D-55, HU-12, ADR-015 |
 | 3 | CRUD del catálogo: "Nuevo producto" nace activo con sku generado; el editor escribe la allow-list (un `"activo": false` inyectado a mano no tiene dónde entrar) y dos guardados con el mismo body dejan el mismo estado | RF-19, HU-12, D-52 |
 | 4 | Stock bajo del panel: badge "Stock bajo" SOLO en activos con ≤ 5 — y la ficha de la tienda sigue con SU umbral 1-3 ("últimas unidades"): dos umbrales, dos públicos, dos textos | RF-20, RN-14 |
 | 5 | Soft delete con sus DOS caras: desactivar un aroma → DESAPARECE del catálogo público en la misma sesión (invalidación por prefijo) y tu pedido viejo de fase 3 conserva el snapshot de nombre y precio | RF-19, D-52, D-36, HU-12 |

@@ -203,6 +203,11 @@ junto a los existentes:
 import { BADGES } from "../../lib/badges"; // la tercera consumidora nació: bajó a módulo (D-45)
 ```
 
+Y un detalle que el compilador no te deja pasar: si en `Pedidos.tsx` el
+`import type` queda con `EstadoPedido` huérfano (solo la tabla borrada lo
+usaba — `VoucherPedido.tsx` no lo tiene), quítalo del import: el scaffold
+corre con `noUnusedLocals` y un import sin uso rompe el build.
+
 ✅ **Mini-verificación:** `npm run build` pasa — con los DOS archivos
 viejos importando del módulo y sin la tabla duplicada en ninguno. Si
 algún `BADGES[...]` dejó de compilar, es que el import quedó en el archivo
@@ -491,8 +496,10 @@ lo que el espejo no alcanzó a prever). **La hidratación del editor** tiene
 su truco honesto: `ProductoAdmin` es liviano a propósito (contrato 0.4.0)
 — sin `descripcion` ni `notas` — y esas DOS las trae la FICHA pública
 (`ProductoDetalle` las tiene). Al abrir "Editar" se consulta
-`api/productos/{id}` reusando la key `["producto", id]` que la ficha del
-catálogo ya usa (si está en caché, gratis). ¿Y un producto INACTIVO? La
+`api/productos/{id}` con un fetch fresco (`apiGet` directo, NO la caché
+`["producto", id]` de la ficha: la dueña que abre el editor merece la
+verdad del momento, no una foto que pudo quedar vieja — y el editor ni
+sabe si esa key estuvo en pantalla). ¿Y un producto INACTIVO? La
 ficha pública no lo muestra (se oculta entero, D-52): su editor parte
 con descripción y notas VACÍAS y la dueña las re-escribe — la alternativa
 sería un endpoint admin de detalle, que el contrato 0.4.0 no declara: se
@@ -1424,8 +1431,10 @@ compila. Su momento de verdad es el siguiente paso, en el navegador.
 
 🧠 **El desarrollador piensa:** *la batería del navegador, y cada golpe
 verifica una promesa del UI-SPEC. La clienta que fuerza `/admin` ve
-NoAutorizado SIN expulsión — y el detalle fino: su navbar sigue en pie,
-porque LayoutAdmin la renderiza y el guard solo vetó el CONTENIDO. El
+NoAutorizado SIN expulsión — y el detalle fino: lo ve A SECAS, sin navbar
+de tienda ni subnav de panel — el guard vetó la RAMA entera y
+`LayoutAdmin` ni se montó (el orden de los envoltorios del paso 4
+haciendo su trabajo). Su sesión SIGUE viva: es permiso, no identidad. El
 returnTo del admin: cerrar sesión, forzar `/admin`, entrar como admin — y
 volver AL PANEL, no a la portada (D-32 por tercera vez). El link Panel
 que solo la dueña ve. El catálogo que reacciona solo al desactivar (la
@@ -1445,9 +1454,11 @@ Con ambos servidores corriendo (`uv run fastapi dev app/main` en
 tu `CLIENTE_EMAIL` y escribe **http://localhost:5173/admin** en la barra:
 ves **"No tienes acceso al panel"** con "El panel de administración es
 solo para la dueña de la tienda." y el link "Volver a la tienda" — NO el
-login. Tu sesión sigue viva (el navbar todavía te saluda): te falta
-permiso, no identidad (D-55). "Volver a la tienda" te deja en el inicio,
-lista para seguir comprando. Y fíjate: tu navbar NO tiene link "Panel" —
+login, y A SECAS: sin navbar de tienda y sin subnav de panel, porque el
+guard vetó la rama entera y `LayoutAdmin` nunca se montó. Tu sesión
+sigue viva: "Volver a la tienda" te deja en el inicio CON tu navbar
+saludándote de nuevo, lista para seguir comprando — te falta permiso, no
+identidad (D-55). Y fíjate: tu navbar NO tiene link "Panel" —
 una clienta ni sabe que la ruta existe.
 
 ✅ **Mini-verificación (el returnTo del panel):** cierra sesión y fuerza
@@ -1569,8 +1580,9 @@ Con ambos servidores corriendo y el seed corrido:
 1. `npm run build` pasa — guard, layout, módulo badges, `apiPut`/
    `apiPatch`, tipos y las tres pantallas.
 2. Clienta con sesión que fuerza `/admin` → "No tienes acceso al panel"
-   con "Volver a la tienda" — SIN expulsión al login, navbar en pie
-   (D-55).
+   con "Volver a la tienda" — SIN expulsión al login y A SECAS (sin
+   navbar ni subnav: el guard vetó la rama entera); su sesión vive y la
+   tienda la recibe de vuelta (D-55).
 3. Sin sesión, `/admin` → login → entrar como admin → vuelta AL PANEL
    (returnTo, D-32) — y "Panel" en el navbar solo con rol admin (D-47 por
    rol).
