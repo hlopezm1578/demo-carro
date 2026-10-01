@@ -488,11 +488,11 @@ for m in client.models.list().data:
 | A5 | El SDK `groq` en Windows no tiene gotchas propios | Standard Stack | Bajo: nada documentado en docs/README (ausencia constatada este session); el probe corrió EN win32 sin más problema que el TLS del taller (middleware de red, no del SDK) |
 | A6 | `dist/` del taller ya no contiene `GEMINI_API_KEY` tras el rebuild post-rework y el grep con `GROQ_API_KEY` da cero | Pitfall 8 | Bajo: idéntico mecánicamente al grep ya pasado con GEMINI (fila 13, exit 1 + control positivo); se re-verifica en el UAT |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-> Las tres del research original quedaron RESUELTAS por los planes de la fase 4 (happy path tras checkpoint → hoy desbloqueado por Groq; 429 sin cifras → D-68 ahora publica cifras CON fuente; 409 para transición ilegal → ejecutado y verificado runtime). Se listan colapsadas; la única pregunta nueva es la nº 1.
+> Las tres del research original quedaron RESUELTAS por los planes de la fase 4 (happy path tras checkpoint → hoy desbloqueado por Groq; 429 sin cifras → D-68 ahora publica cifras CON fuente; 409 para transición ilegal → ejecutado y verificado runtime). Se listan colapsadas; la única pregunta nueva (nº 1) también quedó RESUELTA por la validación de este research (D-68 corregida) — implementada en los planes 04-06..08 con gates que vetan la cifra refutada.
 
-1. **D-68 — la nota del usuario (30 RPM / 14.400 RPD) no calza con la doc oficial (30 RPM / 1.000 RPD para `openai/gpt-oss-120b`)**
+1. **[RESOLVED 2026-10-01 — D-68 corregida por la validación de este research: la guía y ADR-018 citan 30 RPM / 1.000 RPD / 8K TPM / 200K TPD con fuente; implementada con gates que vetan "14.400" en los planes 04-06..08]** D-68 — la nota del usuario (30 RPM / 14.400 RPD) no calza con la doc oficial (30 RPM / 1.000 RPD para `openai/gpt-oss-120b`)
    - What we know: tabla oficial verbatim [CITED: console.groq.com/docs/rate-limits, 2026-10-01] + headers vivos de la org del usuario (probe: `x-ratelimit-limit-requests = 1000`, `x-ratelimit-limit-tokens = 8000`) coinciden. "30 / 14.4K" en esa tabla es la fila de `meta-llama/llama-prompt-guard-2-*`; el header 14400 de la página es "illustrative".
    - What's unclear: de dónde salió el 14.400 de la nota (¿limits page de la consola? ¿fuente community 2024?) — y si la consola del usuario muestra algo distinto a los headers que su propia org devuelve.
    - Recommendation: D-68 ya decide el caso: "If the official doc differs, record what the doc actually says — never sign on assumptions". La guía cita **30 RPM / 1.000 RPD / 8K TPM / 200K TPD** con URL y "a la fecha de esta guía" + pointer a la página Limits de la consola; RNF-08 sin números. El planner redacta guia-14/🧠 del 429 con esas cifras y el usuario lo ve en el checkpoint de revisión del rework (human_verify_mode: end-of-phase). Nota para el cierre: actualizar también la frase de CONTEXT/UAT si se re-registra el dato.
