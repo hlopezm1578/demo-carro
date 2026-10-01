@@ -1,328 +1,317 @@
-# Phase 4: Panel de administración y asistente IA - Pattern Map
+# Phase 4: Panel de administración y asistente IA - Pattern Map (REWORK Gemini→Groq)
 
-**Mapped:** 2026-09-30
-**Files analyzed:** 14 (7 extensiones de documentos existentes + 3 ADRs nuevos + 4 guías nuevas `guia-12+`; la partición exacta en sub-guías es discreción del planner bajo el orden D-62 — este mapa clasifica por unidad funcional)
-**Analogs found:** 14 / 14 con análogo exacto in-repo (el corpus de fases 1-3 está completo: cada doc nuevo/extendido tiene su análogo git-trackeado, la mayoría "sí mismo" por tercera extensión in-place consecutiva)
+**Mapped:** 2026-10-01
+**Files analyzed:** 15 (12 del producto + 2 de `.planning` discrecionales + 1 UAT de fase)
+**Analogs found:** 13 / 13 del producto (todos; el corpus ES la biblioteca de patrones)
 
-## Nota de alcance: repo guide-only, contrato primero, UI-SPEC ya aprobado (leer antes de planificar)
-
-`D:/Repos/demo-carro` sigue **guide-only (D-17, ADR-008)**: la fase 4 entrega SOLO documentos. Cuatro reglas que ordenan los planes:
-
-1. **Orden D-62 (locked):** (A) contrato 0.4.0 + ADRs 015+ PRIMERO (D-15, API-first — junto con docs 02/03 de la etapa, como la fase 3 agrupó su Grupo B) → (B) panel admin completo (backend → SPA) → (C) asistente IA (backend → burbuja SPA) → (D) Gran verificación final de fase 4. El admin va antes que la IA: el panel no depende del asistente y la burbuja reusa las ProductCard del catálogo.
-2. **No hay spike en esta fase.** La pieza de riesgo (structured output en google-genai 2.25, D-56) ya fue firmada con evidencia por `04-RESEARCH.md` contra el README del tag `v2.25.0` (Patterns 1-3, verbatim). El ADR del asistente cita esa evidencia — mismo patrón de ADR-012 citando `03-SPIKE-RETORNO.md`, pero la fuente ya vive en RESEARCH, no en un doc de spike nuevo.
-3. **`04-UI-SPEC.md` (approved, mismo phase dir) es el contrato de pantallas y copy de las guías 12+**: pantallas 10-14 con clases Tailwind exactas, tabla de rutas (líneas 148-154), montaje en `main.tsx` con dos ramas de layout (158-169), Copywriting Contract completo (247-276) y defaults fijados en modo auto (≤5 stock, 500 chars, 10 mensajes, 3 cards — líneas 26-29, a confirmar como RN por el planner). Las guías no inventan UI: traducen ese contrato a pasos.
-4. **UAT runtime delegado** en `D:/Repos/maura-uat` (AGENTS.md) sobre la app construida hasta guia-11 (con órdenes reales de los 4 flujos y cuentas seed admin/clienta). **Open Question 1 de RESEARCH:** la `GEMINI_API_KEY` del happy path NO existe en maura-uat — el planner deja esa fila de UAT tras `checkpoint:human-verify`; la ruta de degradación (sin key → 503 + burbuja "no disponible") y el grep del build se verifican sin key.
+> **Nota de dominio (D-17 / ADR-008):** este repo es **guide-only** — no hay código de
+> aplicación. Los "archivos a crear/modificar" son DOCUMENTOS, y los análogos son los
+> documentos existentes del propio corpus. La clasificación por rol usa tipos de documento
+> (guide / adr / spec / requirements / design / index) y la columna "Data Flow" describe el
+> **patrón editorial** que el cambio sigue (no flujo de datos de runtime). Todo "código" en
+> esta fase son bloques DENTRO de las guías que el alumno copia: su fuente primaria de
+> contenido es `04-RESEARCH.md` (probe-verified 2026-10-01) y su fuente de FORMA son los
+> análogos citados acá.
+>
+> **Gate tracked-source verificado:** los 40 archivos de `docs/` + `README.md` raíz están
+> git-tracked (`git ls-files` non-empty para cada análogo citado).
 
 ## File Classification
 
-| New/Modified File | Role | Data Flow | Closest Analog | Match Quality |
-|-------------------|------|-----------|----------------|---------------|
-| `docs/04_arquitectura/contrato_api.yaml` (EXTENDER 0.3.0→0.4.0, ANTES de las guías) | contract (OpenAPI) | request-response | sí mismo (778 líneas: header 1-8, tabla errores 30-40, tags 48-60, `/api/admin/estado` 492-536 a reemplazar D-54, `security: []` de retorno 589-604 como patrón del endpoint público del asistente) | exact (in-place, tercera subida de versión) |
-| `docs/02_requerimientos.md` (EXTENDER) | doc requerimientos | — | sí mismo (392 líneas: bloque alcance etapa 3 53-58, filas P7/P8 §13 349-350, series vigentes RF-18:118 / RNF-07:132 / RN-13:150 / HU-11:252-259) | exact (in-place) |
-| `docs/03_diseno.md` (EXTENDER) | doc diseño | — | sí mismo (1002 líneas: §2.3.5 `activo` 155-158 que D-52 implementa, DFD 11.0 477-495, pantallas 8-9 851-938, trazabilidad §5 944-984) | exact (in-place) |
-| `docs/04_arquitectura/adr/015-*.md` (NUEVO: panel admin protegido por rol en los dos tiers, D-55) | doc (decisión) | — | `adr/011-roles-desde-el-primer-token.md` (la base del guard, citado por CONTEXT) + `adr/012` (formato más reciente) | exact (formato) |
-| `docs/04_arquitectura/adr/016-*.md` (NUEVO: máquina de estados de pedidos, transición admin única, D-50) | doc (decisión) | — | `adr/013-orden-nace-al-pagar-stock-al-aprobar.md` (la máquina que este ADR extiende) + `adr/014` (formato) | exact (formato) |
-| `docs/04_arquitectura/adr/017-*.md` (NUEVO: asistente IA mini-RAG, key solo backend, degradación D-56/D-60/D-61) | doc (decisión) | — | `adr/012-retorno-de-webpay.md` (el ADR que cita evidencia externa firmada — mismo patrón con la evidencia de RESEARCH vs README v2.25.0) | exact (formato) |
-| `docs/04_arquitectura/README.md` (EXTENDER) | doc índice/arquitectura | — | sí mismo (250 líneas: fila "IA (fase 4)" placeholder 122, árbol 134-178, índice ADRs 201-216) | exact (in-place) |
-| `docs/05_desarrollo/guia-12-*.md` (NUEVO: backend del panel — CRUD productos, transición pedidos, métricas) | doc (guía paso a paso) | — | `guia-05-cuentas-backend.md` (1108 líneas, la guía backend de fase 2: Settings 119-137, get_current_admin 459-468, lección responses 586-589) + `guia-09` (la de fase 3: repos sin commit innecesario, main.py 1194-1216) | exact (estructura) |
-| `docs/05_desarrollo/guia-13-*.md` (NUEVO: SPA del panel — `/admin` layout, RequireAdmin, 3 pantallas) | doc (guía paso a paso) | — | `guia-11-pedidos-cierre.md` (lista useQuery 88-115, BADGES 77-86, navbar condicionado 358-371, rutas 408-414) + `guia-10` (mutación + CTA 179-194) | exact (estructura) |
-| `docs/05_desarrollo/guia-14-*.md` (NUEVO: asistente backend — service Gemini, key opcional, wrapper errores) | doc (guía paso a paso) | — | `guia-09` Paso 5 `services/webpay.py` (460-547: el ÚNICO importador del SDK externo + traducción de errores — el patrón exacto de `services/asistente.py`) | exact (estructura) |
-| `docs/05_desarrollo/guia-15-*.md` o fusión en la 14 (NUEVO: burbuja SPA + Gran verificación final de fase 4) | doc (guía de cierre) | — | `guia-11` §Gran verificación final (469-515) + `guia-10` rutas main.tsx (233-248) | exact (estructura) |
-| `docs/05_desarrollo/README.md` (EXTENDER) | doc índice | — | sí mismo (58 líneas: tabla 24-36, blockquote 38-41, mapa mental 43-58) | exact (in-place) |
-| `docs/README.md` (EXTENDER) | doc índice | — | sí mismo (26 líneas: fila 4 línea 18 "14 ADRs", fila 5 línea 19 "guías 1-11") | exact (in-place) |
-| `README.md` raíz (EXTENDER) | doc índice | — | sí mismo (92 líneas: filas 41-42, "las 14 decisiones" línea 54, stack 70-74 "Google Gemini (fase 4)") | exact (in-place) |
+| New/Modified File | Role | Data Flow (patrón editorial) | Closest Analog | Match Quality |
+|---|---|---|---|---|
+| `docs/05_desarrollo/guia-14-asistente-backend.md` | guide | reescritura honesta (mitad de integración) + blockquote de apertura | el MISMO archivo (estructura canónica) + `guia-12-panel-backend.md` paso 1 (narración de retiro) + `guia-09-ordenes-webpay.md` paso 5 (wrapper IN-06) | exact |
+| `docs/05_desarrollo/guia-15-asistente-cierre.md` | guide | update de filas de la tabla de Gran verificación final | el MISMO archivo (filas 8/10/13 + nota honesta) | exact |
+| `docs/04_arquitectura/adr/018-*.md` (nombre a discreción, ej. `018-asistente-ia-groq-structured-outputs.md`) | adr | NUEVO — supersede ADR-017 | `adr/017-asistente-ia-mini-rag-key-solo-backend.md` (lógica a re-narrar) + `adr/012-retorno-de-webpay.md` (formato con evidencia firmada) | exact (formato) |
+| `docs/04_arquitectura/adr/017-asistente-ia-mini-rag-key-solo-backend.md` | adr | marca de superseded — cuerpo BYTE-INTACTO | principio in-repo: guia-12 paso 1 ("las guías 5 y 6 NO se re-editan — jamás") | parcial (no hay ADR superseded previo en el corpus) |
+| `docs/04_arquitectura/contrato_api.yaml` | spec (OpenAPI) | agnostic-wording sweep — 8 descripciones, versión NO sube (D-66) | el MISMO archivo (ya usa "Servicio externo del asistente" en la fila 503) | exact |
+| `docs/02_requerimientos.md` | requirements | rewrite in-place de filas RNF-08/RNF-09 (sin renumerar) | el MISMO archivo (RNF-08/09 actuales, líneas 146-147) | exact |
+| `docs/03_diseno.md` | design | rename de entidad externa + update DFD 15.0 (sin renumerar series) | el MISMO archivo (DFDs 12.0-14.0 como molde de DFD versionado) | exact |
+| `docs/04_arquitectura/README.md` | index (arquitectura) | fila de dependencias + fila nueva en índice de ADRs | el MISMO archivo (fila "SDK Webpay" l.121 como molde de fila de SDK) | exact |
+| `docs/05_desarrollo/README.md` | index (guías) | fila 14 del índice + párrafo "mapa mental" | el MISMO archivo (filas 12/13 ya escritas como molde) | exact |
+| `README.md` (raíz) | index (proyecto) | prosa de descripción/stack (2 pasajes) | el MISMO archivo (l.9-11 y l.74-76) | exact |
+| `docs/05_desarrollo/guia-12-panel-backend.md` | guide | one-liner (l.16: "el SDK de Gemini llega con la guía 14") | el MISMO archivo | exact |
+| `docs/05_desarrollo/guia-13-panel-spa.md` | guide | one-liner (l.1673: "con `google-genai`" en el "Siguiente") | el MISMO archivo | exact |
+| `.planning/PROJECT.md` | planning-doc (discrecional) | constraints / Key Decisions de IA (10 menciones: l.9, 33, 38, 52-55, 59, 68-69, 80) | el MISMO archivo | exact |
+| `.planning/research/STACK.md` | research-doc (discrecional) | nota groq en stack vivo (14 menciones: l.3, 30, 33, 75, 83, 102, 109, 118, 134-135, 143, 151, 155, 159) | el MISMO archivo | exact |
+| `.planning/phases/04-.../04-UAT.md` | uat-log (fase) | re-verificación test 2 (registro expected/result/verified_by/evidence) | el MISMO archivo (tests 1-2 ya registrados) | exact |
 
-*Numeración de guías y de ADRs: títulos y partición exacta son discretion del planner (CONTEXT §Claude's Discretion); D-62 fija el orden funcional. Fase 3 partió su feature mayor en backend (9) / SPA (10) / cierre (11) — el espejo natural para el admin es 12/13 y para el asistente 14/(15), con la Gran verificación final en la última guía de la fase (como guia-08 y guia-11 la llevaron).*
+**Fuera de alcance (D-51/D-50/STAKE-04/D-57 diferidos):** upload de imágenes, refund PAID, gráficos de métricas, streaming del chat — ninguna entrada de este mapa los toca.
 
 ## Pattern Assignments
 
-### Grupo A — Requerimientos y diseño de la etapa 4
+### `docs/05_desarrollo/guia-14-asistente-backend.md` (guide, reescritura de la mitad de integración)
 
-#### `docs/02_requerimientos.md` (EXTENDER)
+**Analog primario: el MISMO archivo** — se mantiene la estructura canónica completa; solo cambia el CONTENIDO de los pasos que hablan del proveedor. **Analog secundario de narrativa:** `guia-12-panel-backend.md` paso 1. **Analog estructural del service:** `guia-09-ordenes-webpay.md` paso 5.
 
-**Analog:** sí mismo (392 líneas, leído completo esta sesión).
+**Qué se mantiene (formas que NO cambian):** header blockquote "Qué construirás hoy / Al terminar tendrás / Necesitas" (l.3-16); tabla "Los términos de hoy" (l.20-31); la secuencia de pasos con 🧠/código/✅; la sección "❌ El error que este archivo evita" (l.690-793); "✅ Verificación de la guía" (l.797-814); "📝 Punto de control" (l.816-833); "Lo que acabas de aprender" (l.835-864); "**Siguiente:**" (l.866-869). Pasos que quedan casi intactos: **Paso 4 schemas** (solo `Recomendacion` gana `model_config = ConfigDict(extra="forbid")` — RESEARCH Pattern 1), **Paso 6 router** (responses 422/429/503 y copys locked NO cambian — D-66/Pitfall 5), **Paso 7 include_router** (l.593-632).
 
-**Series vigentes a continuar** [VERIFIED: RF-18 línea 118, RNF-07 línea 132, RN-13 línea 150, HU-11 líneas 252-259]: los nuevos llegan como **RF-19+** (CRUD productos ADMN-01, stock+alerta ADMN-02, gestión pedidos ADMN-03, métricas ADMN-04, chat/burbuja AIAS-01, recomendación validada AIAS-02), **RNF-08+** (candidato: dependencia del servicio Gemini free tier con degradación — espejo de RNF-07 de Webpay, línea 132), **RN-14+** (candidatos locked por CONTEXT/UI-SPEC: umbral stock bajo ≤ 5 como constante del backend D-53, transición única admin PENDING→CANCELLED D-50, topes del chat 500 chars/10 mensajes D-58/D-59), **HU-12+** (la dueña gestiona; la clienta pregunta a la asesora).
-
-**Formato exacto de un RF con origen** (línea 112, replicar):
+**Patrón de blockquote honesto de apertura (D-65) — copiar de guia-12 paso 1 (l.37-54):**
 
 ```markdown
-- **RF-12:** El sistema debe recalcular el pedido completo al crear la orden: el backend
-  consulta el catálogo vigente por cada par `{producto_id, cantidad}` del carro... *(CART-03, P6)*
+## Paso 1 — La retirada del demo: `/api/admin/estado` se va con honors
+
+🧠 **El desarrollador piensa:** *esta guía empieza con un funeral chico. [...]
+Cumplió su lección a cabalidad [...] ¿Y las guías 5 y 6 que lo construyeron?
+NO se re-editan — jamás: la historia del contrato es la historia de la tienda [...]
+La evolución se narra AQUÍ [...] — el mismo criterio de las fases anteriores:
+nada cambia en silencio.*
 ```
 
-**Puntos que cambian de estado:**
-- §1 contexto (13-26): el párrafo narra la etapa 4 (panel + asesora) — hoy termina en la etapa 3 (líneas 17-20).
-- §2 alcance: nuevo bloque "**Dentro del alcance de la etapa 4**" después del de etapa 3 (53-58); las filas P7/P8 del bloque "Fuera del alcance de las etapas 1 a 3" (líneas 61-62 verbatim: `Panel de administración de productos, stock y pedidos (P7) → **etapa 4**.` / `Asesora de venta con recomendación de aromas (P8) → **etapa 4**.`) se mudan al bloque nuevo — igual que la fase 3 hizo con P6.
-- §3 actor Admin (línea 76): su descripción hoy dice "su panel de gestión llega en la etapa 4" — se actualiza; el blockquote 78-82 ("la asesora de venta (P8) y el panel completo... siguen siendo alcances de etapas futuras") se retira o invierte.
-- **RN-04 (líneas 141-142)** — punto delicado: dice "El catálogo de esta etapa es de **solo lectura**... crear, editar y desactivar llegan con el panel de administración de la etapa 4". Con el panel construido, la regla cambia de estado. Mecánica de fases previas: nunca renumerar; el planner elige la forma honesta (reescribir el alcance de RN-04 a "las clientas no escriben el catálogo; la escritura es del admin (etapa 4)" o dejar el texto histórico y que la RN nueva lo supersede citándolo) — misma decisión editorial que la tabla de errores del contrato enfrentó con el 400 en fase 3.
-- §9 procesos (288-298): nuevos numerados 12+ (gestionar productos/stock, anular pedido huérfano, ver métricas, conversar con la asesora) — insumo de los DFDs de docs/03.
-- §10 entradas (304-312): filas nuevas — editor de producto (familia enum RN-01, precio/stock ≥ 0), transición de estado, mensaje+historial del chat con topes.
-- §12 pantallas (325-333): ítems **10-14** (productos admin, pedidos admin, métricas, no autorizado, asesora/burbuja) — numeración propuesta por `04-UI-SPEC.md` §Nota para el planner (línea 345).
-- §13 trazabilidad, filas P7/P8 (líneas 349-350 verbatim): `| P7 Panel de administración | *(llegan con la etapa 4: ADMN-01..04)* | Etapa 4 |` → mapeo real a los RF/RN/HU nuevos (igual que fase 3 hizo con P6 en línea 348).
-- §14 aprobación (379-384): nuevo bloque "**Etapa 4 — panel de administración y asesora (documentada el 2026-09-__)**" con la misma tabla de firmas.
-- §8 modelo de datos (265-269): **sin entidades nuevas** (D-58: cero tablas para el asistente) — la nota del bloque puede decirlo explícitamente: la etapa 4 no toca el esquema.
+El blockquote de apertura de guia-14 rework (≈5 líneas, antes de "Los términos de hoy") replica exactamente este molde: narra el swap (Gemini→Groq: 402 real + billing obligatorio de Google), declara que el registro completo vive en ADR-018, y sigue "como si Groq siempre hubiera sido".
 
----
-
-#### `docs/03_diseno.md` (EXTENDER)
-
-**Analog:** sí mismo (1002 líneas, leído completo esta sesión).
-
-- **§2 datos SIN cambios de esquema**: cero entidades nuevas (D-58). La nota "Lectura del diagrama" (73-83) puede ganar su párrafo de etapa 4. **§2.3.5 `activo` (155-158 verbatim)** ya diseñó el soft delete que D-52 implementa: *"Desactivar un producto lo saca del catálogo sin destruir su historial... Ocultar es reversible; borrar no"* — la decisión nueva lo cita en vez de reinventarlo.
-- **§2.3 decisiones numeradas** (hoy 1-14, líneas 133-217): continuar con **15+** — candidatos: la máquina de estados completa con su única transición manual admin (D-50), el umbral de stock bajo como constante del backend distinta del umbral de tienda (D-53 + Pitfall 6), el mini-RAG honesto con validación de ids (D-56), la degradación sin key (D-61). El blockquote final (236-245) gana su párrafo de etapa 4 (ADRs 015-017).
-- **§3.1 contexto (251-277)**: agrega **Gemini** como segunda entidad externa — el mermaid `flowchart LR` gana `GEM["Gemini (asesora IA)"]` con su arco ida/vuelta, igual que Webpay entró en fase 3 (265, 276-277). El bloque de texto (253-257) narra: la etapa 4 suma el segundo servicio externo — y este es de tipo nuevo (request-response JSON del backend, sin redirecciones).
-- **§3.2 almacenes (280-294)**: sin almacenes nuevos; nota posible: el historial del chat vive en memoria del componente (D-58), no en A2 ni BD.
-- **§3.3-3.13 DFDs 1.0-11.0** → continuar con **12.0+**: gestionar catálogo (admin escribe D1 por primera vez fuera del seed), anular pedido huérfano (UPDATE condicional sobre D3 — espejo del 10.0), calcular métricas (agregación de solo lectura sobre D3+D1), conversar con la asesora (admin NO: visitante → validar topes → system prompt con D1 activo → Gemini → validar ids contra D1 → respuesta+cards). Formato por DFD (verbatim del 11.0, 479-487): flowchart TD con almacenes `D1[("D1 Productos")]` + bloque "**Reglas del proceso:**" (489-495).
-- **§4 pantallas 10-14**: el contenido YA ESTÁ especificado por `04-UI-SPEC.md` (pantallas 10-14, líneas 178-232) — el doc de diseño lo traduce al formato vigente. Formato obligatorio por pantalla (910-912 verbatim):
-
-```markdown
-**Origen:** RF-17, HU-11, RN-11 · **Estados:** carga (filas esqueleto) /
-error de carga (mensaje con la causa y Reintentar) / vacío ("Todavía no
-tienes pedidos" + botón Ver catálogo que reemplaza la página)
-```
-
-  ...más wireframe ASCII (como 914-927) y viñetas con las decisiones (como 929-938). La regla §4.1 (513-514) "cada pantalla declara sus estados de carga, error y vacío" aplica con fuerza: la burbuja declara 503/429/red (UI-SPEC 227-231) y el panel declara empty/error por tabla (UI-SPEC 288-300).
-- **§5 trazabilidad (944-984)**: una fila por RF/RN/HU nuevo de la etapa 4.
-
----
-
-### Grupo B — Contrato 0.4.0, ADRs 015+ y README de arquitectura (ANTES de las guías)
-
-#### `docs/04_arquitectura/contrato_api.yaml` (EXTENDER — 0.3.0 → 0.4.0)
-
-**Analog:** sí mismo (778 líneas, leído completo esta sesión).
-
-**Cambios puntuales con línea exacta:**
-- `info.version: 0.3.0` (línea 13) → `0.4.0`.
-- `info.description` (19-26): la nota de autenticación se extiende — los paths `/api/admin/*` nuevos exigen rol admin; `/api/asistente` es público como el retorno.
-- **Tabla de convención de errores (30-40)**: **agregar fila 503** (servicio externo del asistente no disponible — degradación D-61, sin key o Gemini caído) y **fila 429** (cuota del free tier de Gemini, traducida amable). La fila 409 (línea 39, "Conflicto (email ya registrado)") gana su segundo uso: **transición ilegal de pedido** — RESEARCH Open Question 3 recomienda 409 con detail claro ("Ese pedido ya no está en curso"). Verbatim actual del encabezado:
-
-```yaml
-    **Convención de errores:**
-
-    | Código | Significado | Estado |
-    |---|---|---|
-```
-
-- **tags (48-60)**: el tag `Administración` (57-58, hoy `Endpoints protegidos por rol admin (AUTH-03, D-33)`) se reescribe citando ADMN-01..04; nuevo tag `Asistente` (o `Chat` — discretion) citando AIAS-01..03.
-- **schemas**: la convención es `description` citando requisito + description por campo + `example` + `required` (patrón ProductoResumen 85-112). Nuevos: `ProductoCrear`/`ProductoEditar` (familia enum cerrado 106, precio/stock enteros ≥ 0, imagen como texto D-51; **sin campo `activo` en el editor** — el toggle es escritura propia, UI-SPEC 185), `PedidoTransicion`, `Metricas`, `ChatMensaje`/`ChatRespuesta`. **Lección estructural heredable de CheckoutCreate (185-212)**: aquel schema demostró una regla por AUSENCIA de campo (ningún precio de entrada, CART-03); el editor de productos hace lo mismo con la allow-list de campos editables (mass assignment, Security Domain de RESEARCH).
-- **paths**: `/api/admin/estado` (492-536) **se RETIRA y se reemplaza** por los paths reales (D-54) — la subida a 0.4.0 NARRA la evolución en la description de los paths nuevos o en `info.description` (Pitfall 7: jamás en silencio; las guías 05/06 no se re-editan). El patrón de TODOS los endpoints admin nuevos es el 403 del endpoint demo (529-536 verbatim):
-
-```yaml
-        '403':
-          description: Con sesión, pero sin rol admin
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-              example:
-                detail: Requiere rol admin
-```
-
-- **El endpoint del asistente copia el `security: []` del retorno** [VERIFIED líneas 602 (GET) y 661 (POST): `security: []` con la explicación en description 594-601 "Público por diseño"] — mismo contraste pedagógico, segunda aparición (D-59).
-- **Cada response nueva declarada en el contrato Y en el `responses={...}` del router de la guía** (Pitfall 5, lección guia-05:586): el 503/429 del asistente y el 409 de transición deben aparecer en `/docs` o la fila contrato ↔ `/docs` de la Gran verificación final canta un desvío falso.
-
----
-
-#### `docs/04_arquitectura/adr/015..017-*.md` (NUEVO — 3 ADRs)
-
-**Analog:** `adr/012-retorno-de-webpay.md` (97 líneas, leído completo) y `adr/014-snapshot-de-precio-en-la-orden.md` (84 líneas, leído completo) — los más recientes; ADR-011 es la base temática del 015.
-
-**Esqueleto obligatorio** (ADR-012 líneas 1-5 + secciones fijas, idéntico en 014):
-
-```markdown
-# ADR-015 — <Decisión en una frase>
-
-- **Estado:** Aceptada
-- **Fecha:** 2026-09-__ (fecha de la fase 4)
-- **Resuelve:** <pregunta de decisión>
-
-## Contexto
-## Opciones consideradas        → tabla | Opción | A favor | En contra | (3 opciones A/B/C)
-## Decisión                     → "**Opción X.**" + reglas numeradas
-## Consecuencias                → **Positivas** / **Negativas (honestas)**
-## Para conversar en clase      → 3 preguntas numeradas
-```
-
-**Contenido candidato (discretion CONTEXT):**
-- **015 — Panel admin protegido por rol en los dos tiers (D-55):** `RequireAdmin` como espejo UX del 403 (base ADR-011: el claim de rol viaja desde el primer token); el guard SPA NO es la seguridad — `get_current_admin` en CADA endpoint lo es (lección D-33 hecha patrón). Consecuencia negativa honesta candidata: dos niveles de "quién puede" que deben mantenerse en sync.
-- **016 — Máquina de estados de pedidos con transición admin única (D-50):** los 4 estados existentes sin nuevos; transiciones legales documentadas con dueño (el flujo de pago posee las suyas — ADR-012/013; el admin tiene exactamente UNA: PENDING→CANCELLED, la gestión de huérfanas que D-48/D-49 dejaron para esta fase); cancelar PENDING no toca stock (D-35); PAID terminal en v1 (refund = ADMN-05 v2). El ADR-013 y RN-11/RN-12 son su contexto; cita la fila que guia-11:28 y docs/02 RN-11 dejaron prometida.
-- **017 — Asistente IA con mini-RAG y key solo en backend (D-56/D-60/D-61):** catálogo activo completo en el system prompt (12 SKU caben); structured output JSON + validación de ids contra BD (la muralla anti-alucinación es del servidor); endpoint público deliberado; key por `.env` opcional con degradación 503 (NO fail-fast, contraste explícito con `secret_key` de fase 2). **Este ADR cita la evidencia externa firmada** — `04-RESEARCH.md` Patterns 1-3 contra el README del tag v2.25.0 (`response_json_schema`, `errors.APIError`, env var auto-pickup) — replicando el patrón de ADR-012 citando `03-SPIKE-RETORNO.md` (012:18-19, link relativo `.md`), y narra el drift docs-web/SDK-pinneado como lección (Pitfall 1).
-
-**Referencias cruzadas:** links relativos entre ADRs (012:55-56 cita ADR-009/013) — 015 cita 011; 016 cita 013 y el futuro panel; 017 cita 007 (contrato) y 009 (dónde viven los secretos).
-
----
-
-#### `docs/04_arquitectura/README.md` (EXTENDER)
-
-**Analog:** sí mismo (250 líneas, leído completo esta sesión).
-
-- **§3 Stack**: la fila placeholder (línea 122 verbatim) `| IA (fase 4) | **google-genai** | SDK oficial de Gemini; la API key vive solo en el backend — llega en su fase |` se convierte en fila real `google-genai 2.25.0 (pin >=2.25,<3)` citando ADR-017 — igual que la fila "Pago (fase 3)" lo hizo en fase 3 con ADR-012/013.
-- **§4 árbol (134-178)**: agregar con el comentario de una línea por archivo (estilo línea 156 `services/webpay.py  # wrapper ... el ÚNICO lugar que importa transbank`): `routers/admin.py` (SU comentario cambia: hoy línea 159 dice `# /api/admin/estado — protegido por rol admin (D-33)` → CRUD real de administración), `routers/asistente.py`, `services/asistente.py  # el ÚNICO lugar que importa google.genai`, `repositories/producto.py`/`pedido.py` extendidos (CRUD admin, transiciones, agregaciones de métricas), `components/RequireAdmin.tsx`, `lib/badges.ts` (BADGES a módulo propio — tercera consumidora, UI-SPEC 138), `features/admin/` (LayoutAdmin + 3 sub-pantallas + NoAutorizado), `features/asistente/` (BurbujaAsesora). Mantener intacto el disclaimer guide-only (128-132).
-- **Reglas de dependencia 1-6 (181-195)**: no cambian — la regla 6 ("features sin imports cruzados sin razón") gana su SEGUNDA excepción narrada (ProductCard del catálogo reusada en el chat, patrón D-46 igual que `VoucherPedido` en guia-11); la regla 3 (services sin HTTP) es la que el wrapper del asistente respeta (traduce errores del SDK a señales de dominio; el 503/429 lo decide el router).
-- **§5 índice de ADRs (201-216)**: 3 filas nuevas (015, 016, 017) con el formato `| [ADR](adr/NNN-slug.md) | Decisión | Resuelto por |`.
-
----
-
-### Grupo C — Guías 12+ (orden D-62: admin backend → admin SPA → asistente backend → burbuja + cierre)
-
-> Regla transversal: cada guía replica la **estructura canónica** (ver Shared Patterns) y abre con la lista de prerrequisitos por número de guía ("Necesitas: las guías 1 a N completas...", como guia-10:12-17 y guia-11:12-17).
-
-#### `guia-12-*` (NUEVO — backend del panel admin)
-
-**Analog:** `guia-05-cuentas-backend.md` (mapa estructural por lectura dirigida esta sesión) + `guia-09-ordenes-webpay.md` (1614 líneas, leído completo — la guía backend más reciente).
-
-**Correspondencia paso a paso con guia-05/guia-09:**
-- **Instalación**: guia-09 Paso 1 (35-72) narró "un paquete, cero `.env` nuevo" — el admin NO instala nada (todo el stack ya está); el paso de instalación real es de la guía del asistente.
-- **Schemas espejo del contrato**: guia-09 Paso 3 (214-318) "abro `contrato_api.yaml` ... y escribo sus schemas en Pydantic" — el admin espeja el 0.4.0 (`ProductoCrear/Editar`, `PedidoTransicion`, `Metricas`) con la lección de allow-list (sin `model_dump` ciego sobre el ORM).
-- **Repositories**: guia-09 Paso 4 (321-457) — el repo de productos gana escrituras admin (crear/actualizar por id, toggle `activo`, listado TODOS incluidos inactivos D-52); el de pedidos gana `todos()` (el admin ve todo el mundo, sin filtro de dueña — contraste con `por_usuario`) y la **transición validada**: UPDATE condicional `WHERE estado == pending` (la MISMA muralla del guard ya-PAID de guia-09:887-897, aplicada a la transición admin — rowcount 0 → 409, D-50).
-- **Services**: guia-09 Paso 6/7 (559-924) — `AdminService`/`MetricasService` sin conocer HTTP; la señal `TransicionIlegal` la traduce el router a 409 (igual que `CarroNoComprable` → 400 en guia-09:999-1003). Las métricas son agregaciones SQL en el repo (research Ejemplo D: sum PAID, group_by estado, top 5 por líneas snapshot, count stock bajo con `activo == True`).
-- **Routers bajo `get_current_admin`** [VERIFIED guia-05:459-468 verbatim — la dependencia existe desde fase 2]:
+**Patrón de constante con nombre (D-64 `MODELO_ASISTENTE`) — copiar de guia-12 (l.277-285):**
 
 ```python
-def get_current_admin(
-    current: Usuario = Depends(get_current_user),
-) -> Usuario:
-    """Dependencia: la sesión actual debe tener rol admin — o 403."""
-    if current.rol != RolUsuario.admin:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Requiere rol admin",  # el detail del 403 del contrato
-        )
-    return current
+# Umbral de stock bajo del PANEL (RN-14, D-53): productos ACTIVOS con esta
+# cantidad o menos. [...] Dos conceptos, dos constantes, dos textos [...]
+STOCK_BAJO_UMBRAL = 5
 ```
 
-  ...con `responses` declaradas por endpoint (lección guia-05:586-589: "cada `HTTPException` lanzada a mano NO aparece en OpenAPI si no se declara") — el 409 de la transición incluido.
-- **main.py**: guia-09 Paso 9 (1194-1216) — solo `include_router` + `version="0.4.0"` (subir la versión que la app declara de sí misma, misma coherencia ADR-007).
-- **Prueba de fuego**: guia-09 Paso 10 (1235-1456) — mini-verificaciones con httpx una línea: 200 admin vs 403 clienta en cada path nuevo, el 409 de anular dos veces, el soft delete (inactivo desaparece del catálogo público pero el pedido viejo conserva su snapshot, D-52/D-36).
+`MODELO_ASISTENTE = "openai/gpt-oss-120b"` va con el mismo ceremonial: comentario que cita el respaldo (D-64), nombre propio, valor fijo del backend. El `.env` del alumno queda mínimo: solo `GROQ_API_KEY`.
+
+**Patrón de wrapper de servicio externo (IN-06) — la FORMA se copia del propio guia-14 paso 5 (l.361-369) que a su vez espeja guia-09 paso 5 (l.497-547):**
+
+```python
+# guia-09 l.530-546 (el molde original — traducción de errores del SDK):
+def commit(token_ws: str) -> dict | None:
+    """[...] la excepción tipada del SDK (TransbankError [...]) y los errores
+    de red de requests se traducen a señal de dominio AQUÍ — ninguna excepción
+    de transbank ni de su transporte cruza la frontera de este archivo.
+    """
+    try:
+        return tx.commit(token_ws)
+    except (TransbankError, requests.ConnectionError, requests.Timeout):
+        return None
+```
+
+```python
+# guia-14 l.361-369, 433-434, 458-469 (las señales de dominio y el client lazy — SE MANTIENEN):
+class CuotaAgotada(Exception): ...
+class AsistenteNoDisponible(Exception): ...
+_client: genai.Client | None = None   # → Groq | None (lazy, D-61)
+```
+
+**Lo que CAMBIA (contenido probe-verified, fuente: 04-RESEARCH.md Patterns 1-3 + Ejemplos A/B — NO copiar de las versiones Gemini):**
+- Paso 1: `uv add "groq>=1.7,<2"` + `uv remove google-genai` (el blockquote narra el porqué del remove); mini-verificación de versión piso/techo (el fix D-4-6 ya enseñaba esa forma).
+- Paso 2: console.groq.com en vez de aistudio.google.com; `.env.example` con `GROQ_API_KEY=` vacía; verificación por existencia sin imprimir el valor (mantener la forma actual l.116-125).
+- Paso 3: `groq_api_key: str | None = None` (el contraste fail-fast con `secret_key` es la lección — mantener intacto el 🧠 actual l.131-145).
+- Paso 5: `from groq import Groq, RateLimitError`; `response_format={"type": "json_schema", "json_schema": {"name": "Recomendacion", "strict": True, "schema": Recomendacion.model_json_schema()}}`; `Recomendacion.model_validate_json(completion.choices[0].message.content)`; except `RateLimitError` → `CuotaAgotada`, except `GroqError` → `AsistenteNoDisponible`; construcción del client DENTRO del try (RESEARCH Pattern 2: `Groq()` sin key lanza en construcción). Gotcha IN-03 a re-narrar: el SDK `groq` también auto-pickupea `GROQ_API_KEY` del entorno y NO lee `.env`.
+- 🧠 del 429: cifras **30 RPM / 1.000 RPD / 8K TPM / 200K TPD** para `openai/gpt-oss-120b` CON link a console.groq.com/docs/rate-limits y "a la fecha de esta guía" (D-68 + corrección del research — JAMÁS "14.400 RPD").
+- "Errores que evita" nº2 (l.710-733, drift de docs): re-escribir con el gotcha strict-mode (`extra="forbid"` — Pitfall 2 del research) como nueva lección; nº4 retry: actualizar a "el SDK groq reintenta 2x (incluye el 429)".
 
 ---
 
-#### `guia-13-*` (NUEVO — la SPA del panel: `/admin`, RequireAdmin, 3 pantallas)
+### `docs/05_desarrollo/guia-15-asistente-cierre.md` (guide, ajustes puntuales)
 
-**Analog:** `guia-11-pedidos-cierre.md` (636 líneas, leído completo) + `guia-10-retorno-voucher.md` (847 líneas, leído completo).
+**Analog: el MISMO archivo.** El componente BurbujaAsesora, `apiPostPublico`, el montaje en Layout y los copys NO cambian. Solo:
 
-- **`RequireAdmin` extiende `RequireAuth`** [VERIFIED guia-06:961 verbatim: "`RequireAuth` con `Navigate state={{ from: location }} replace` y el login que vuelve con `location.state?.from?.pathname ?? \"/\"`: el returnTo genérico (D-32)"] — el sketch exacto de RESEARCH Pattern 4 lo implementa: sin sesión delega en `<RequireAuth />`; con sesión sin rol → `<NoAutorizado />` SIN expulsar al login (le falta permiso, no identidad). El 🧠 cita ADR-011 y D-33 (el espejo frontend del 403).
-- **Montaje en `main.tsx`** — patrón guia-10 Paso 3 (233-248) y guia-11 Paso 4 (408-414) con la novedad del layout intermedio: rama `<Route element={<RequireAdmin />}>` FUERA del Layout de tienda con `<Route path="/admin" element={<LayoutAdmin />}>` + hijos index/pedidos/metricas (UI-SPEC 158-169 verbatim ya trae el bloque completo).
-- **Pantalla de lista**: guia-11 Paso 1 (61-201) es el patrón de tabla/lista con `useQuery` + skeleton `animate-pulse` + error puerto 8000 + Reintentar + empty state — AdminProductos/AdminPedidos lo replican con tabla semántica (UI-SPEC pantalla 10-11).
-- **BADGES a módulo propio**: guia-11:77-86 dejó la tabla BADGES con la nota exacta [VERIFIED]: *"Si un día nace una tercera consumidora, baja a un módulo propio — hoy son dos y copiarla una vez más es más honesto que adelantarse"* — el panel ES la tercera consumidora: la guía mueve BADGES a `src/lib/badges.ts` y las tres consumidoras importan de ahí (UI-SPEC 138; el refactor toca el código del alumno, jamás re-edita guia-10/11).
-- **El navbar gana "Panel" (solo admin)**: patrón guia-11 Paso 3 (345-376) — el link condicionado por `usuario.rol === "admin"` dentro del bloque con sesión, ANTES del email (D-55; espejo de "Mis pedidos" D-47).
-- **Mutaciones (toggle, editor, anular)**: guia-10 Paso 2 (146-194) — `useMutation` + `disabled={isPending}` + label en gerundio; éxito = dato actualizado en el lugar + `invalidateQueries` (la queryKey `productos` compartida con el catálogo público reacciona sola, UI-SPEC 187). **"Anular" con confirmación en dos pasos inline**: patrón "Vaciar carro" de fase 2 (UI-SPEC 196 lo fija).
-- **Editor inline como estado de la pantalla 10** (`editando: producto | "nuevo" | null`, sin ruta propia): sin precedente directo en el corpus — la forma vive completa en UI-SPEC 183-189 (campos, helpers, validación espejo del 422).
+**Fila 8 del happy path (l.524) y su nota honesta (l.538-540) — el patrón de fila que se ajusta:**
 
----
+```markdown
+| 8 | La burbuja abre con la bienvenida LOCAL [...] y la asesora recomienda con
+la voz de Maura en UNA respuesta con 1-3 cards clicables [...] | RF-23, RF-24, HU-13, D-57/D-58/D-46, ADR-017 |
+```
 
-#### `guia-14-*` (NUEVO — el asistente en el backend)
+El ajuste: la nota honesta "(el happy path [...] requiere TU key: en el aula, cada quien con la suya, D-60)" pasa a nombrar console.groq.com/D-63 y citar ADR-018 junto al 017 donde aplique.
 
-**Analog:** `guia-09` Paso 5 `services/webpay.py` (460-547) — el patrón estructural exacto: **UN ÚNICO archivo importa el SDK externo**, habla el vocabulario del negocio y traduce TODOS los errores del SDK a señales de dominio antes de que crucen la frontera.
+**Fila 10 (l.526) y fila 13 (l.529) — sustitución literal de la key en el patrón del grep:**
 
-**La correspondencia wrapper por wrapper** [VERIFIED guia-09:497-547 verbatim]: como `services/webpay.py` es el único que escribe `import transbank` y su `commit` devuelve `None` ante `TransbankError`/errores de red, `services/asistente.py` es el único que escribe `from google import genai` y su llamada atrapa `errors.APIError` → 429 (cuota, copy amable sin cifras — concern abierto) / 503 (todo lo demás), jamás un 500 crudo (D-61, patrón IN-06). El código fuente firmado: RESEARCH Patterns 1-3 (verbatim del README v2.25.0).
+```markdown
+| 13 | **El grep del build** (AIAS-03): `npm run build` y, DESPUÉS [...] busca
+`GEMINI_API_KEY` en el `dist/` regenerado — **CERO coincidencias**. Git Bash:
+`grep -r "GEMINI_API_KEY" dist/` [...] PowerShell: `findstr /s /i "GEMINI_API_KEY" dist\*`
+(o `Select-String -Path dist\* -Pattern "GEMINI_API_KEY"`) [...] | RNF-09, AIAS-03, D-60 |
+```
 
-- **Paso de instalación + key del alumno (D-60):** `uv add "google-genai>=2.25,<3"` (RESEARCH Installation) + crear SU key gratis en Google AI Studio — mismo patrón de "paso del alumno, nada compartido" que D-08 con las fotos y que guia-05:92-101 con las claves demo: la guía versiona una PLANTILLA `.env.example` (agrega `GEMINI_API_KEY=`) y jamás escribe una key real.
-- **Settings con degradación (D-61)** [VERIFIED guia-05:119-137 — el patrón Settings]: `gemini_api_key: str | None = None` con su comentario de etapa, en CONTRASTE explícito con `secret_key: str  # SIN default: sin .env la app no parte (fail-fast)` (guia-05:130) — el 🧠 de la guía hace esa comparación: el asistente es opcional, la firma de sesiones no. Client construido lazy/guardado para que la app arranque sin key.
-- **Router público**: `security: []` espejo del retorno (contrato 589-604); Pydantic valida topes (500/10, RN nueva → 422); `responses` declara 200/422/**503/429** (Pitfall 5).
-- **Mini-RAG + validación de ids (D-56)**: system prompt con catálogo ACTIVO por request; `Recomendacion` Pydantic con `.model_json_schema()` al `GenerateContentConfig`; ids filtrados contra BD antes de responder (RESEARCH Pattern 6 + Ejemplo A).
-- **Mini-verificación sin key (degradación)**: comentar la key del `.env`, `GET/POST /api/asistente` → 503 amable y la tienda sigue 100% operativa — verificable sin depender del usuario (Open Question 1).
+Cambiar `GEMINI_API_KEY` → `GROQ_API_KEY` en fila 10, fila 13, paso 4 (l.492-499), punto de control 5 (l.670-673) y aprendizajes (l.699-701), manteniendo el control positivo y la variante Select-String (Pitfall 8 del research: findstr desde Git Bash corrompe switches MSYS).
 
 ---
 
-#### `guia-15-*` o cierre de la 14 (NUEVO — la burbuja en la SPA + Gran verificación final de fase 4)
+### `docs/04_arquitectura/adr/018-*.md` (adr, NUEVO — supersede ADR-017)
 
-**Analog:** `guia-11` §Gran verificación final (469-515) + `guia-10` (mutación, rutas).
+**Analog de contenido: ADR-017 completo (130 líneas). Analog de formato con evidencia: ADR-012.**
 
-- **La burbuja (`BurbujaAsesora`) en el Layout de la tienda**: visible en páginas públicas, NO en `/admin` (rama de layout propia). UI-SPEC pantalla 14 (218-231) trae el contrato completo: botón flotante "Pregúntale a Maura", panel `fixed bottom-20 right-6` con header/mensajes/input, historial stateless en estado del componente (D-58), bienvenida local (no gasta cuota), `useMutation` por request (no useQuery), burbuja `animate-pulse` en vuelo, product cards = **reuso literal de `ProductCard`** (import cruzado con razón, patrón D-46 — la segunda excepción de la regla 6).
-- **Estados del chat**: 503 → "La asesora no está disponible en este momento." + Reintentar; 429 → "recibiendo muchas consultas" SIN cifras; red → familia puerto 8000 (UI-SPEC Copywriting 271-273 verbatim).
-- **Gran verificación final de fase 4** — formato guia-11 (469-515): tabla numerada `| # | Verificación | Origen |` con cada fila citando CS/RF/HU/ADR de la etapa, y la **fila final contrato 0.4.0 ↔ `/docs`** (los paths nuevos, el 503/429/409 declarados, el endpoint público del asistente, **Authorize probado con la cuenta admin del seed** — ahora authoriza de verdad contra el CRUD completo). **Novedad fija de esta fase: la fila del grep del build** (AIAS-03, D-61): `grep -r "GEMINI_API_KEY" dist/` → **cero coincidencias**, con el comando por shell (Git Bash y PowerShell — Pitfall 8) y DESPUÉS de `npm run build`. Verbatim del cierre a replicar (guia-11:501-505): *"**Cualquier diferencia entre el panel y el contrato es un desvío** — o el código corrige, o el contrato se versiona y se aprueba de nuevo; jamás cambia en silencio... este mismo mecanismo se repite al final de cada fase del proyecto."* Más sugerencia de commit de cierre (guia-11:507-515, adaptada: "Cumple el contrato OpenAPI 0.4.0 ... respeta los 17 ADRs").
-- **El "Siguiente" de guia-11 se cobra**: su cierre (guia-11:631-636) ya anuncia esta fase — la guía nueva referencia las huérfanas PENDING que guia-11 dejó visibles y las anula de verdad (D-50); la clienta las ve CANCELLED en su historial sin editar guia-11.
+**Frontmatter y secciones — copiar el molde de ADR-017 (l.1-5):**
+
+```markdown
+# ADR-017 — Asistente de venta con mini-RAG honesto, structured output y la API key solo en el backend
+
+- **Estado:** Aceptada
+- **Fecha:** 2026-09-30
+- **Resuelve:** cómo recomienda la asesora de aromas sin alucinar productos, y dónde
+  vive la API key de Gemini (AIAS-01..03; decisiones D-56/D-59/D-60/D-61)
+```
+
+ADR-018 replica: `- **Estado:** Aceptada` + `- **Fecha:** 2026-10-01` + `- **Resuelve:**` (nombrando que reemplaza el proveedor de ADR-017, decisiones D-63..D-68) — y sus secciones `## Contexto` / `## Opciones consideradas` (tabla A/B/C) / `## Decisión` (numerada 1..n) / `## Consecuencias` (Positivas + **Negativas (honestas)**) / `## Para conversar en clase` / `## Evidencia firmada` / `Relacionada:` (l.125-130). La tabla de opciones de ADR-017 (l.23-29, mini-RAG vs embeddings vs respuesta libre) es el molde; las opciones de ADR-018 son proveedor/SDK (Groq vs quedarse en Gemini roto vs REST directo — ver RESEARCH "Alternatives Considered").
+
+**Patrón de "Evidencia firmada" — copiar de ADR-017 (l.105-123) y ADR-012 (l.16-18, spike como evidencia):**
+
+```markdown
+## Evidencia firmada
+
+Los patrones citados en las reglas 1 y 5 están firmados con evidencia
+contra el README del SDK en el tag exacto `v2.25.0`, verbatim en los
+Patterns 1-3 de [`04-RESEARCH.md`](../../../.planning/phases/04-panel-.../04-RESEARCH.md): [...]
+```
+
+ADR-018 firma igual contra: docs oficiales de Groq (rate-limits/structured-outputs/deprecations, URLs en RESEARCH §Sources) + probe punta a punta SDK 1.7.0 del 2026-10-01 + la evidencia del 402/billing de Google (04-UAT.md test 2). El gotcha IN-03 (auto-pickup de `GROQ_API_KEY`) se registra acá (re-narrando la regla 5 de ADR-017, l.58-62).
+
+**Contenido que se PRESERVA de ADR-017 (la muralla no cambia — D-56 intacto):** mini-RAG con catálogo activo en el prompt, validación de ids server-side, endpoint público `security: []`, degradación D-61, wrapper jamás-500. Solo cambian: proveedor/SDK, mecanismo de JSON (`response_format` json_schema strict vs `response_json_schema`), key en console.groq.com, y cifras públicas de límites (D-68).
 
 ---
 
-### Grupo D — READMEs de estado (D-13/D-18: el estado avanza por fase)
+### `docs/04_arquitectura/adr/017-*.md` (adr, marca de superseded)
 
-#### `docs/05_desarrollo/README.md` (EXTENDER)
+**Analog del principio: guia-12 paso 1 (l.47-51)** — "¿Y las guías 5 y 6 que lo construyeron? NO se re-editan — jamás [...] la evolución se narra AQUÍ". ADR-017 recibe SOLO el cambio de estado en el frontmatter (l.3):
 
-**Analog:** sí mismo (58 líneas). Tabla (24-36) gana filas 12+ con el estilo "Construye" de una frase (ej. fila 11: "El historial de pedidos y la Gran verificación final de la fase 3"). Blockquote (38-41) se actualiza: "La fase 4 completa sus guías (12-14/15: panel admin, asistente). La guía siguiente llega con la fase 5 (despliegue)". Mapa mental (43-58) suma la capa de IA (el segundo servicio externo: request-response JSON, sin redirecciones — contraste con Webpay).
+```markdown
+- **Estado:** Aceptada
+```
 
-#### `docs/README.md` (EXTENDER)
-
-**Analog:** sí mismo (26 líneas). Fila 4 (línea 18): "`04_arquitectura/` (documento + 14 ADRs + `contrato_api.yaml`)" → **17 ADRs**. Fila 5 (línea 19): `🚧 Parcial (guías 1-11 listas; continúa en fases 4+)` → `(guías 1-14/15 listas; continúa en fases 5+)`.
-
-#### `README.md` raíz (EXTENDER)
-
-**Analog:** sí mismo (92 líneas). Fila 4 (41): "Arquitectura + 14 ADRs + contrato OpenAPI" → 17. Fila 5 (42) igual que docs/README. Línea 54 "las 14 decisiones de arquitectura" → 17. Stack (70-74): "Google Gemini (fase 4)" pasa de promesa a construido, en el tono telegráfico vigente (como "Webpay Plus en ambiente de integración: pago sandbox operativo..." lo hizo en fase 3).
+→ `- **Estado:** Superseded por [ADR-018](018-....md) (2026-10-01)` — cuerpo byte-intacto (Pitfall 7 del research). CERO ediciones al resto del archivo.
 
 ---
+
+### `docs/04_arquitectura/contrato_api.yaml` (spec, 8 descripciones agnósticas — versión queda 0.4.0)
+
+**Analog: el MISMO archivo.** El yaml YA usa registro mayormente agnóstico; el wording objetivo ya existe en la propia fila 503 (l.54): `"Servicio externo del asistente no disponible (sin API key o Gemini caído — degradación D-61)"` → basta eliminar "o Gemini caído" / "Gemini" de cada fila. Las 8 menciones exactas:
+
+| Línea | Contexto | Dirección D-66 |
+|---|---|---|
+| l.53 | Convención de errores, fila 429: "Cuota del free tier de Gemini consumida — [...] sin cifras de límites" | "Cuota del free tier del servicio de IA consumida [...] " — y el paréntesis "no son públicos sin login" MUERE (D-68: son públicos) |
+| l.54 | Convención de errores, fila 503: "[...] (sin API key o Gemini caído — degradación D-61)" | "sin API key o servicio caído" |
+| l.74 | Tag Asistente description: "recomienda aromas del catálogo real vía Gemini" | "vía el servicio de IA" |
+| l.546 | ChatMensaje.historial description: "el free tier de Gemini y validan aquí" | "el free tier del servicio de IA" |
+| l.1436-1437 | description de `POST /api/asistente`: "Gemini responde JSON estructurado [...] Sin `GEMINI_API_KEY` en el .env" | "el servicio de IA responde JSON estructurado [...] Sin la API key del asistente en el .env" + eliminar "(no hay fuente pública sin login)" (l.1440-1441) |
+| l.1464 | response 429: "Cuota del free tier de Gemini consumida — [...] (no son públicos sin login)" | agnóstico, sin el paréntesis |
+| l.1472 | response 503: "(sin API key en el .env del backend o Gemini caído)" | "(sin API key del asistente en el .env o servicio caído)" |
+
+La versión NO sube (0.4.0 nunca salió por separado) y cero churn en guia-12/fila contrato↔`/docs` (D-66). El molde de cómo se escribe una description del asistente ya está en l.1430-1442 — mantener la estructura del bloque `description: |` con bullets de decisiones.
+
+---
+
+### `docs/02_requerimientos.md` (requirements, RNF-08/09 in-place)
+
+**Analog: el MISMO archivo.** Filas actuales (l.146-147):
+
+```markdown
+| RNF-08 | Dependencia externa | La asesora de venta depende del servicio externo Google Gemini
+operado en su **tier gratuito**: cada alumno crea su propia API key gratis, sin tarjeta
+de crédito; [...] degrada a un mensaje amable (503/429), sin cifras de límites que no
+tienen fuente pública | P8 |
+| RNF-09 | Seguridad | La API key de Gemini vive **solo en el backend**, como variable de
+entorno del servidor [...] | AIAS-03, D-60/D-61 |
+```
+
+Rewrite manteniendo código/categoría/columnas: RNF-08 queda agnóstica y SIN números pero con "los límites exactos son los documentados públicamente por proveedor" (D-68); "Google Gemini" → "el servicio de IA" (quien nombra cifras y proveedor es la guía y ADR-018, no la RN). RNF-09: "La API key del asistente vive...". **Patrón de serie sin renumerar (análogo in-repo):** RN-04 (l.156, "el catálogo de esta etapa es de solo lectura [...] llegan con el panel de la etapa 4") quedó byte-intacta cuando RN-15 (l.167) la referencia y la cumple — la regla del corpus es que las series continúan sin tocar lo anterior; aquí la EXCEPCIÓN documentada es que RNF-08/09 describen el sistema VIGENTE y se reescriben (D-67), igual que ADR-002 cambia 2 líneas por la misma razón.
+
+---
+
+### `docs/03_diseno.md` (design, entidad GEM + DFD 15.0)
+
+**Analog: el MISMO archivo; molde de DFD versionado: DFDs 12.0-14.0 (l.555-613).** Los 4 puntos de toque:
+
+1. **Decisión 18** (l.244-249): "sin `GEMINI_API_KEY` el endpoint del asistente responde 503" → "sin la API key del asistente" (la decisión es del QUÉ; agnóstica como el contrato).
+2. **Diagrama de contexto** (l.297-329): el párrafo "la etapa 4 suma a **Gemini**, el segundo servicio externo — y de un tipo nuevo [...]" y el nodo `GEM["Gemini (asesora IA)"]` (l.314) con sus dos flechas (l.327-328). Rename a discreción del planner: `GEM["Servicio de IA (asesora)"]` o nombra Groq como entidad externa concreta (el análogo Webpay en el MISMO diagrama nombra la pasarela real — l.313 `WP["Webpay (pasarela de pago)"]`); ambas calzan con D-67 mientras "asesora Gemini" no quede.
+3. **DFD 15.0** (l.614-636): el nodo `GEM["Gemini (asesora IA)"]` (l.621) y las "Reglas del proceso" (l.628-636: "429 sin cifras de límites (RNF-08)" → ajustar a la nueva RNF-08). El molde mermaid de los DFDs previos (ej. 13.0, l.576-584: entidades `[("D# ...")]`, proceso `(["N.0 ..."])`, aristas con etiquetas `<br/>`) se mantiene exacto.
+4. **Trazabilidad §** (l.1393-1401): "RNF-08 (dependencia del servicio Gemini free tier)", "RNF-09 [...] solo el backend habla con Gemini", "RN-16 [...] topes antes de Gemini" — actualizar el texto entre paréntesis sin tocar los números de fila.
+
+---
+
+### `docs/04_arquitectura/README.md` (index arquitectura)
+
+**Analog: el MISMO archivo.** Cuatro toques con sus moldes:
+
+1. **Contexto** (l.18-19): "(Webpay en la fase 3, Gemini en la fase 4)" → proveedor nuevo o "el servicio de IA".
+2. **Fila de dependencias** (l.122) — molde: la fila Webpay (l.121) con "versión + pin + para qué + link a ADR":
+
+```markdown
+| IA (fase 4) | **google-genai 2.25.0** (pin `>=2.25,<3`) | SDK oficial de Gemini para la
+asesora de venta: JSON estructurado + validación de ids contra la BD (mini-RAG, D-56); la
+API key vive solo en el `.env` del backend y sin key el asistente degrada a 503 amable
+([ADR-017](adr/017-asistente-ia-mini-rag-key-solo-backend.md)) |
+```
+
+→ fila IA pasa a `groq 1.7.0 (pin >=1.7,<2)` citando ADR-018 (y ADR-017 como superseded).
+3. **Regla 3 de capas** (l.196-199): "traduce los errores del SDK de Gemini a señales de dominio" → "del SDK de IA" (la técnica nombrada — `services/webpay.py` — no cambia).
+4. **Índice de ADRs** (l.217-235): fila 017 se mantiene (su "Resuelto por" puede anotar superseded) y se AGREGA la fila 018 siguiendo el formato `| [018](adr/018-....md) | Título | Resuelto por (AIAS-01..03, D-63..D-68) |`.
+
+---
+
+### `docs/05_desarrollo/README.md` (index guías)
+
+**Analog: el MISMO archivo.** Fila 14 del índice (l.39): "El backend de la asesora de aromas: Gemini con respuesta JSON validada contra el catálogo" → proveedor nuevo/agnóstico. Párrafo mapa mental (l.64-69): "Gemini es el **segundo servicio externo** del proyecto — y de un tipo nuevo: Webpay era una redirección [...] la asesora es un request-response JSON **desde el backend**" — mantener la lección de contraste, cambiar el nombre.
+
+### `README.md` raíz (index proyecto)
+
+**Analog: el MISMO archivo.** l.9-11: "un asistente de venta con IA (Google Gemini)" → "(Groq)". l.74-76 (stack en prosa): "Google Gemini: la asesora de aromas recomienda del catálogo real, con la API key solo en el backend" → mismo formato con Groq. Ambos son prosa de una línea; sin tabla.
+
+### `guia-12-panel-backend.md` / `guia-13-panel-spa.md` (one-liners)
+
+- guia-12 l.16 (header "Necesitas"): "el único paquete nuevo de la fase (el SDK de Gemini) llega con la guía 14" → "(el SDK de Groq)". Es la ÚNICA mención; nada más se toca (D-66: cero churn en guia-12).
+- guia-13 l.1672-1675 ("**Siguiente:**"): "el primer endpoint de IA del proyecto con `google-genai`, el mini-RAG honesto [...]" → "con el SDK `groq`". Única mención.
+
+### `.planning/PROJECT.md` y `.planning/research/STACK.md` (discrecionales — rework o cierre de fase)
+
+CONTEXT "Claude's Discretion (rework Groq)" permite ambos; la condición es que NO queden diciendo Gemini al partir la fase 5. Líneas exactas (verif. 2026-10-01): PROJECT.md l.9, 33, 38, 52-55, 59, 68-69, 80; STACK.md l.3, 30, 33, 75, 83, 102, 109, 118, 134-135, 143, 151, 155, 159. Si van en el rework: el molde de PROJECT.md es su propia sección "Constraints" (bullets con backticks) y el de STACK.md su tabla Core (fila `google-genai` l.33 → fila `groq` con misma estructura Version/Purpose/Why/Confidence/Provenance).
+
+### `04-UAT.md` (re-verificación test 2)
+
+**Analog: el MISMO archivo.** Formato de registro por test (copiar de los ya existentes):
+
+```markdown
+### N. Título
+expected: ...
+result: pass|fail
+verified_by: agent (user-delegated)
+evidence: |
+  ...notas de corrida en D:/Repos/maura-uat...
+```
+
+El test 2 se re-verifica tras el rework con la receta del probe del research (SDK `groq` 1.7.0 en el taller, `GROQ_API_KEY` ya presente en el `.env`, truststore como nota de entorno del taller — Pitfall 9).
 
 ## Shared Patterns
 
-### Estructura canónica de guía (obligatoria en guia-12+)
+### 1. Estructura canónica de guía (🧠/✅/📝)
+**Source:** `docs/05_desarrollo/guia-14-asistente-backend.md` (estructura completa) — header blockquote Qué/Al terminar/Necesitas → tabla de términos → pasos numerados con 🧠 "El desarrollador piensa" + bloque de código + ✅ mini-verificación → "❌ El error que este archivo evita" → "✅ Verificación de la guía" numerada → "📝 Punto de control" → "Lo que acabas de aprender" (bullets con D-references) → "**Siguiente:**".
+**Apply to:** reescritura de guia-14 (toda su forma), ajustes de guia-15.
 
-**Source:** `guia-09`/`guia-10`/`guia-11` completas — la secuencia más reciente del corpus.
-**Apply to:** todas las guías nuevas. Secuencia fija: (1) header `# Guía N — Título` + blockquote `**Qué construirás hoy:** / **Al terminar tendrás:** / **Necesitas:**` (guia-11:3-17, con prerrequisitos por número de guía); (2) `## Los términos de hoy (antes de copiar nada)` tabla término/frase (guia-11:21-29 — candidatos fase 4: rol/guard, soft delete, umbral de stock bajo vs últimas unidades, KPI, system prompt, structured output, mini-RAG, degradación, rate limit); (3) pasos `## Paso N —` con 🧠 **El desarrollador piensa:** en cursiva citando ADR/RN/D, código con nombre de archivo en negrita y docstring de módulo, ✅ **Mini-verificación** con comando + output esperado; (4) `## ❌ El error que este archivo evita` con pares ❌/✅ (guia-11:519-573 — candidatos: la key en `VITE_`, validar ids en el frontend, fail-fast sin key, retry casero sobre el SDK, un solo umbral de stock confundido, 409/422 sin declarar en responses); (5) `## ✅ Verificación de la guía N`; (6) `## 📝 Punto de control`; (7) `## Lo que acabas de aprender`; (8) `**Siguiente:**`.
+### 2. Nada cambia en silencio (narración honesta)
+**Source:** `guia-12-panel-backend.md` l.37-54 (retirada del demo narrada in situ; guías previas jamás re-editadas) + `docs/02` RN-04↔RN-15.
+**Apply to:** blockquote de apertura de guia-14 (D-65), ADR-018, marca en ADR-017, nota de la fila 8 en guia-15.
 
-### Gran verificación final de fase
+### 3. Wrapper de servicio externo IN-06 (un solo archivo importa el SDK)
+**Source:** `guia-09-ordenes-webpay.md` l.460-557 (`services/webpay.py`: excepciones tipadas → señal de dominio, `grep -r <sdk> backend/app` lista SOLO el wrapper) ↔ `guia-14` l.282-486.
+**Apply to:** guia-14 paso 5 reescrito: `from groq import Groq, RateLimitError` vive SOLO en `services/asistente.py`; `RateLimitError`→CuotaAgotada, `GroqError`→AsistenteNoDisponible; sin retry casero (el SDK reintenta 2x, incl. 429).
 
-**Source:** `guia-11-pedidos-cierre.md` 469-515 (la versión más reciente).
-**Apply to:** la última guía de la fase 4. Tabla numerada con columna Origen + fila contrato 0.4.0 ↔ `/docs` con **Authorize admin** (ahora contra el CRUD real, no solo el 403 del demo) + párrafo "se repite al final de cada fase" + sugerencia de commit. **Novedades fase 4:** la fila del grep del build (`GEMINI_API_KEY` sin resultados en `dist/`, comando por shell, Pitfall 8) y las corridas de roles con las cuentas seed (admin 200 / clienta 403 / clienta fuerza `/admin` → NoAutorizado). El UAT runtime de estas filas corre en maura-uat (delegado); el happy path del asistente queda tras `checkpoint:human-verify` (Open Question 1 de RESEARCH).
+### 4. Formato ADR demo-cine
+**Source:** `adr/017` (l.1-5, 23-29, 31-67, 69-90, 92-103, 105-130) y `adr/012` (l.1-5, 16-18).
+**Apply to:** ADR-018 completo; sección "Evidencia firmada" obligatoria (disciplina D-56: firmar contra doc oficial + probe, jamás supuestos).
 
-### Formato ADR
+### 5. Fila de tabla de dependencias / índice con link a ADR
+**Source:** `docs/04_arquitectura/README.md` l.115-122 (filas pyjwt/transbank/google-genai) e índice l.217-235.
+**Apply to:** fila IA → groq 1.7.0 pin `>=1.7,<2`; fila nueva de ADR-018 en el índice.
 
-**Source:** `adr/012-retorno-de-webpay.md` (97L) y `adr/014-snapshot-de-precio-en-la-orden.md` (84L) completos (los más recientes).
-**Apply to:** ADRs 015-017. Estado/Fecha/Resuelve → Contexto → Opciones consideradas (tabla 3 opciones con pros/contras honestos) → Decisión ("**Opción X.**" + reglas numeradas) → Consecuencias (**Positivas** / **Negativas (honestas)**) → Para conversar en clase (3 preguntas). El ADR-017 cita la evidencia de RESEARCH contra el README v2.25.0 (patrón ADR-012:14-19 citando el spike con link relativo).
+### 6. Convención de errores del contrato + responses declaradas
+**Source:** `contrato_api.yaml` l.42-54 (tabla de códigos) y l.1450-1478 (422/429/503 con example `detail` locked).
+**Apply to:** wording agnóstico D-66 — los copys `detail` ("La asesora está recibiendo muchas consultas..." / "La asesora no está disponible...") NO cambian; solo las descriptions que nombran Gemini.
 
-### API-first con la subida de versión narrada (D-15/ADR-007 + D-54)
-
-**Source:** `contrato_api.yaml` header (1-8) + la historia 0.1.0→0.2.0→0.3.0 del propio archivo.
-**Apply to:** orden de los planes: docs 02/03 + contrato 0.4.0 + ADRs 015-017 aprobados ANTES de toda guía (D-62). La retirada de `/api/admin/estado` se NARRA (description del contrato o intro de la guía nueva: el endpoint cumplió su lección D-33); las guías 05/06 NO se re-editan (Pitfall 7).
-
-### Trazabilidad numerada continua
-
-**Source:** series vigentes verificadas esta sesión: RF-18 (02_requerimientos.md:118), RNF-07 (:132), RN-13 (:150), HU-11 (:252-259); pantallas 1-9 (03_diseno.md §4); DFDs 1.0-11.0 (§3.3-3.13); ADRs 001-014; decisión de diseño 14 (03_diseno.md:211-217); tags del contrato citando requisitos.
-**Apply to:** todo doc nuevo: RF-19+/RNF-08+/RN-14+/HU-12+; pantallas 10-14 (numeración UI-SPEC 345); DFDs 12.0+; decisiones de diseño 15+; ADRs 015-017; READMEs contando 17 ADRs y guías 1-14/15.
-
-### Extensiones in-place de los docs del ciclo
-
-**Source:** la historia de los archivos — cada doc ya vivió DOS extensiones (01→02→03) cuya mecánica se replica: bloque de alcance de etapa nuevo, series continuadas, fila de §13 completada, bloque de aprobación nuevo; ER/DFD/pantallas solo agregan; el contrato sube versión con la tabla de errores cambiando de estado (el 400 pasó de "Reservado" a "En uso" en fase 3 — el 503/429 nuevos y el 409 con segundo uso siguen la mecánica).
-**Apply to:** idéntica mecánica para 03→04. Nunca renumerar lo existente; solo agregar y cambiar estados de fila (caso delicado: RN-04 y la descripción del actor Admin — ver Grupo A).
-
-### Copys locked literales + tokens Maura
-
-**Source:** `04-UI-SPEC.md` (approved) — Copywriting Contract completo (247-276): "Nuevo producto"/"Crear producto"/"Guardar cambios", "Anular" → "¿Anular el pedido {numero}?" + "Sí, anular", "Ese pedido ya no está en curso." (409), "Pregúntale a Maura", "Asesora de aromas", bienvenida "¡Hola! Soy la asesora de Maura...", errores 503/429/red sin cifras de límites, voz de la asesora en primera persona con tuteo chileno (D-02). Tokens: paleta `@theme` verbatim (46-54), presupuesto tipográfico congelado (94-104), badges BADGES + Stock bajo + Activo/Inactivo (127-136), `shadow-lg` SOLO en los dos elementos flotantes (63).
-**Apply to:** guías 12+, pantallas 10-14 de docs/03, y (como `detail` de Error) los copies de error del contrato 0.4.0.
-
-### Mini-verificaciones accionables + comandos agnósticos de terminal (D-12)
-
-**Source:** guia-09 Paso 10 (1235-1456: one-liners httpx con credenciales del Settings, la carrera de stock con script), guia-11 Paso 5 (440-465: corridas de navegador con la tarjeta oficial), guia-05:471-481 (`uv run python -c` con output esperado).
-**Apply to:** todas las guías. Casos concretos de la fase: 200/403 por rol en cada path admin (token admin vs clienta del seed), anular → 409 al repetir, soft delete → producto desaparece del catálogo y el pedido viejo conserva snapshot, métricas con las órdenes de fase 3 ya sembradas en maura-uat, sin key → 503 amable, grep del build por shell.
-
-### BADGES a módulo propio (refactor contratado)
-
-**Source:** `guia-11:77-86` (la tabla BADGES con la nota "si un día nace la tercera consumidora, baja a un módulo propio") + `04-UI-SPEC.md:138` (el contrato del refactor: `src/lib/badges.ts`, tres consumidoras, D-45 una sola verdad del estado).
-**Apply to:** guia-13. El refactor toca el código del alumno en SU máquina; las guías 10/11 no se re-editan (trazabilidad).
-
-### Idioma y marcadores del producto
-
-Español de Chile, tuteo, tono cercano (todos los docs vigentes). Los marcadores 🧠/✅/❌/📝 son contenido del producto SOLO dentro de las guías; los docs del ciclo (02/03/04) usan tablas, blockquotes y notas — mantener esa separación por tipo de documento. Sin emojis en comunicación con el usuario (AGENTS.md).
+### 7. Firmar cifras con fuente + "a la fecha" (D-68)
+**Source:** patrón nuevo establecido por el research (04-RESEARCH.md Pitfall 1); el contraejemplo in-repo es la promesa actual "sin cifras de límites (no son públicos sin login)" que muere.
+**Apply to:** 🧠 del 429 en guia-14: 30 RPM / 1.000 RPD / 8K TPM / 200K TPD + URL + "a la fecha de esta guía"; RNF-08 sin números.
 
 ## No Analog Found
 
-Todo deliverable del ciclo tiene análogo exacto de formato. Los bloques de CÓDIGO que las guías narran por primera vez no tienen precedente in-repo (el repo no contiene código, D-17 — y el corpus no ha construido admin ni IA):
-
-| Bloque de código nuevo | Razón sin análogo | Fuente firmada |
+| File | Role | Razón |
 |---|---|---|
-| `services/asistente.py` completo: `genai.Client()` lazy, `GenerateContentConfig(response_mime_type='application/json', response_json_schema=...)`, wrapper `errors.APIError` → 429/503, validación de ids contra catálogo activo | Ninguna guía integró Gemini; el patrón STRUCTURAL (único importador + traducción de errores) sí tiene análogo: `services/webpay.py` (guia-09:497-547) | `04-RESEARCH.md` Patterns 1-3 y 6 + Ejemplo A (verbatim del README del SDK @ v2.25.0, fetched 2026-09-30) |
-| `RequireAdmin.tsx` / `NoAutorizado` / `LayoutAdmin` / sub-rutas anidadas con `Outlet` | El corpus tiene `RequireAuth` (guia-06) pero jamás un guard por rol ni layout intermedio con Outlet | RESEARCH Pattern 4 (sketch sobre RequireAuth verificado) + Pattern 5 (nested routes, base guia-11:409-414) + UI-SPEC 158-176 |
-| `BurbujaAsesora` (chat stateless, `aria-live`, auto-scroll, estados 503/429/red) | No existe chat ni elemento flotante en el corpus | UI-SPEC pantalla 14 (218-231, contrato completo de comportamiento y copys) + RESEARCH D-57..D-61 |
-| Agregaciones SQL de métricas (sum PAID, group_by estado, top 5 desde líneas snapshot, count stock bajo) | El corpus solo ha hecho SELECT/WHERE y UN UPDATE condicional — nunca GROUP BY/agregación | RESEARCH Ejemplo D (sketch SQLAlchemy verificado contra las tablas existentes) |
-| Transición admin validada con 409 (`TRANSICIONES_ADMIN`, UPDATE condicional sobre `estado`) | El guard ya-PAID de guia-09:887-897 es el análogo PARCIAL más cercano (misma muralla, otro dueño) — la transición ejecutada por admin y el 409 con su copy son nuevos | RESEARCH Ejemplo C + Open Question 3 (409 recomendado) + D-50 |
-| `lib/badges.ts` (BADGES a módulo) | Refactor nuevo; la tabla existe duplicada en guia-10/11 (código del alumno) | UI-SPEC 138 + guia-11:77-86 (la nota que lo promete) |
-
-**Nota UAT:** el happy path del asistente (llamada real a Gemini) depende de una `GEMINI_API_KEY` que NO está en maura-uat — el planner marca esa verificación tras `checkpoint:human-verify` (el usuario entrega la key o autoriza crearla); degradación, grep del build y todo el panel se verifican sin ella (RESEARCH Environment Availability + Open Question 1).
+| Marca de "Superseded" en frontmatter de ADR | adr | Ningún ADR del corpus está superseded aún (001-017 todos "Aceptada"). El PRINCIPIO byte-intacto sí tiene análogo (guia-12 paso 1 l.47-51: no re-editar historia) y el formato textual de la marca existe en `.planning` (CONTEXT D-60: "**[ROTO 2026-10-01...] SUPERSEDED por D-63...**", cuerpo intacto). El planner define la redacción exacta de la línea de Estado. |
+| Contenido técnico Groq (bloques de código) | guide-code | No existe código groq en el corpus — fuente primaria: `04-RESEARCH.md` Patterns 1-3 + Ejemplos A/B (probe-verified 2026-10-01, SDK 1.7.0). La FORMA sí tiene análogo (assignments de guia-14 arriba). |
 
 ## Metadata
 
-**Analog search scope:** `D:/Repos/demo-carro/docs/` completo (33 archivos git-trackeados listados con `git ls-files docs/`) + `README.md` raíz + `.planning/phases/03-*/03-PATTERNS.md` (análogo directo de formato de este documento) + `04-UI-SPEC.md` del phase dir (insumo approved, no deliverable).
-**Tracked-source gate:** todos los análogos nombrados verificados con `git ls-files -- <path>` (salida no vacía, corrida esta sesión): contrato_api.yaml, adr/012, adr/014, adr/011 (vía listado completo de docs/), 02_requerimientos.md, 03_diseno.md, 04_arquitectura/README.md, 05_desarrollo/README.md, guia-05, guia-06, guia-09, guia-10, guia-11, docs/README.md, README.md, 03-PATTERNS.md, 04-UI-SPEC.md. Ninguna ruta mirror/gitignored emitida.
-**Files scanned:** 13 análogos leídos esta sesión — 8 completos (contrato_api.yaml 778L, 02_requerimientos.md 392L, 03_diseno.md 1002L, guia-10 847L, guia-11 636L, adr/012 97L, adr/014 84L, 04_arquitectura/README.md 250L, los 3 READMEs de estado) + guia-09 1614L completa (dos pasadas contiguas 1-1386 + 1387-1614) + lecturas dirigidas no solapadas de guia-05 (90-140, 445-595) y guia-06 (258-303, 935-969) — más 03-PATTERNS.md (393L, análogo de este documento), 04-CONTEXT.md y 04-RESEARCH.md del phase dir.
-**Pattern extraction date:** 2026-09-30
+**Analog search scope:** `docs/` completo (41 archivos), `README.md` raíz, `.planning/PROJECT.md`, `.planning/research/STACK.md`, `.planning/phases/04-*/04-UAT.md`; conteo de menciones Gemini/google-genai con grep case-insensitive sobre todo el repo (96 menciones en 12 archivos del producto + 24 en 2 archivos de `.planning`).
+**Tracked-source gate:** los 40 archivos de docs + README raíz verificados con `git ls-files` (todos tracked; cero rutas mirror).
+**Files scanned:** 15 archivos leídos o grepped con lectura dirigida; lecturas completas: guia-14 (869), guia-15 (707), ADR-017 (130), ADR-012 (97), ADR-002 (57), docs/02 (456), docs/05 README (71), README raíz (94); lecturas dirigidas: guia-12 (2 rangos), guia-09 (1 rango), contrato (2 rangos), docs/03 (3 rangos), docs/04 README (3 rangos), guia-13 (1 rango).
+**Early stop:** aplicado — 5 análogos fuertes (guia-14 sí-misma, guia-12, guia-09, ADR-017/012, contrato) cubren todos los archivos del rework; no se exploró demo-cine (referencia externa de formato, no necesaria: el corpus propio cubre todo).
+**Pattern extraction date:** 2026-10-01
