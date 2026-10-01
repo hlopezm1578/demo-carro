@@ -6,3 +6,4 @@
 .gsd/
 .planning/state.json
 .planning/milestone.lock
+.planning/research/.cache/
