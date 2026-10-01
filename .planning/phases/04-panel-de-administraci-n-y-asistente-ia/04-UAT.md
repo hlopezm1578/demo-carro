@@ -9,7 +9,7 @@ verified_by: agent (user-delegated per AGENTS.md — taller D:/Repos/maura-uat)
 
 ## Current Test
 
-[testing paused — 1 item outstanding: test 2 (happy path Gemini) blocked third-party a la espera de la GEMINI_API_KEY del usuario (D-60)]
+[testing paused — 1 item outstanding: test 2 (happy path del asistente) blocked a la espera del rework Groq decidido por el usuario; proveedor verificado punta a punta, rework por flujo GSD]
 
 ## Tests
 
@@ -122,8 +122,21 @@ evidence: |
   amable — CERO 500 crudos, exactamente el patrón IN-06/D-61; (c) backstop AIAS-03
   observado: DOS llamadas en paralelo (threads) → ambas 503 con el copy amable,
   ningún 500, la app viva tras la ráfaga (salud 200) — sin estado compartido entre
-  requests. El happy path con respuesta + cards queda a la espera de una key con
-  cuota (decisión del usuario en curso: key nueva free tier vs cambio de proveedor).
+  requests. El happy path con respuesta + cards quedó a la espera de una key con
+  cuota.
+  ADDENDA (cambio de proveedor decidido): el usuario no pudo crear keys nuevas en
+  Google sin cuenta de facturación (D-60 roto para el aula) y DECIDIÓ reemplazar
+  Gemini por GROQ. La GROQ_API_KEY del usuario quedó verificada con llamada REAL
+  (2026-10-01): GET /models 200; POST /chat/completions con response_format
+  json_schema (shape Recomendacion {respuesta, productos}) → 200 con respuesta en
+  la voz de Maura e ids válidos del catálogo, en openai/gpt-oss-120b (543 tokens) y
+  qwen/qwen3.8-27b (195 tokens). Nota de entorno de ESTA máquina: api.groq.com
+  requiere TLS contra el almacén de Windows (middlebox bloquea revocación; el probe
+  usó truststore) — el taller deberá considerarlo al re-integrar; las máquinas de
+  los alumnos no tienen por qué. La key vive como GROQ_API_KEY en el .env del taller
+  (GEMINI removida). El rework de guia-14/ADR/COVERAGE va por flujo GSD; este test
+  queda blocked SOLO por ese rework pendiente — la viabilidad del proveedor está
+  probada punta a punta.
 
 ### 3. Ratificar las 5 flagged assumptions unclassified del edge probe (ADMN-02/03/04, AIAS-01/02)
 expected: Confirmar contra la corrida UAT que los supuestos marcados (edge probe unclassified) se comportan como los planes asumieron; ratificar o abrir gaps.
