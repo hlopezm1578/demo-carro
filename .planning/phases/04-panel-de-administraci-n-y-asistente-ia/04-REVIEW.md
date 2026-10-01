@@ -1,299 +1,138 @@
 ---
 phase: 04-panel-de-administraci-n-y-asistente-ia
-reviewed: 2026-09-30T21:30:00Z
+reviewed: 2026-10-01T15:39:07Z
 depth: standard
-files_reviewed: 15
+files_reviewed: 14
 files_reviewed_list:
   - README.md
-  - docs/README.md
-  - docs/05_desarrollo/README.md
   - docs/02_requerimientos.md
   - docs/03_diseno.md
-  - docs/04_arquitectura/contrato_api.yaml
   - docs/04_arquitectura/README.md
-  - docs/04_arquitectura/adr/015-panel-admin-protegido-por-rol.md
-  - docs/04_arquitectura/adr/016-maquina-de-estados-con-transicion-admin.md
+  - docs/04_arquitectura/adr/002-dos-tiers-spa-y-api.md
   - docs/04_arquitectura/adr/017-asistente-ia-mini-rag-key-solo-backend.md
-  - docs/05_desarrollo/guia-11-pedidos-cierre.md
+  - docs/04_arquitectura/adr/018-asistente-ia-groq-structured-outputs.md
+  - docs/04_arquitectura/contrato_api.yaml
+  - docs/05_desarrollo/README.md
   - docs/05_desarrollo/guia-12-panel-backend.md
   - docs/05_desarrollo/guia-13-panel-spa.md
   - docs/05_desarrollo/guia-14-asistente-backend.md
   - docs/05_desarrollo/guia-15-asistente-cierre.md
+  - docs/README.md
 findings:
-  critical: 1
-  warning: 3
-  info: 4
-  total: 8
+  critical: 0
+  warning: 8
+  info: 5
+  total: 13
 status: issues_found
 ---
 
 # Phase 4: Code Review Report
 
-**Reviewed:** 2026-09-30T21:30:00Z
+**Reviewed:** 2026-10-01T15:39:07Z
 **Depth:** standard
-**Files Reviewed:** 15
+**Files Reviewed:** 14
 **Status:** issues_found
 
 ## Summary
 
-Fase 4 revisada como corpus documental guide-only (D-17): el "código" bajo
-revisión son los bloques Python/TSX embebidos en las guías 12-15, el contrato
-OpenAPI 0.4.0, los ADRs 015-017 y las extensiones de requerimientos/diseño.
-La revisión cruzó cada bloque embebido contra `contrato_api.yaml` 0.4.0,
-contra las piezas que las guías 1-11 construyeron (verificadas presentes y
-con las firmas asumidas en el workspace runtime `D:/Repos/maura-uat`, hoy en
-estado guía-11: `include_router(admin.router, prefix="/api/admin")`,
-`por_numero`/`por_id`, `Settings` con las cuatro credenciales, `pedir()` con
-su tercer parámetro `sinAuth`, `RequireAuth` por token, ficha con queryKey
-`["producto", id]` string, `ProductCard` tipada `ProductoResumen`), contra
-`04-RESEARCH.md` (patrones google-genai firmados @ v2.25.0: re-verificados
-los citations de `response_json_schema`, `gemini-flash-latest`,
-`errors.APIError.code` y el retry 4x del SDK) y contra `04-UI-SPEC.md`
-(copys locked de pantallas 10-14: todos presentes verbatim en las guías).
+Revisión adversarial del corpus documental post-rework Gemini→Groq (D-63..D-68). El rework está, en lo grueso, sólido: grep sobre los 14 archivos confirma **cero menciones de Gemini/google-genai fuera de las excepciones sancionadas** (cuerpo de ADR-017 byte-intacto, evidencia histórica de ADR-018, blockquote de apertura de guia-14), **cero apariciones de la cifra vetada 14.400** en todo `docs/`, **18 archivos ADR = 18 filas del índice = "18 ADRs" citados** en READMEs y guia-15, cadena `Siguiente` de guias 12→13→14→15 correcta, contrato 0.4.0 verificado agnóstico del proveedor, y los bloques de código enseñados de guia-12/13/14/15 son internamente consistentes con el contrato campo a campo (topes 500/10/3, copys locked del 409/429/503 idénticos entre yaml y routers, `ConfigDict(extra="forbid")` + `required` completo como exige strict, pin `groq>=1.7,<2` y `MODELO_ASISTENTE = "openai/gpt-oss-120b"` coherentes en guía/ADR/tabla de stack, límites siempre 30 RPM / 1.000 RPD / 8K TPM / 200K TPD con fuente).
 
-El corpus es sólido en lo estructural: las series RF-19..24 / RNF-08/09 /
-RN-14..16 / HU-12/13 continúan sin renumerar, las pantallas 10-14 y DFDs
-12.0-15.0 calzan con el código enseñado, los ADRs 015-017 enlazan y heredan
-correctamente (011/012/013/014), la cadena 11→12→13→14→15→fase 5 es
-grep-verificable, los índices dicen 17 ADRs (contados: 17 archivos) y guías
-1-15, y las 20 prohibiciones de los cinco PLANs se respetan (máquina de 4
-estados, endpoint público sin bearerAuth, allow-list sin `activo`/`id`,
-retirada del demo narrada, key jamás `VITE_`, muralla de ids en el backend,
-sin retry casero). Sin embargo hay **un defecto que rompe la guía al
-seguirla** — el router admin enseñado monta 4 de sus 7 paths fuera del
-contrato — y tres warnings, incluida una mini-verificación que imprime otra
-cosa de lo que promete y un campo de entrada sin tope en el endpoint público
-de IA.
+Lo que queda son 8 warnings y 5 infos, concentrados en tres familias: (1) una **derivación aritmética falsa** de las cifras del free tier en guia-14 (1.000 RPD ≠ 16 consultas/minuto sostenidas), (2) **restos del barrido D-66/D-67**: la justificación Gemini-era del 429 ("no son públicas") que la decisión ordena que muera sigue viva en guia-15, y referencias operativas a ADR-017 como capa técnica vigente en docs/03 y docs/04 tras la supersession, y (3) defectos puntuales de trazabilidad y de verificación (RN-08 mal citada en guia-13, comando de arranque inconsistente, variante PowerShell del grep de seguridad no recursiva). Nada impide que el alumno complete las guías, pero todo son defectos del producto-educativo que deben corregirse.
 
 ## Critical Issues
 
-### CR-01: El router admin enseñado monta los paths de PRODUCTOS bajo `/api/admin*` — 4 de 7 operaciones quedan fuera del contrato 0.4.0 y la guía revienta en su propia mini-verificación
-
-**Status:** fixed — commit `9f2411b` (decoradores `/productos`, `/productos/{producto_id}`, `/productos/{producto_id}/activo` + comentario de la regla prefijo+segmento; pedidos/métricas ya montaban bien)
-**File:** `docs/05_desarrollo/guia-12-panel-backend.md:835` (y 844-849, 859-866, 881-888, 996-998)
-**Issue:** El paso 6 reemplaza `backend/app/routers/admin.py` COMPLETO con
-`router = APIRouter(tags=["Administración"])` — SIN prefijo propio — y
-decoradores `@router.get("")`, `@router.post("")`, `@router.put("/{producto_id}")`
-y `@router.patch("/{producto_id}/activo")`, cuyos docstrings dicen
-"GET /api/admin/productos", etc. Pero el registro en `main.py` es el de la
-guía 5 y el propio paso 7 ordena NO tocarlo: *"¿Y el `include_router` del
-admin? NADA que hacer: existe desde la guía 5 — hoy cambió el CONTENIDO del
-router, no su registro"* (línea 996). Ese registro (verificado en el
-workspace runtime `maura-uat/backend/app/main.py:36`, construido con las
-guías 1-11) es:
-
-```python
-app.include_router(admin.router, prefix="/api/admin")
-```
-
-Con ese prefijo, los paths finales quedan: `GET/POST /api/admin`,
-`PUT /api/admin/{producto_id}`, `PATCH /api/admin/{producto_id}/activo` — y
-SOLO los tres de pedidos/métricas (`/api/admin/pedidos`,
-`/api/admin/pedidos/{numero}/estado`, `/api/admin/metricas`) caen donde el
-contrato 0.4.0 (paths `contrato_api.yaml:804`, `888`, `952`) los declara.
-Consecuencias en cadena, todas verificables por el alumno que sigue la guía:
-
-1. La mini-verificación del paso 6 (guia-12:973-976) exige que `/docs`
-   liste "GET+POST /api/admin/productos, PUT
-   /api/admin/productos/{producto_id}, PATCH
-   /api/admin/productos/{producto_id}/activo" — mostrará `/api/admin` y
-   `/api/admin/{producto_id}` en su lugar: falla.
-2. Los golpes httpx del paso 8 contra `http://localhost:8000/api/admin/productos`
-   (guia-12:1069, 1085, 1099) responden 404, no `200 12 True` ni `201`.
-3. La pantalla `AdminProductos` de la guía 13 (guia-13:580-604:
-   `apiGet("api/admin/productos")`, `apiPut`/`apiPost`/`apiPatch` a
-   `api/admin/productos/...`) queda rota de punta a punta — mientras
-   AdminPedidos y AdminMetricas sí funcionan, una partición imposible de
-   diagnosticar para el alumno.
-4. La Gran verificación final fila 12 (guia-15:528) compara "los paths
-   NUEVOS (los 7 de administración)" uno a uno contra el contrato: 4 de 7
-   cantan desvío.
-
-La app NO revienta al arrancar (paths mal montados son paths válidos), así
-que el defecto es silencioso hasta la primera verificación. El UAT runtime
-de fase 4 quedó diferido (04-03-SUMMARY: "la verificación runtime del panel
-queda para el UAT delegado en maura-uat"; el workspace sigue en 0.3.0 sin
-`schemas/admin.py`), y la verificación documental del plan fue grep-only —
-por eso no se detectó. Es el mismo patrón que CR-01 de la fase 3: código
-enseñado que falla al copiarlo tal cual, en el proyecto donde la
-implementación del contrato "sin desviarse" es el producto (D-15/ADR-007).
-**Fix:** los paths de productos deben llevar SU segmento en el decorador,
-como ya lo hacen `/pedidos` y `/metricas` en el mismo archivo (el prefijo
-`/api/admin` heredado del `include_router` se mantiene):
-
-```python
-@router.get("/productos", response_model=list[ProductoAdmin], responses={**PROTEGIDO})
-@router.post("/productos", ...)
-@router.put("/productos/{producto_id}", ...)
-@router.patch("/productos/{producto_id}/activo", ...)
-```
+_(ninguna)_
 
 ## Warnings
 
-### WR-01: La mini-verificación del paso 6 de la guía 14 promete `dict_keys([200, 422, 429, 503])` — FastAPI guarda `route.responses` tal cual se pasa y NO incluye el 200: imprime `dict_keys([422, 429, 503])`
+### WR-01: Aritmética falsa: "1.000 RPD ≈ 16 consultas por minuto sostenidas todo el día"
 
-**Status:** fixed — commit `630ccb2` (la guía espera `dict_keys([422, 429, 503])` y explica que el 200 vive en el OpenAPI generado; /docs del paso 7 sigue mostrando las cuatro)
-**File:** `docs/05_desarrollo/guia-14-asistente-backend.md:565-570`
-**Issue:** El comando enseñado es
-`print(len(router.routes), router.routes[0].responses.keys())` y el texto
-exige "Debe imprimir `1 dict_keys([200, 422, 429, 503])`". Verificado contra
-el FastAPI real del proyecto (ejecutado en el venv de `maura-uat`,
-fastapi 0.141.x): `APIRoute.__init__` hace `self.responses = responses or {}`
-— el dict del decorador, verbatim; el 200 de éxito se agrega recién al
-GENERAR el OpenAPI (`app.openapi()`), no en el atributo `responses`. El
-alumno que corre la verificación tal cual ve `1 dict_keys([422, 429, 503])`,
-sin el 200 prometido, y no tiene cómo saber si su router está mal o la guía.
-El endpoint en sí funciona y `/docs` (paso 7) muestra las cuatro responses —
-solo la verificación intermedia está mal escrita.
-**Fix:** o esperar lo que realmente imprime — "Debe imprimir `1
-dict_keys([422, 429, 503])` — las tres que se lanzan a mano (el 200 vive en
-el OpenAPI generado, no en el atributo)" — o verificar contra el schema
-generado: `print(200 in app.openapi()['paths']['/api/asistente']['post']['responses'])`.
-
-### WR-02: `historial[].texto` viaja SIN tope en un endpoint público — la protección del free tier (RN-16) cubre el mensaje nuevo y el largo del historial, pero no el CONTENIDO de cada entrada: el prompt puede inflarse sin límite
-
-**Status:** fixed — commit `f4f2f0e` (`Field(max_length=500)` en `MensajeHistorial.texto` + `maxLength: 500` en el contrato; prosa de topes y descripción 422 actualizadas en espejo guía↔contrato; mini-verificación ahora imprime `500 500 10 3`)
-**File:** `docs/05_desarrollo/guia-14-asistente-backend.md:212` (`texto: str` en `MensajeHistorial`) contra `guia-14:397-404` (`_conversacion` concatena todo) y `docs/04_arquitectura/contrato_api.yaml:566-568`
-**Issue:** RN-16 y el contrato venden los topes como lo que "protege el tier
-gratuito" validando "en el borde" (mensaje ≤ 500, historial ≤ 10, cards ≤ 3).
-Pero `MensajeHistorial.texto` es un `str` sin `max_length` — y el contrato
-tampoco declara `maxLength` para ese campo. `POST /api/asistente` es público
-(`security: []`, D-59): cualquier visitante puede mandar 10 entradas de
-historial de un megabyte cada una; `_conversacion` las concatena TODAS en
-`contents` y viajan al modelo. El mensaje NUEVO está tapado (500), pero el
-vector de costo real de un endpoint público — el texto que el cliente
-controla — queda abierto justamente por el campo más grande. La muralla de
-ids (D-56) protege la CORRECCIÓN de la respuesta, no el COSTO del request.
-**Fix:** cerrar el tope en el borde, igual que los otros dos:
-
-```python
-class MensajeHistorial(BaseModel):
-    rol: Literal["clienta", "asesora"]
-    texto: str = Field(max_length=500)  # mismo tope que el mensaje nuevo (RN-16)
+**File:** `docs/05_desarrollo/guia-14-asistente-backend.md:40` y `:376`
+**Issue:** 1.000 requests/día sostenidos parejos durante 24 h dan 1.000/1.440 ≈ **0,7 consultas por minuto** (≈41 por hora). "16 consultas por minuto" sale de dividir por 60 (una hora), no por 1.440 (un día): 16/min sostenido todo el día requeriría ~23.040 RPD — 23 veces la cuota real. La guía presenta esta equivalencia junto a la disciplina "cifras citadas con fuente" (D-68), así que el alumno que haga la cuenta encontrará una contradicción en el propio material que le enseña a no firmar cifras sin fuente. Ocurre dos veces: tabla de términos ("Free tier") y 🧠 del paso 5.
+**Fix:**
+```markdown
+# en ambas ocurrencias, reemplazar la equivalencia:
+- 1.000 RPD ≈ 41 consultas por hora (≈0,7 por minuto) sostenidas todo el día: de sobra para el curso
+# o, si se quiere hablar de ráfaga:
+- 1.000 RPD y 30 RPM: una hora de clase a 16 consultas por minuto consume el día entero de cuota
 ```
 
-y reflejarlo en el contrato (`ChatMensaje.historial.items.texto.maxLength:
-500`) para que guía y fuente de verdad sigan calzando campo a campo.
+### WR-02: La justificación Gemini-era del 429 ("no son públicas") sobrevive al rework — D-66 ordena que muera
 
-### WR-03: La mini-verificación del preflight (guia-12 paso 7) no puede fallar — el middleware CORS responde el OPTIONS ANTES del routing, así que da 200 incluso por un path que no existe (exactamente el estado de CR-01)
+**File:** `docs/05_desarrollo/guia-15-asistente-cierre.md:142`, `:257`, `:473`
+**Issue:** La decisión D-66 (04-CONTEXT.md) dice literalmente: *El paréntesis "sin cifras de límites (no son públicos sin login)" muere con Groq (D-68)*. Aun así, guia-15 lo conserva dos veces — 🧠 del paso 2 "(SIN cifras — no son públicas)" y comentario del código "429 cuota SIN cifras (no son públicas sin login)" — y el 🧠 del paso 4 repite el marco viejo "cifras que nadie puede verificar (concern abierto)". Esto contradice de frente a ADR-018 ("el concern RPM/RPD que Gemini dejaba abierto... muere con Groq") y a la propia guia-14 (🧠 paso 5: "con las cifras públicas a la vista, porque Groq SÍ las publica"). El copy sin cifras está bien (decisión de UX); la *razón* enseñada es la falsa. Es un miss del barrido D-67 en el propio archivo que el rework dice haber ajustado.
+**Fix:** Cambiar la justificación, no el copy: "429 cuota SIN cifras (los límites por organización viven en la consola de Groq; el copy le habla a la clienta, no al dev — D-68)" y en el 🧠 del paso 4 reemplazar "(concern abierto)" por "(concern cerrado por D-68: las cifras del tier son públicas)".
 
-**Status:** fixed — commit `b284377` (la lección de CORS se mantiene y se complementa con un GET sin token a `/api/admin/productos` esperando `401` — un `404` delataría el path no montado)
-**File:** `docs/05_desarrollo/guia-12-panel-backend.md:1034-1039`
-**Issue:** El golpe `httpx.request('OPTIONS', '.../api/admin/productos',
-headers={Origin, Access-Control-Request-Method: PATCH})` se presenta como
-"el preflight que el panel de la guía 13 mandará antes de cada PATCH ya
-tiene luz verde". `CORSMiddleware` corta-circuita el preflight con 200 para
-cualquier path cuando origen y método están en las listas — el path jamás
-llega al router. Es decir: esta verificación habría respondido 200 también
-con los paths de productos sin registrar (el estado real de CR-01), dando
-luz verde falsa a la pieza exacta que estaba rota. Como lección de CORS
-está bien; como verificación del paso es un check que no puede fallar.
-**Fix:** complementarla con un golpe que SÍ pruebe el registro de la ruta,
-p. ej. `GET /api/admin/productos` SIN token esperando **401** (un 404
-delataría un path no montado — y habría atrapado CR-01 en el propio paso 7).
+### WR-03: Referencias operativas a ADR-017 como registro vigente tras la supersession (barrido incompleto en el README de arquitectura)
+
+**File:** `docs/04_arquitectura/README.md:163` y `:199`
+**Issue:** El barrido actualizó la tabla de stack (línea 122 cita ADR-018 "que supersede al ADR-017") pero dejó dos citas que apuntan a ADR-017 como la capa técnica *operativa* del asistente: el comentario del árbol de código "routers/asistente.py # POST /api/asistente — público, topes en el borde y 503/429 amables (AIAS-01..03, ADR-017)" (línea 163) y la regla de dependencia 3 "el 503/429 lo decide el router ([ADR-017](...))" (línea 199). El alumno que siga esos punteros aterriza en el ADR del proveedor muerto sin marca previa de supersession en el texto que lo cita. D-67 declaró el barrido "COMPLETO" incluyendo el índice de ADRs.
+**Fix:** En ambas líneas citar ADR-018 (o "ADR-017 superseded por ADR-018"), como ya hace la línea 122 y la fila 017 del índice.
+
+### WR-04: docs/03 sigue declarando "su capa técnica es ADR-017" para el mini-RAG
+
+**File:** `docs/03_diseno.md:243` y `:289`
+**Issue:** El mismo archivo fue actualizado a Groq por el rework (§3.1 "la etapa 4 suma a Groq", proceso 15.0 con `GEM["Groq (asesora IA)"]`), pero la decisión 17 mantiene "*(D-56; su capa técnica es ADR-017.)*" y la nota posterior "el asistente mini-RAG con la API key solo en el backend en **ADR-017**" — en presente, como registro vigente. Post-supersession, la capa técnica viva del mini-RAG/key-solo-backend es ADR-018 (que declara "la muralla D-56 queda PRESERVADA íntegra"). Inconsistencia interna del propio documento: nombra a Groq pero referencia al ADR del proveedor muerto.
+**Fix:** "*(D-56; su capa técnica es ADR-018 — antes ADR-017, superseded.)*" o simplemente "ADR-018", en ambas líneas.
+
+### WR-05: La fila del índice de ADR-017 cita D-63, que el cuerpo del propio ADR no registra
+
+**File:** `docs/04_arquitectura/README.md:235`
+**Issue:** La fila 017 del índice dice "(AIAS-01..03, D-56, **D-63**, D-61; superseded por 018)", pero el cuerpo de ADR-017 (byte-intacto por mandato de D-65) resuelve "decisiones **D-56/D-59/D-60/D-61**". D-63 es la decisión del rework y pertenece a ADR-018 — que la fila 236 ya cita como "D-63..D-68". El sweep reemplazó D-60 por D-63 en la fila 017, rompiendo la correspondencia índice↔cuerpo y la semántica histórica de la fila (lo que ese ADR decidió fue el patrón D-60, hoy roto/superseded por D-63).
+**Fix:** Restaurar D-60 en la fila 017: "(AIAS-01..03, D-56, D-60, D-61; superseded por 018)" — D-63 vive en la fila 018.
+
+### WR-06: RN-08 citada cuatro veces para el "404 uniforme de ownership", que es otra regla
+
+**File:** `docs/05_desarrollo/guia-13-panel-spa.md:1032`, `:1044`, `:1563`, `:1667`
+**Issue:** Guia-13 justifica el link ausente al voucher con "el endpoint de detalle es del DUEÑO del pedido (404 uniforme de ownership, **RN-08**)" — en el 🧠 del paso 7, el comentario del código de `AdminPedidos.tsx`, el bloque de errores 3 y el cierre. RN-08 es la regla del carro ("el carro guarda solo identificadores y cantidades"): no tiene relación con el ownership del detalle. La referencia correcta es RF-17/§3.13 del diseño ("el pedido de otra clienta no existe para el sistema") o D-47. En un corpus cuya propuesta de valor es la trazabilidad exacta, cuatro citas al número equivocado son un defecto real del material.
+**Fix:** Reemplazar "RN-08" por "RF-17 (§3.13 del diseño)" — o "D-47" — en las cuatro ocurrencias.
+
+### WR-07: Comando de arranque `uv run fastapi dev app/main` (sin `.py`) — único caso en todo el corpus
+
+**File:** `docs/05_desarrollo/guia-14-asistente-backend.md:701`
+**Issue:** La mini-verificación del paso 7 manda encender la API con `uv run fastapi dev app/main`. Ocho guías (1, 2, 4, 5, 9, 12, 13 y la propia 15) usan `uv run fastapi dev app/main.py`. Las formas documentadas de fastapi-cli son archivo `.py` o import string con `:` (`app/main:app`); la ruta con slash sin extensión ni `:app` no está soportada documentadamente y, según la versión del CLI, puede no resolverse — el alumno tropezaría en el paso de verificación más simple de la guía. Aun en el mejor caso (que el CLI lo tolere), la inconsistencia con el resto del corpus es un copy-paste desalineado.
+**Fix:** `uv run fastapi dev app/main.py desde backend/`.
+
+### WR-08: La variante PowerShell del grep de seguridad (fila 13) no es recursiva — puede dar un falso éxito
+
+**File:** `docs/05_desarrollo/guia-15-asistente-cierre.md:530`
+**Issue:** La fila 13 (la prueba mecánica de AIAS-03: que la key jamás llegó al bundle) ofrece como alternativa PowerShell `Select-String -Path dist\* -Pattern "GROQ_API_KEY"`. `-Path dist\*` solo expande los hijos directos de `dist/`: el bundle JS vive en `dist/assets/*.js`, así que el comando **jamás escanea el único archivo donde una key filtrada aparecería**, y además emite errores no terminales al toparse con los subdirectorios. Un alumno en PowerShell obtiene "cero coincidencias" sin haber mirado el bundle — exactamente el falso éxito que una verificación de seguridad no puede permitirse, en el único entorno (Windows) donde el curso corre.
+**Fix:** `Get-ChildItem dist -Recurse -File | Select-String -Pattern "GROQ_API_KEY"` (y control positivo equivalente con `"Pregúntale a Maura"`), dejando `grep -r` de Git Bash como ruta primaria.
 
 ## Info
 
-### IN-01: El "espejo honesto del 422" del editor cubre 5 de los 7 campos requeridos — `descripcion` e `imagen` pueden disparar un 422 sin copys de campo, y el caso más probable es el flujo de producto INACTIVO que la propia guía enseña
+### IN-01: "1-3 cards" en el encabezado y fila 8 de guia-15, pero el contrato permite 0-3
 
-**Status:** open — deferido al usuario: decisión editorial/narrativa (agregar dos copys cambia los "copys locked" del UI-SPEC o suavizar la narrativa), fuera del alcance de esta corrida de fixes
-**File:** `docs/05_desarrollo/guia-13-panel-spa.md:558-570` (`validar`) contra `613-643` (`abrirEditor`) y `guia-12:120-126` (backend `min_length=1`)
-**Issue:** El backend exige `descripcion` e `imagen` no vacías
-(`Field(min_length=1)`), pero `validar()` solo revisa nombre, precio, stock,
-familia y notas (los 5 copys locked del UI-SPEC:536/186 — spec y guía
-calzan entre sí). El hueco tiene un disparador documentado: al editar un
-producto inactivo, `abrirEditor` hidrata `descripcion: ""` (la ficha pública
-404a) — si la dueña corrige las notas (que SÍ tienen espejo) y guarda, el
-422 de `descripcion` llega al banner genérico "No pudimos guardar el
-producto. Revisa los datos…" sin indicar el campo, aunque ya hizo todo lo
-que el formulario le pidió. Funciona (degrada al banner spec-eado), pero la
-afirmación "el espejo HONESTO del 422: los CINCO copys" promete una cobertura
-que el schema de 7 campos desmiente.
-**Fix:** agregar los dos espejos (`errores.descripcion = "Escribe una
-descripción."` / `errores.imagen = "Escribe la ruta de la foto."`), o suavizar
-la narrativa a "los cinco copys de los campos que el usuario escribe mal con
-más frecuencia; descripción e imagen caen al banner genérico".
+**File:** `docs/05_desarrollo/guia-15-asistente-cierre.md:9` y `:525`
+**Issue:** El encabezado ("con 1-3 cards del catálogo real") y la fila 8 de la Gran verificación prometen "1-3 cards", mientras guia-14 (paso 8: "cards: entre 0 y 3"), el propio prompt del sistema ("Si nada del catálogo calza, responde sin productos") y la verificación #4 de guia-15 ("0-3 cards") establecen que **0** cards es una respuesta correcta del contrato.
+**Fix:** "con 0-3 cards" en ambas ocurrencias.
 
-### IN-02: El guard de degradación compara contra `None`, pero la plantilla versionada modela el estado VACÍO — con `GEMINI_API_KEY=` en el `.env` la "degradación temprana, sin tocar la red" no aplica
+### IN-02: Fechas de documento/aprobación anteriores al contenido reworkado que contienen
 
-**Status:** fixed — commit `f4f57ba` (`if not settings.gemini_api_key:` cubre `None` y `""`; comentario enseña los dos estados)
-**File:** `docs/05_desarrollo/guia-14-asistente-backend.md:420` contra `104` y `110-112`
-**Issue:** `.env.example` enseña la línea `GEMINI_API_KEY=` con valor vacío.
-pydantic-settings carga un string vacío (`""`), no `None`, así que un alumno
-que copió la plantilla y no llenó su key no pasa por el `if
-settings.gemini_api_key is None` temprano: construye el client con key vacía
-y la primera llamada es la que degrada (via `except` → 503). El resultado
-observable es el correcto (503 amable, tienda operativa), pero la promesa
-narrada ("la señal sale TEMPRANO, sin tocar la red", y la mini-verificación
-del paso 3 que presume key ausente vs. presente) no cubre el estado que la
-propia plantilla produce.
-**Fix:** `if not settings.gemini_api_key:` — cubre `None` y `""` con la
-misma línea, sin cambiar nada más.
+**File:** `docs/02_requerimientos.md:7`, `:443-448`; `docs/03_diseno.md:7`
+**Issue:** docs/02 (header "Fecha: 2026-09-28", aprobación de etapa 4 "documentada el 2026-09-30") y docs/03 (mismo header) fueron editados por el rework (RNF-09 ya cita D-63, decidida el 2026-10-01; §3.1 ya dice Groq) sin nota de actualización ni ajuste de fecha. En un corpus que data cada decisión, el contenido ahora postdata su propia aprobación en silencio.
+**Fix:** Agregar una línea "Actualizado 2026-10-01 (rework proveedor IA, D-63..D-68)" al header de ambos documentos, sin tocar las tablas de aprobación históricas.
 
-### IN-03: ADR-017 dice que el SDK "toma `GEMINI_API_KEY` automáticamente" justo donde la guía 14 enseña a NO confiar en ese auto-pickup
+### IN-03: Import `Pedido` sin uso en el bloque enseñado de `services/admin.py`
 
-**Status:** open — deferido al usuario: decisión editorial sobre la redacción de la cláusula en el ADR, fuera del alcance de esta corrida de fixes
-**File:** `docs/04_arquitectura/adr/017-asistente-ia-mini-rag-key-solo-backend.md:113-114` contra `docs/05_desarrollo/guia-14-asistente-backend.md:281-287, 361-368`
-**Issue:** La sección "Evidencia firmada" del ADR cita "la env var
-GEMINI_API_KEY tomada automáticamente por el `genai.Client`" como rasgo del
-SDK, mientras la guía dedica un gotcha completo a pasar `api_key=
-settings.gemini_api_key` EXPLÍCITA porque pydantic-settings lee el `.env`
-hacia el objeto Settings, no hacia el entorno del proceso. No son
-contradictorias (capacidad del SDK vs. decisión del proyecto), pero son los
-dos documentos que el alumno tendrá abiertos en pestañas simultáneas (la
-propia guía lo manda: "Abre el contrato y el ADR-017 en pestañas").
-**Fix:** una cláusula en el ADR cerrando la lectura: "(capacidad del SDK;
-el proyecto pasa la key explícita desde `Settings` — ver el gotcha de la
-guía 14)".
+**File:** `docs/05_desarrollo/guia-12-panel-backend.md:620`
+**Issue:** El bloque de `services/admin.py` importa `from app.models.pedido import EstadoPedido, Pedido`; `EstadoPedido` se usa en `MetricasService.calcular`, pero `Pedido` no aparece en ninguna anotación ni uso del archivo mostrado. El ruff del alumno cantará F401 sobre código copiado literal.
+**Fix:** `from app.models.pedido import EstadoPedido`.
 
-### IN-04: `Metricas.top_5` no declara el `maxItems: 5` que el contrato promete — el tope vive solo en el `.limit(5)` del SQL
+### IN-04: Filas 10 y 12 de la Gran verificación citan solo ADR-017 (superseded)
 
-**Status:** fixed — commit `2f152e2` (`top_5: list[TopAroma] = Field(max_length=5)` — espejo declarativo del `maxItems: 5`)
-**File:** `docs/05_desarrollo/guia-12-panel-backend.md:214` (schema `top_5: list[TopAroma]`) contra `docs/04_arquitectura/contrato_api.yaml:516-519` (`maxItems: 5`) y `guia-12:564` (`.limit(5)`)
-**Issue:** El contrato declara `top_5` con `maxItems: 5`; el schema Pydantic
-de respuesta no reproduce el tope (`list[TopAroma]` sin `max_length`). Hoy
-no desvía nunca (el `.limit(5)` de la consulta lo garantiza), pero en un
-proyecto API-first el schema de respuesta es el espejo del contrato: si
-mañana alguien toca el SQL, el contrato se incumple en silencio y la fila
-contrato ↔ `/docs` no puede detectarlo.
-**Fix:** `top_5: list[TopAroma] = Field(max_length=5)` — la misma técnica
-que `ChatRespuesta.productos` usa en la guía 14 para su `maxItems: 3`.
+**File:** `docs/05_desarrollo/guia-15-asistente-cierre.md:527`, `:529`
+**Issue:** Defendible (ADR-018 declara que la lógica de degradación D-61 y la muralla D-56 de ADR-017 "se mantienen íntegras"), pero la fila 8 de la misma tabla ya usa la forma completa "ADR-017/ADR-018". Uniformar evita que el alumno rastree el ADR muerto como primera parada.
+**Fix:** "ADR-017/ADR-018" en las filas 10 y 12, como la 8.
+
+### IN-05: Drift fuera del diff: el stack de investigación aún recomienda `google-genai` (observación, fuera de los 14 archivos)
+
+**File:** `D:\Repos\demo-carro\AGENTS.md:25`, `:58` (espejo de `.planning/research/STACK.md`)
+**Issue:** El stack autoritativo del proyecto (embebido en AGENTS.md) sigue diciendo "IA: Google Gemini vía SDK oficial `google-genai`" con pin `>=2.25,<3`, mientras el corpus revisado enseña `groq>=1.7,<2`. No está en el alcance de este review (D-67 cubrió 12 archivos de `docs/`), pero cualquier investigación futura que consulte el STACK heredará el proveedor muerto.
+**Fix:** Actualizar la fila IA de `.planning/research/STACK.md` a groq (por flujo GSD), que se refleja en AGENTS.md.
 
 ---
 
-_Reseña complementaria de verificaciones sin hallazgos:_ los 8 paths nuevos
-del contrato 0.4.0 calzan schema a schema con las guías
-(`ProductoCrear/ProductoEditar` de 7 campos required sin `id`/`activo`,
-`PedidoTransicion` enum de un valor, `PedidoAdmin` con `email_clienta`,
-`Metricas` con los 4 KPI, `ChatMensaje` 500/10 y `ChatRespuesta` con
-`max_length=3`, 409 con el copy locked "Ese pedido ya no está en curso.",
-503/429 con sus examples amables y `/api/asistente` con `security: []`);
-`get_current_admin` está en las SIETE firmas del router admin con el dict
-`PROTEGIDO` heredado; la transición es UPDATE condicional con rowcount →
-`TransicionIlegal` → 409 y no toca stock (D-35/D-50); las métricas usan
-`COALESCE`, los 4 estados siempre y el top 5 desde `nombre_snapshot` con
-`limit(5)`; el sku del panel se genera `panel-{uuid8}` (14 < 20 chars); los
-métodos y atributos que las guías asumen existen con esas firmas en el
-runtime (`por_numero`, `por_id`, `Settings.admin_email` & co., `pedir()`
-con `sinAuth`, queryKey de ficha `["producto", id]` string — el `String(id)`
-de la burbuja calza con la caché de la guía 7, `ProductCard` acepta
-`ProductoDetalle` por ser `ProductoResumen` extendido, `Layout.tsx`
-reemplazado es idéntico al existente + burbuja); el texto del modelo se
-renderiza como TEXTO (`{m.texto}`) sin `dangerouslySetInnerHTML` en todo el
-corpus; la key vive solo en backend (`str | None`, client lazy, plantilla
-vacía, fila 13 del grep del build); las series RF-19..24 / RNF-08/09 (filas
-de tabla) / RN-14..16 (bullets) / HU-12/13 (headings Dado/Cuando/Entonces)
-y las filas P7/P8 de trazabilidad resuelven sin renumerar; pantallas 10-14
-y DFDs 12.0-15.0 calzan con los copys locked del UI-SPEC (los 5 copys del
-editor, el 409, "No tienes acceso al panel", "Pregúntale a Maura", la
-bienvenida y los tres estados del chat); guia-11 cambió SOLO su bloque
-"Siguiente" (6/6 líneas, diff verificado); ADRs 015-017 con formato
-demo-cine, opciones/consecuencias honestas y enlaces relativos correctos;
-los READMEs dicen 17 ADRs (17 archivos contados) y guías 1-15 con la fila 5
-en Parcial; las prohibiciones de los 5 PLANs se respetan en su totalidad; y
-el "Gran verificación final" de guia-15 mantiene el formato de tabla
-numerada CS/Origen de guia-11, sumando la fila fija del grep del build.
-
-_Reviewed: 2026-09-30T21:30:00Z_
+_Reviewed: 2026-10-01T15:39:07Z_
 _Reviewer: Claude (gsd-code-reviewer)_
 _Depth: standard_
