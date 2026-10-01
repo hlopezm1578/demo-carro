@@ -211,7 +211,7 @@ class Metricas(BaseModel):
 
     ingresos_totales: int  # suma de PAID, en CLP
     pedidos_por_estado: ConteoEstados
-    top_5: list[TopAroma]
+    top_5: list[TopAroma] = Field(max_length=5)  # el maxItems: 5 del contrato (0.4.0)
     productos_stock_bajo: int  # activos con stock ≤ STOCK_BAJO_UMBRAL (RN-14)
 ```
 
