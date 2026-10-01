@@ -1,7 +1,8 @@
 ---
 phase: "5"
 slug: "despliegue-y-cierre-de-la-gu-a"
-status: draft
+status: approved
+reviewed_at: "2026-10-01"
 shadcn_initialized: false
 preset: none
 created: "2026-10-01"
@@ -13,8 +14,8 @@ created: "2026-10-01"
 >
 > **Proveniencia de decisiones — contrato de HERENCIA con delta cero.** La fase 5 entrega
 > DOCUMENTOS y deploy, no UI: docs 06/07/08 + ADRs 019+ + guías 16+ en un repo guide-only
-> (D-17/D-71/D-72). `05-CONTEXT.md` declara "Sin pantallas nuevas esperadas (el deploy no
-> cambia UI); DFDs/pantallas solo si el spike descubre algo", y el ROADMAP no marca
+> (D-17/D-71/D-73). `05-CONTEXT.md` declara "Sin pantallas nuevas esperadas (el deploy no
+> cambia UI); DFDs/pantallas solo si aparece evidencia viva", y el ROADMAP no marca
 > `UI hint: yes` para esta fase (a diferencia de las fases 1-4). Este documento por tanto:
 > (1) fija que el sistema de diseño vigente — `01-UI-SPEC.md` + su Amendment 2026-09-29
 > "design lift" + `02-UI-SPEC.md` + `04-UI-SPEC.md` — sigue siendo el contrato de registro
@@ -187,8 +188,9 @@ es solo CORS: es el destino del 302.
 
 ### Cold start (comportamiento aceptado, no UI nueva)
 
-Render free duerme a los ~15 min sin tráfico y despierta en ~1 min (cifras a firmar por el
-spike D-72). La SPA estática carga al instante (Vercel no duerme); las llamadas a la API
+Render free duerme a los ~15 min sin tráfico y despierta en ~1 min (cifras de las docs
+oficiales de Render citadas con URL en `05-RESEARCH.md`, "a la fecha" — D-73: evidencia
+documental, no runtime). La SPA estática carga al instante (Vercel no duerme); las llamadas a la API
 quedan en `isPending` → skeletons heredados `animate-pulse` hasta por ~1 minuto. **No se
 contrata pantalla, banner ni badge "despertando"**: la guía/doc 07 lo nombran en prosa para
 el alumno (specifics de CONTEXT — nombrarlo honestamente, no esconderlo). Si el fetch falla,
@@ -211,16 +213,19 @@ inténtalo de nuevo." está locked en las guías 02-15 (presente en 8 guías, ve
 esta sesión) y llega tal cual a producción si la API no responde. Es wording de entorno de
 desarrollo visto por una clienta: **aceptado para esta fase** (la serie jamás re-edita guías
 construidas; cambiar el copy de la app sería código nuevo fuera del alcance del deploy, y
-CONTEXT declaró "ninguno esperado"). **Regla de decisión:** si el spike D-72 o el UAT final
-lo declaran defecto real de experiencia en producción, se corrige por la regla de bugs en
+CONTEXT declaró "ninguno esperado"). **Regla de decisión (re-anclada a D-73):** si la
+evidencia viva lo declara defecto real de experiencia en producción — feedback del alumno
+desde sus mini-verificaciones/Gran verificación final, o el doc 08 de mantenimiento —,
+se corrige por la regla de bugs en
 AMBOS lugares (guía + taller maura-uat) Y se registra como amendment a este spec — nunca en
 silencio.
 
-### Camino de amendment (si el spike descubre algo)
+### Camino de amendment (si aparece evidencia viva)
 
-CONTEXT dejó la puerta: "DFDs/pantallas solo si el spike descubre algo". Si el spike de
-deploy revela que el ambiente desplegado necesita una pantalla/estado/copys nuevos (p. ej. una
-plataforma exige un interstitial), ESTE spec se enmienda ANTES de redactar la guía que lo
+CONTEXT dejó la puerta: "DFDs/pantallas solo si aparece evidencia viva". Si la evidencia
+documental (docs de plataforma citadas en `05-RESEARCH.md`) o el feedback del alumno en
+producción revelan que el ambiente desplegado necesita una pantalla/estado/copys nuevos
+(p. ej. una plataforma exige un interstitial), ESTE spec se enmienda ANTES de redactar la guía que lo
 enseña — mismo mecanismo que el Amendment 2026-09-29 de fase 1. Prohibido improvisar copys
 de UI directamente en guia-16+.
 
@@ -254,8 +259,8 @@ Applicable state considerations resolved: **9 covered, 0 backstop, 0 unresolved*
 
 | Category | Element(s) | Status | Resolution / Reason |
 |----------|------------|--------|---------------------|
-| loading | interactive-control + list-collection (llamadas API contra servicio dormido) | ✅ covered | Cold start de Render free (~1 min tras ~15 min sin tráfico; cifras del spike D-72): la SPA estática carga al instante y las llamadas quedan en `isPending` → skeletons `animate-pulse` heredados; sin pantalla "despertando" nueva — guía/doc 07 lo nombran en prosa (ver Production Parity) |
-| error | list-collection + media + interactive-control (API caída o red en producción) | ✅ covered | Familia heredada "No pudimos cargar …" / "No pudimos conectar con el servidor…" + "Reintentar" (`refetch()`) — el reintento ayuda a despertar el servicio. Caveat de wording "puerto 8000": heredado, aceptado, con regla de decisión documentada (bug solo si spike/UAT lo dicta → fix en ambos lugares + amendment) |
+| loading | interactive-control + list-collection (llamadas API contra servicio dormido) | ✅ covered | Cold start de Render free (~1 min tras ~15 min sin tráfico; cifras de las docs oficiales de Render, `05-RESEARCH.md`, a la fecha): la SPA estática carga al instante y las llamadas quedan en `isPending` → skeletons `animate-pulse` heredados; sin pantalla "despertando" nueva — guía/doc 07 lo nombran en prosa (ver Production Parity) |
+| error | list-collection + media + interactive-control (API caída o red en producción) | ✅ covered | Familia heredada "No pudimos cargar …" / "No pudimos conectar con el servidor…" + "Reintentar" (`refetch()`) — el reintento ayuda a despertar el servicio. Caveat de wording "puerto 8000": heredado, aceptado, con regla de decisión documentada (bug solo si la evidencia viva lo dicta → fix en ambos lugares + amendment) |
 | error | nav (401 con token expirado en producción) | ✅ covered | Interceptor D-22 heredado sin cambios: limpia sesión y redirige a `/login?expirada=1` → banner ámbar "Tu sesión expiró, ingresa de nuevo"; el returnTo funciona igual sobre la URL pública |
 | populated | static-content (4 flujos Webpay contra el ambiente desplegado) | ✅ covered | Resultado/voucher renderizan idéntico en la URL pública: título por estado REAL del pedido fetcheado (no por query param del 302), BADGES desde `lib/badges.ts`, carro restituido solo al aprobar — la Gran verificación final de fase 5 los corre como tabla CS/RF contra producción (DEPL-02) |
 | empty | list-collection (post ciclo de disco efímero) | ✅ covered | Tras un spin-down/redeploy (D-70) el catálogo vuelve (seed del build) pero pedidos y cuentas runtime no: los empty states heredados son el estado honesto visible ("Todavía no hay pedidos"; catálogo repoblado) — la lección la narran doc 07/ADR-020, sin UI nueva |
@@ -283,22 +288,22 @@ verificadas contra docs oficiales en `05-RESEARCH.md` (Sources).
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS
-- [ ] Dimension 2 Visuals: PASS
-- [ ] Dimension 3 Color: PASS
-- [ ] Dimension 4 Typography: PASS
-- [ ] Dimension 5 Spacing: PASS
-- [ ] Dimension 6 Registry Safety: PASS
-- [ ] Dimension 7 Inventory Provenance: PASS
+- [x] Dimension 1 Copywriting: PASS (FLAG no bloqueante: "Enviar" una palabra, patrón de casa adjudicado en fase 4; regla "puerto 8000" re-anclada a evidencia viva bajo D-73)
+- [x] Dimension 2 Visuals: PASS
+- [x] Dimension 3 Color: PASS
+- [x] Dimension 4 Typography: PASS (FLAG carried no bloqueante: presupuesto 6/3 heredado del Amendment 2026-09-29 aprobado por el usuario, congelado desde fase 2; delta fase 5 = 0)
+- [x] Dimension 5 Spacing: PASS
+- [x] Dimension 6 Registry Safety: PASS
+- [x] Dimension 7 Inventory Provenance: PASS
 
-**Approval:** pending
+**Approval:** approved (gsd-ui-checker, 2026-10-01 — veredicto `## UI-SPEC VERIFIED` / APPROVED)
 
 ---
 
 ## Nota para el planner (mapeo a docs del ciclo)
 
-- **docs/03_diseno.md sin pantallas nuevas** (CONTEXT: "el deploy no cambia UI"); si el spike
-  D-72 descubre algo, primero amendment a ESTE spec, luego la guía (camino de amendment arriba).
+- **docs/03_diseno.md sin pantallas nuevas** (CONTEXT: "el deploy no cambia UI"); si aparece
+  evidencia viva (docs de plataforma o feedback del alumno), primero amendment a ESTE spec, luego la guía (camino de amendment arriba).
 - **Mini-verificación del fallback en la guía de deploy del frontend** = refresh/deep-link de
   ruta profunda (`/pago/resultado`, `/pedidos/:numero`, `/admin/pedidos`) → 200 con la SPA.
   Síntoma docente: funciona navegando desde `/` pero 404 al refresh.
@@ -307,5 +312,5 @@ verificadas contra docs oficiales en `05-RESEARCH.md` (Sources).
 - **Gran verificación final de fase 5** (última de la serie): tabla CS/RF con los 4 flujos
   Webpay contra el AMBIENTE DESPLEGADO, refresh sin 404, contrato 0.4.0 ↔ `/docs` público y
   grep del build (AIAS-03) re-corrido en producción — forma exacta libre (discreción CONTEXT).
-- **Copys "puerto 8000"**: regla de decisión registrada (defecto solo si spike/UAT lo dicta →
+- **Copys "puerto 8000"**: regla de decisión registrada (defecto solo si la evidencia viva lo dicta →
   fix en ambos lugares + amendment a este spec, nunca en silencio).
