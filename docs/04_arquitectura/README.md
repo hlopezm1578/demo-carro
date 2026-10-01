@@ -234,6 +234,8 @@ maura/                          ← raíz del proyecto del alumno (D-11, ADR-003
 | [016](adr/016-maquina-de-estados-con-transicion-admin.md) | Máquina de estados de pedidos con UNA transición manual admin (PENDING→CANCELLED) | Qué transiciones existen, quién las ejecuta y cómo se gestionan las huérfanas (ADMN-03, D-50) |
 | [017](adr/017-asistente-ia-mini-rag-key-solo-backend.md) | Asistente IA con mini-RAG, structured output y key solo en el backend | Cómo recomienda la asesora sin alucinar y dónde vive la API key (AIAS-01..03, D-56, D-63, D-61; superseded por 018) |
 | [018](adr/018-asistente-ia-groq-structured-outputs.md) | Asistente IA con Groq: structured outputs json_schema y key solo en el backend | Reemplaza el proveedor de ADR-017 tras el cierre del free tier de Google (AIAS-01..03, D-63..D-68) |
+| [019](adr/019-despliegue-free-tier-vercel-render.md) | Despliegue en free tier: Vercel para la SPA y Render para la API | Cómo se publican los dos tiers con URL pública sin costo (DEPL-01, D-69, D-73) |
+| [020](adr/020-persistencia-efimera-seed-idempotente.md) | Persistencia efímera: SQLite + seed idempotente como estrategia | Cómo sobrevive la BD al disco efímero del free tier (DEPL-01/DEPL-02, D-70) |
 
 ---
 
