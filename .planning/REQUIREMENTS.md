@@ -47,16 +47,16 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Administración
 
-- [ ] **ADMN-01**: Admin hace CRUD de productos con soft delete
-- [ ] **ADMN-02**: Admin gestiona stock con alerta de stock bajo
-- [ ] **ADMN-03**: Admin gestiona pedidos con transiciones de estado validadas en el backend
-- [ ] **ADMN-04**: Admin ve métricas básicas del negocio (tarjetas y tabla, sin librerías de gráficos)
+- [x] **ADMN-01**: Admin hace CRUD de productos con soft delete
+- [x] **ADMN-02**: Admin gestiona stock con alerta de stock bajo
+- [x] **ADMN-03**: Admin gestiona pedidos con transiciones de estado validadas en el backend
+- [x] **ADMN-04**: Admin ve métricas básicas del negocio (tarjetas y tabla, sin librerías de gráficos)
 
 ### Asistente IA (Gemini)
 
-- [ ] **AIAS-01**: Cliente usa un chat (burbuja en la tienda) donde el asistente recomienda productos del catálogo real
-- [ ] **AIAS-02**: El asistente responde solo con productos existentes (mini-RAG sobre el catálogo + validación de ids contra BD) y muestra product cards clicables desde el chat
-- [ ] **AIAS-03**: La API key de Gemini vive solo en el backend (variable de entorno), nunca en el código ni el bundle del frontend
+- [x] **AIAS-01**: Cliente usa un chat (burbuja en la tienda) donde el asistente recomienda productos del catálogo real
+- [x] **AIAS-02**: El asistente responde solo con productos existentes (mini-RAG sobre el catálogo + validación de ids contra BD) y muestra product cards clicables desde el chat
+- [x] **AIAS-03**: La API key de Gemini vive solo en el backend (variable de entorno), nunca en el código ni el bundle del frontend
 
 ### Despliegue
 
@@ -125,13 +125,13 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PAY-04 | Phase 3 | Complete |
 | ORDR-01 | Phase 3 | Complete |
 | ORDR-02 | Phase 3 | Complete |
-| ADMN-01 | Phase 4 | Pending |
-| ADMN-02 | Phase 4 | Pending |
-| ADMN-03 | Phase 4 | Pending |
-| ADMN-04 | Phase 4 | Pending |
-| AIAS-01 | Phase 4 | Pending |
-| AIAS-02 | Phase 4 | Pending |
-| AIAS-03 | Phase 4 | Pending |
+| ADMN-01 | Phase 4 | Complete |
+| ADMN-02 | Phase 4 | Complete |
+| ADMN-03 | Phase 4 | Complete |
+| ADMN-04 | Phase 4 | Complete |
+| AIAS-01 | Phase 4 | Complete |
+| AIAS-02 | Phase 4 | Complete |
+| AIAS-03 | Phase 4 | Complete |
 | DEPL-01 | Phase 5 | Pending |
 | DEPL-02 | Phase 5 | Pending |
 

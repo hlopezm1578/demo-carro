@@ -4,17 +4,17 @@ milestone: v2.25.0
 current_phase: 4
 current_phase_name: Panel de administración y asistente IA
 current_plan: 5
-status: executing
-stopped_at: Completed 04-03-PLAN.md
-last_updated: "2026-10-01T10:16:31.930Z"
+status: verifying
+stopped_at: Completed 04-05-PLAN.md
+last_updated: "2026-10-01T10:21:23.045Z"
 last_activity: 2026-09-30
 last_activity_desc: Phase 4 execution started
-state_head: 5635f903848a3e7a0fdc32ccb1443a89954ff096
+state_head: 677ff0b615ca60578a2a64abbf449249e0027185
 progress:
   total_phases: 5
   completed_phases: 3
   total_plans: 21
-  completed_plans: 20
+  completed_plans: 21
 ---
 
 # Project State
@@ -31,7 +31,7 @@ See: .planning/PROJECT.md (updated 2026-09-30)
 Phase: 4 (Panel de administración y asistente IA) — EXECUTING
 Current Plan: 5
 Total Plans in Phase: 5
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-09-30 — Phase 4 execution started
 
 Progress: [██████░░░░] 60%
@@ -79,6 +79,7 @@ Progress: [██████░░░░] 60%
 | Phase 04 P01 | 12 min | 3 tasks | 5 files |
 | Phase 04 P02 | 9 min | 2 tasks | 2 files |
 | Phase 04 P03 | 18 min | 2 tasks | 3 files |
+| Phase 4 P05 | 2 min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -165,6 +166,9 @@ Recent decisions affecting current work:
 - [Phase 04]: [04-03] guia-12: ProductoEditar hereda de ProductoCrear sin cuerpo (allow-list identica por herencia, mass assignment vetado por ausencia), PedidoTransicion con Literal[cancelled] y sku generado panel-{uuid8} en el repo (el upsert es del seed: crear dos veces crea dos productos, el idempotente por diseno es el ESTADO)
 - [Phase 04]: [04-03] guia-13: el editor hidrata descripcion/notas desde la ficha publica (ProductoAdmin liviano a proposito en 0.4.0, key ['producto', id] compartida) con hueco honesto para inactivos (la ficha 404a) — el detalle admin seria un 0.5.0, jamas desvio improvisado; queryKeys ['productos','admin'] y ['pedidos','admin'] invalidan por prefijo junto a catalogo e historial (D-48/D-49 cobrados sin editar guia-11)
 - [Phase 04]: [04-03] Desviacion Rule 2: guia-12 sube el CORS a [GET,POST,PUT,PATCH] (el plan solo decia version 0.4.0) — la leccion 'el CORS crece con la API' de guia-05 aplicada antes del deploy de fase 5, con mini-verificacion del preflight
+- [Phase 4]: Cierre de fase 4 en los índices (D-13/D-18, cuarta corrida): guías 1-15 listas + 17 ADRs + 17 decisiones + panel y asesora Gemini como stack construido en el tono telegráfico de Webpay; fila 5 honesta en Parcial (fases 5+)
+- [Phase 4]: Mapa mental de 05_desarrollo suma la capa de IA como segundo servicio externo de tipo nuevo: request-response JSON desde el backend sin redirecciones (contraste explícito con Webpay), API key como env var del servidor
+- [Phase 4]: Gate documental de cierre de fase 4 en verde: 15 guia-*.md, 17 ADRs 001-017, cadena Siguiente 11→15 grep-verificada sin eslabones sueltos y repo guide-only (git ls-files backend/frontend vacío, D-17/ADR-008)
 
 ### Pending Todos
 
@@ -185,6 +189,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-30T22:00:49.955Z
-Stopped at: Completed 04-03-PLAN.md
+Last session: 2026-10-01T10:21:22.923Z
+Stopped at: Completed 04-05-PLAN.md
 Resume file: None
