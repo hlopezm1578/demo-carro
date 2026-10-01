@@ -108,7 +108,7 @@ evidence: |
 expected: Con la GEMINI_API_KEY del usuario (creada gratis en aistudio.google.com, D-60), la burbuja responde recomendaciones del catálogo real con product cards válidas (AIAS-01/02 runtime). Sin key, este ítem queda bloqueado — la degradación 503 sí se verifica sin key.
 result: blocked
 blocked_by: third-party
-reason: "Key entregada por el usuario (2026-10-01) e instalada en el .env del taller: la llamada REAL al SDK se ejecutó y autenticó, pero el proyecto de Google de esa key tiene los créditos prepagados agotados — Google responde 402 'Your prepayment credits are depleted' (los proyectos free tier dan 429, no 402). Pendiente del usuario: una key con cuota disponible (proyecto nuevo de AI Studio, gratis y sin tarjeta) o recargar créditos. Con eso, este ítem y la fila 8 de la GV se cierran en minutos."
+reason: "Cerrado el camino Gemini: (1) la primera key del usuario autenticó pero su proyecto tiene créditos prepagados agotados (402 real de Google); (2) el usuario reporta que Google le exige cuenta de facturación para crear API keys nuevas — el flujo del alumno D-60 ('key gratis sin tarjeta en aistudio.google.com') quedó roto para cuentas como la suya. DECISIÓN DEL USUARIO (2026-10-01): reemplazar Gemini por GROQ (key sin tarjeta en console.groq.com, free tier 30 RPM/14.400 RPD, Structured Outputs nativo json_schema, API OpenAI-compatible) — rework por flujo GSD (nuevo ADR que supersed ADR-017, reescritura de la mitad de integración de guia-14, COVERAGE.md, research). El happy path se re-verifica tras el cambio de proveedor."
 verified_by: agent (user-delegated)
 evidence: |
   Intento real 2026-10-01 con la key del usuario en backend/.env: POST /api/asistente
