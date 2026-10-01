@@ -34,11 +34,16 @@
 | 9 | `guia-09-ordenes-webpay.md` | El backend del pago: órdenes con snapshot, checkout que recalcula, retorno con 302 y stock atómico | ✅ Listo |
 | 10 | `guia-10-retorno-voucher.md` | La vuelta a la SPA: el CTA encendido hacia Webpay, la ruta pública del resultado y el voucher de la tienda | ✅ Listo |
 | 11 | `guia-11-pedidos-cierre.md` | El historial de pedidos y la Gran verificación final de la fase 3 | ✅ Listo |
+| 12 | `guia-12-panel-backend.md` | El backend del panel: CRUD de productos con soft delete, la anulación del pedido con su 409 y las métricas | ✅ Listo |
+| 13 | `guia-13-panel-spa.md` | La SPA del panel: `/admin` con guard por rol y las tres pantallas de la dueña | ✅ Listo |
+| 14 | `guia-14-asistente-backend.md` | El backend de la asesora de aromas: Gemini con respuesta JSON validada contra el catálogo | ✅ Listo |
+| 15 | `guia-15-asistente-cierre.md` | La burbuja de la asesora en la tienda y la Gran verificación final de la fase 4 | ✅ Listo |
 
-> La fase 3 del proyecto completa sus tres guías (9-11: pago, vuelta,
-> historial). Las guías 12+ llegan con las fases siguientes (panel admin,
-> IA) — cada una asumiendo que estas están construidas y verificadas en tu
-> máquina, igual que el índice de `docs/README.md` avanza por fase.
+> La fase 4 del proyecto completa sus cuatro guías (12-15: panel de
+> administración y asistente IA). La guía siguiente llega con la fase 5
+> (despliegue) — cada una asumiendo que estas están construidas y
+> verificadas en tu máquina, igual que el índice de `docs/README.md`
+> avanza por fase.
 
 **Mapa mental de la serie:** el orden es **de adentro hacia afuera**. Primero
 construimos cada tier por separado (guías 1 y 2: el backend que responde JSON y
@@ -53,6 +58,14 @@ fase 3. La fase 3 agrega la **capa de integración externa** (guías 9-11): el
 pago real que cruza tiers hacia Webpay y vuelve (un retorno que no es fetch,
 sino una navegación del navegador) — la orden con snapshot y stock atómico en
 el backend (guía 9), la vuelta a la SPA con el voucher de la tienda (guía 10)
-y el historial honesto que cierra la fase (guía 11). Las fases siguientes del
-proyecto (panel, asistente) agregan las guías 12+ sobre esta base — cada una
-asumiendo que las anteriores están construidas y verificadas en tu máquina.
+y el historial honesto que cierra la fase (guía 11). La fase 4 agrega dos
+piezas sobre esa base: la **trastienda de la dueña** (guías 12-13: el panel
+de administración con su guard por rol en la SPA y su `get_current_admin`
+en cada endpoint del backend) y la **capa de IA** (guías 14-15: la asesora
+de aromas). Gemini es el **segundo servicio externo** del proyecto — y de
+un tipo nuevo: Webpay era una redirección del navegador que se iba de la
+tienda y volvía; la asesora es un request-response JSON **desde el
+backend**, sin redirecciones ni navegación, con la API key como variable
+de entorno del servidor que jamás cruza al frontend. Las guías siguientes
+llegan con la fase 5 (despliegue) — cada una asumiendo que las anteriores
+están construidas y verificadas en tu máquina.
