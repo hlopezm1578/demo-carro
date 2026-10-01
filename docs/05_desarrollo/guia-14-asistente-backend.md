@@ -366,7 +366,17 @@ del SERVIDOR** (D-56): el prompt solo lista activos (muralla 1) y cada id
 que devuelve el modelo se filtra contra el catálogo activo en la BASE
 antes de responder, con truncado a 3 (muralla 2) — un modelo que
 desobedece o alucina solo puede producir texto; las cards que el chat
-mostrará existen o no existen, y eso no lo decide el modelo. **El
+mostrará existen o no existen, y eso no lo decide el modelo. **Y el
+ALCANCE temático también vive en el prompt** — porque la muralla NO lo
+cubre: una respuesta fuera de tema con la lista de productos VACÍA es
+una respuesta perfectamente válida para el contrato, así que "La
+capital de Francia es París" cruzaría la muralla sin rozarla (lo
+reproducimos en el paso 8). El prompt lo cierra con una cláusula de
+alcance: Maura solo conversa sobre aromas, notas y su tienda —
+cualquier otra pregunta se deflecta breve y en su voz, invitando a
+volver a los aromas. La muralla valida PRODUCTOS con código; de qué se
+puede hablar lo escribe el prompt (AIAS-01: Maura en persona tampoco
+da clases de geografía en su tienda). **El
 wrapper** atrapa los errores tipados del SDK: `RateLimitError` → señal
 de cuota — con las cifras públicas a la vista, porque Groq SÍ las
 publica: 30 RPM / 1.000 RPD / 8K TPM / 200K TPD para
@@ -454,11 +464,20 @@ def _prompt_sistema(catalogo: list) -> str:
     """
     lineas = [
         "Eres Maura, la dueña de una tienda chilena de body splash, atendiendo",
-        "tu tienda online. Recomiendas aromas en primera persona, con tuteo",
-        "chileno, cálida y breve (dos o tres frases). Recomiendas SOLO",
-        "productos de este catálogo, priorizando los que calzan con lo que la",
-        "clienta cuenta que le gusta, y citando sus id en el campo productos",
-        "(máximo 3). Si nada del catálogo calza, responde sin productos.",
+        "tu tienda online. Solo conversas sobre aromas, notas, tu tienda y",
+        "tu catálogo: cualquier otra pregunta (geografía, historia, ciencia,",
+        "cualquier tema) NO la contestas — respondes solo con una frase breve",
+        "y cálida, en tu voz, invitando a la clienta a contarte qué aroma",
+        "busca. Ejemplo: si preguntan la capital de Francia, NO la dices:",
+        "respondes que de eso no sabes nada y que te cuenten qué frescura",
+        "andan buscando.",
+        "Cuando la clienta habla de aromas, recomiendas en primera persona,",
+        "con tuteo chileno, cálida y breve (dos o tres frases). Recomiendas",
+        "SOLO productos de este catálogo, priorizando los que calzan con lo",
+        "que la clienta cuenta que le gusta, y citando sus id en el campo",
+        "productos (máximo 3). Si nada del catálogo calza, responde sin",
+        "productos. El campo respuesta jamás contiene información ajena a",
+        "aromas, notas, tu tienda o tu catálogo.",
         "",
         "Catálogo (productos activos de la tienda):",
     ]
@@ -720,7 +739,10 @@ depender de nada que no controles. Primero el happy path CON tu key: un
 mensaje de prueba y la verificación de que los ids que devuelve EXISTEN
 en el catálogo — porque la muralla del servidor no se demuestra
 confiando, se demuestra comprobando (la prueba consulta la MISMA base
-que el service). Luego los topes: 501 caracteres y
+que el service). Sigue una pregunta trampa fuera de tema: el alcance de
+la asesora lo fija el prompt del paso 5, y esta es la prueba de que la
+cláusula deflector a funciona — la muralla sola no la cubriría. Luego
+los topes: 501 caracteres y
 un historial de 11 — el 422 declarativo de RN-16, sin que nadie escribiera
 un `if`. Después la verificación que NO necesita key (la que el
 material puede prometer sin depender de nadie): comentar la línea del
@@ -749,6 +771,25 @@ el service filtró): la
 muralla del servidor funcionó (puede que el modelo cite ids y el filtro
 los pase todos; puede que cite basura y devuelva `[]` — ambas son
 respuestas CORRECTAS del contrato, AIAS-02).
+
+✅ **Mini-verificación (la pregunta trampa — el alcance de la asesora):**
+con tu key activa, desde `backend/`, ejecuta:
+
+```
+uv run python -c "import httpx; r = httpx.post('http://localhost:8000/api/asistente', json={'mensaje': 'cuál es la capital de Francia?'}); d = r.json(); print(r.status_code, d['respuesta'][:80], '| cards:', len(d['productos']))"
+```
+
+Debe imprimir `200` con una respuesta en la voz de Maura que NO contesta
+la pregunta — ninguna capital, solo un amable regreso a los aromas — y
+`cards: 0`. Esa es la cláusula de alcance del paso 5 funcionando: la
+muralla del servidor valida PRODUCTOS, pero una respuesta off-topic con
+lista vacía también calza el contrato — de qué se puede hablar lo decide
+el prompt (AIAS-01: "como lo haría Maura en persona"). Y si tu modelo
+igual suelta la capital, estás viendo la diferencia entre la muralla
+DURA (validación por código, imposible de saltar) y el contrato BLANDO
+del prompt (una instrucción que un modelo puede desobedecer):
+endurece la cláusula y vuelve a probar — el prompt es la única capa
+que gobierna el alcance.
 
 ✅ **Mini-verificación (los topes del free tier, 422):**
 

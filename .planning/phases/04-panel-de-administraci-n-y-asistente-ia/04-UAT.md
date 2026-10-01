@@ -245,3 +245,27 @@ directo desde esta máquina):
 AIAS-01/02 verificados punta a punta EN NAVEGADOR contra el backend Groq re-integrado. Sin bugs —
 nada que corregir en los dos lugares. Los servidores del taller quedaron CORRIENDO para que el
 usuario pruebe personalmente (frontend http://localhost:5173, burbuja abajo a la derecha).
+
+## Addenda 2 (2026-10-01): defecto reportado por el usuario — la asesora respondía off-topic
+
+El usuario probó en vivo y reportó que la asesora contestaba preguntas ajenas a la tienda ("cuál
+es la capital de Francia?" → "La capital de Francia es París."). **Diagnóstico:** hueco de diseño
+en el prompt de guia-14 (D-56 define QUÉ productos recomendar, nunca DE QUÉ se habla — una
+respuesta off-topic con lista vacía pasa tranquila por la muralla y el contrato). **Decisión del
+usuario:** deflectar en personaje (opción recomendada). **Fix en los dos lugares** (guia-14 Paso 5
+prompt + 🧠 + golpe "pregunta trampa" en la batería del Paso 8; espejo en taller
+services/asistente.py): cláusula de alcance por primacía (regla primera), con ejemplo explícito
+(la capital NO se dice) y anclada al campo `respuesta` del schema.
+
+**Verificado en vivo post-fix** (API y navegador): capital → "No sé nada de eso, cuéntame qué
+frescura buscas en tu aroma."; Don Quijote → deflexión equivalente; on-topic sin regresión
+("algo floral para la noche" → Jazmín de Tarde/Rosa de Río/Peonía Blanca, ids [4,6,5] válidos).
+
+**Nota de entorno del taller (NO defecto de guía):** durante el debugging el backend respondía
+con el prompt VIEJO pese a los reinicios — habían quedado 3 procesos python simultáneos
+escuchando el 8000 (reloads colgados de corridas anteriores) y las requests caían en
+round-robin al más antiguo. `netstat -ano` mostraba PIDs fantasma que `taskkill` no mataba;
+`Get-NetTCPConnection` (PowerShell) es la autoridad para ver el dueño real, y el arranque limpio
+exige matar TODOS los python del taller y verificar el puerto libre antes de subir. Lección
+hermana del "hot-reload se cuelga" ya documentada: si un fix de prompt "no funciona", verifica
+que el proceso que responde sea el que crees.
