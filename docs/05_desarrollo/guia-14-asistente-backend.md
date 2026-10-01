@@ -58,9 +58,11 @@ uv add "google-genai>=2.25,<3"
 uv run python -c "import importlib.metadata as m; print(m.version('google-genai'))"
 ```
 
-Debe imprimir `2.25.x` — el SDK oficial dentro del rango del pin. (Que el
-pin funcione lo puedes comprobar en `pyproject.toml`: la dependencia quedó
-registrada con el rango, no suelta — dentro de un año, la 3.x no entrará
+Debe imprimir una `2.25.x` o superior DENTRO del rango del pin (el piso
+lo validó la fase; el techo `<3` es lo que importa) — el SDK oficial.
+(Que el pin funcione lo puedes comprobar en `pyproject.toml`: la
+dependencia quedó registrada con el rango, no suelta — dentro de un año,
+la 3.x no entrará
 a tu proyecto sin que tú lo decidas.)
 
 ---
@@ -143,7 +145,8 @@ contraste explícito es exactamente lo que ADR-017 registra como decisión
 (y su pregunta 2 lo lleva a clase).*
 
 En **`backend/app/config.py`**, agrega el campo dentro de `Settings`
-(junto a las de la etapa 2):
+(como un bloque Etapa 4 al final, tras el bloque de la etapa 3 — cada
+etapa suma su bloque, en orden):
 
 ```python
     # --- Etapa 4: la asesora de aromas (ADR-017) ---
@@ -259,13 +262,17 @@ class ChatRespuesta(BaseModel):
 ✅ **Mini-verificación:** desde `backend/`, ejecuta:
 
 ```
-uv run python -c "from app.schemas.asistente import ChatMensaje, ChatRespuesta; s = ChatMensaje.model_json_schema(); print(s['properties']['mensaje'].get('maxLength'), s['properties']['historial']['items']['properties']['texto'].get('maxLength'), s['properties']['historial'].get('maxItems'), ChatRespuesta.model_json_schema()['properties']['productos'].get('maxItems'))"
+uv run python -c "from app.schemas.asistente import ChatMensaje, ChatRespuesta; s = ChatMensaje.model_json_schema(); print(s['properties']['mensaje'].get('maxLength'), s['$defs']['MensajeHistorial']['properties']['texto'].get('maxLength'), s['properties']['historial'].get('maxItems'), ChatRespuesta.model_json_schema()['properties']['productos'].get('maxItems'))"
 ```
 
 Debe imprimir `500 500 10 3` — los topes de RN-16 nacieron declarativos
 en el schema: el del mensaje, el del `texto` de cada entrada del
 historial (el MISMO 500 — el contenido que el cliente controla también
-viaja al modelo), el del historial y el de las cards. El 422
+viaja al modelo), el del historial y el de las cards. Fíjate por dónde se
+llega al segundo: Pydantic v2 NO inlinea el modelo anidado — `historial`
+apunta por `$ref` a `$defs/MensajeHistorial`, y el tope del `texto` vive
+adentro de ese `$defs` (imprime `s` entero si quieres verlo: es un
+mini-`contrato_api.yaml` generado). El 422
 que los hace cumplir lo verás golpear en el paso 8; lo que generan ya
 está en el contrato (`ChatMensaje`/`ChatRespuesta` en
 `contrato_api.yaml` — ábrelo y compara: deben calzar campo a campo).
@@ -638,7 +645,7 @@ material puede prometer sin depender de nadie): comentar la línea del
 `.env`, reiniciar, y el endpoint responde 503 con el copy amable —
 mientras la tienda entera sigue operativa. Esa es D-61 hecha runtime: la
 asesora es un huésped opcional de la tienda, no un pilar. Si tu key no
-está o no quieres gastar cuota: corre igual los golpes 2, 3 y 4 — la
+está o no quieres gastar cuota: corre igual los golpes 2 y 3 — la
 degradación y los topes no tocan Gemini para nada.*
 
 Con la API encendida y el seed corrido. Los golpes, en orden:
