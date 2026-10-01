@@ -223,3 +223,25 @@ issues: 0
 pending: 0
 skipped: 0
 blocked: 0
+
+## Addenda post-cierre (2026-10-01, a pedido del usuario): asistente Groq EN VIVO en navegador
+
+Gap detectado por el usuario tras el cierre de la fase: la re-verificación del test 2 durante el
+plan 04-08 fue a nivel API (curl al endpoint) y las verificaciones "EN VIVO en navegador" del UAT
+original eran de la era Gemini. Corrida de cierre (agent, browser-use sobre el taller con los dos
+servidores levantados — backend 8000, frontend 5173 —, sin workaround TLS: api.groq.com respondió
+directo desde esta máquina):
+
+1. Burbuja "Pregúntale a Maura" visible en la portada → panel "Asesora de aromas" abre con la
+   bienvenida LOCAL (cero requests, cero cuota).
+2. Mensaje "algo cítrico para el día" → respuesta REAL de Groq en la voz de Maura ("¡Hola! Te
+   recomiendo Brisa de Naranja, Limón y Albahaca y Gajo de Pomelo, perfectos para darle frescura
+   cítrica al día…") con **3 product cards** (Brisa de Naranja $7.990 → /productos/1, Limón y
+   Albahaca $6.990 → /productos/2, Gajo de Pomelo $8.990 → /productos/3 — familia Cítricas,
+   truncado a 3 por la muralla D-56).
+3. Clic en la card "Brisa de Naranja" → navega a la ficha /productos/1 con su heading.
+4. Smoke API paralelo: POST /api/asistente → 200 en 2,1 s con ids [1,2] válidos.
+
+AIAS-01/02 verificados punta a punta EN NAVEGADOR contra el backend Groq re-integrado. Sin bugs —
+nada que corregir en los dos lugares. Los servidores del taller quedaron CORRIENDO para que el
+usuario pruebe personalmente (frontend http://localhost:5173, burbuja abajo a la derecha).
