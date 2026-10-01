@@ -243,7 +243,7 @@ elegido pensando en este momento.
    del modelo. *(D-56; su capa técnica es ADR-017.)*
 18. **Sin API key la tienda arranca igual: degradación, no fail-fast.** A
    diferencia del `secret_key` de las sesiones (que frena el arranque si
-   falta), la asesora es un servicio opcional: sin `GEMINI_API_KEY` el
+   falta), la asesora es un servicio opcional: sin la API key del asistente el
    endpoint del asistente responde 503 con un mensaje amable, la burbuja
    anuncia que no está disponible y la tienda sigue 100% operativa. El
    contraste enseña cuándo un secreto es estructural y cuándo accesorio. *(D-61.)*
@@ -299,9 +299,10 @@ a la clienta identificada y a la dueña con rol de administración; la etapa 3
 sumó a **Webpay**, el primer servicio externo del sistema — la ida es el
 formulario de pago que redirige a la clienta hacia la pasarela y la vuelta es
 el retorno del navegador con el resultado, en cuatro flujos posibles; la etapa
-4 suma a **Gemini**, el segundo servicio externo — y de un tipo nuevo: mientras
+4 suma a **Groq**, el servicio de IA — el segundo servicio externo del
+sistema, y de un tipo nuevo: mientras
 Webpay se lleva la navegación de la clienta con redirecciones de ida y vuelta,
-Gemini solo conversa con el backend — una consulta JSON de ida y una respuesta
+el servicio de IA solo conversa con el backend — una consulta JSON de ida y una respuesta
 JSON de vuelta, sin redirecciones: la clienta nunca sale de la tienda):
 
 ```mermaid
@@ -311,7 +312,7 @@ flowchart LR
     AD["Admin (dueña)"]
     D["Desarrollador de la guía"]
     WP["Webpay (pasarela de pago)"]
-    GEM["Gemini (asesora IA)"]
+    GEM["Groq (asesora IA)"]
     SISTEMA(["TIENDA MAURA (etapas 1 a 4: catálogo, cuentas, carro, pago, pedidos, panel y asesora)"])
 
     V -->|"abre la tienda, filtra, abre fichas,<br>arma su carro anónimo"| SISTEMA
@@ -618,7 +619,7 @@ flowchart TD
     VIS["Visitante / Clienta"] -->|"mensaje (máx. 500) +<br/>historial (máx. 10)"| P15(["15.0 Conversar con la asesora"])
     P15 -->|"topes violados (RN-16) → 422"| VIS
     P15 -->|"catálogo activo completo:<br/>id, nombre, familia, notas, precio"| D1[("D1 Productos")]
-    P15 -->|"prompt del sistema (catálogo + voz)<br/>+ conversación"| GEM["Gemini (asesora IA)"]
+    P15 -->|"prompt del sistema (catálogo + voz)<br/>+ conversación"| GEM["Groq (asesora IA)"]
     GEM -->|"JSON estructurado:<br/>texto + ids citados"| P15
     P15 -->|"valida cada id contra<br/>el catálogo ACTIVO"| D1
     P15 -->|"respuesta + tarjetas clicables<br/>(ids válidos, máx. 3)"| VIS
@@ -1332,7 +1333,7 @@ La respuesta cuando la asesora citó aromas:
   máximo 3 por respuesta — y solo ids que el backend ya validó contra el
   catálogo activo (RF-24): la muralla anti-alucinación es del servidor, jamás
   del chat; si la respuesta no trae ids válidos, solo llega el texto.
-- Los errores nunca son un 500 crudo: 503 sin key o con Gemini caído
+- Los errores nunca son un 500 crudo: 503 sin key o con el servicio caído
   (degradación, D-61), 429 de cuota **sin cifras de límites**, error de red
   con la causa del puerto 8000 — todos con "Reintentar" que reenvía el
   último mensaje.
@@ -1392,11 +1393,11 @@ La respuesta cuando la asesora citó aromas:
 | RF-22 (métricas en tarjetas y tabla) | §3.16 proceso 14.0 · §4.13 pantalla 12 |
 | RF-23 (asesora en burbuja pública) | §3.17 proceso 15.0 · §4.15 pantalla 14 (burbuja) |
 | RF-24 (solo productos existentes, cards clicables) | §2.3.17 decisión 17 (mini-RAG) · §3.17 proceso 15.0 (validación de ids contra D1 activo) · §4.15 pantalla 14 (cards) |
-| RNF-08 (dependencia del servicio Gemini free tier) | §3.1 Gemini como entidad externa · §2.3.18 decisión 18 · §3.17 reglas del proceso (503/429) |
-| RNF-09 (API key solo en el backend) | §3.17 proceso 15.0 (solo el backend habla con Gemini) · §2.3.18 decisión 18 |
+| RNF-08 (dependencia del servicio de IA free tier) | §3.1 Groq como entidad externa · §2.3.18 decisión 18 · §3.17 reglas del proceso (503/429) |
+| RNF-09 (API key solo en el backend) | §3.17 proceso 15.0 (solo el backend habla con el servicio de IA) · §2.3.18 decisión 18 |
 | RN-14 (umbral stock bajo ≤ 5 activos) | §2.3.16 decisión 16 (dos umbrales) · §4.11 badge de la pantalla 10 · §4.13 KPI de la pantalla 12 |
 | RN-15 (máquina de estados, transición admin única) | §2.3.15 decisión 15 · §3.15 proceso 13.0 · §4.12 pantalla 11 |
-| RN-16 (topes del chat 500/10/3) | §3.17 proceso 15.0 (topes antes de Gemini) · §4.15 pantalla 14 (input y cards) |
+| RN-16 (topes del chat 500/10/3) | §3.17 proceso 15.0 (topes antes del servicio de IA) · §4.15 pantalla 14 (input y cards) |
 | HU-12 (la dueña gestiona su tienda) | §3.14/§3.15/§3.16 procesos 12.0-14.0 · §4.11-§4.13 pantallas 10-12 |
 | HU-13 (la clienta consulta a la asesora) | §3.17 proceso 15.0 · §4.15 pantalla 14 |
 

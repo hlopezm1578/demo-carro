@@ -16,7 +16,7 @@ ya está tomada en la exploración del proyecto y aquí se registra como ADR:
 **dos tiers estrictamente separados** — una SPA React que renderiza y una API
 FastAPI que expone JSON — porque el objetivo pedagógico de la guía es la
 integración entre tiers y con servicios externos reales (Webpay en la fase 3,
-Gemini en la fase 4).
+el servicio de IA de Groq en la fase 4).
 
 > **Alcance del repositorio (decisión D-17, ADR-008):** el proyecto de código
 > que describe este documento — `backend/` + `frontend/` — es el que construye
@@ -119,7 +119,7 @@ Versiones del stack autoritativo del proyecto (AGENTS.md / `.planning/research/S
 | Lenguaje backend | **Python 3.12** | Techo declarado por `transbank-sdk` (fase 3); fijado con `requires-python ">=3.12,<3.13"` ([ADR-006](adr/006-uv-como-gestor.md)) |
 | Pago (fase 3) | **Webpay Plus REST, ambiente de integración** | Pasarela real chilena en sandbox con credenciales públicas sin registro (597055555532); el retorno del navegador hacia la SPA queda firmado con evidencia runtime ([ADR-012](adr/012-retorno-de-webpay.md)) |
 | SDK Webpay | **transbank-sdk 6.1.0** | Único SDK oficial (repo TransbankDevelopers); `Transaction.build_for_integration(...)` trae las credenciales públicas — sin `.env` nuevo en esta fase; sync `requests` → rutas `def` sincronizadas ([ADR-012](adr/012-retorno-de-webpay.md), [ADR-013](adr/013-orden-nace-al-pagar-stock-al-aprobar.md)) |
-| IA (fase 4) | **google-genai 2.25.0** (pin `>=2.25,<3`) | SDK oficial de Gemini para la asesora de venta: JSON estructurado + validación de ids contra la BD (mini-RAG, D-56); la API key vive solo en el `.env` del backend y sin key el asistente degrada a 503 amable ([ADR-017](adr/017-asistente-ia-mini-rag-key-solo-backend.md)) |
+| IA (fase 4) | **groq 1.7.0** (pin `>=1.7,<2`) | SDK oficial de Groq para la asesora de venta: JSON estructurado con `json_schema` strict + validación de ids contra la BD (mini-RAG, D-56); la API key vive solo en el `.env` del backend y sin key el asistente degrada a 503 amable ([ADR-018](adr/018-asistente-ia-groq-structured-outputs.md), que supersede al [ADR-017](adr/017-asistente-ia-mini-rag-key-solo-backend.md)) |
 
 ---
 
@@ -156,7 +156,7 @@ maura/                          ← raíz del proyecto del alumno (D-11, ADR-003
 │       ├── services/pedidos.py # iniciar_checkout (recalculo CART-03) y procesar_retorno (discriminador + commit + transición)
 │       ├── services/webpay.py  # wrapper de Transaction.build_for_integration — el ÚNICO lugar que importa transbank
 │       ├── services/admin.py   # las reglas del panel: escrituras de productos con allow-list, transición validada y métricas (ADMN-01..04)
-│       ├── services/asistente.py # la asesora: mini-RAG + structured output — el ÚNICO lugar que importa google.genai
+│       ├── services/asistente.py # la asesora: mini-RAG + structured output — el ÚNICO lugar que importa groq
 │       ├── routers/            # endpoints HTTP: /api/salud, /api/productos
 │       ├── routers/auth.py     # /api/auth/registro, /api/auth/login, /api/auth/perfil
 │       ├── routers/admin.py    # el CRUD real de administración: /api/admin/productos, /api/admin/pedidos y /api/admin/metricas — get_current_admin en cada endpoint (ADMN-01..04, ADR-015)
@@ -195,7 +195,7 @@ maura/                          ← raíz del proyecto del alumno (D-11, ADR-003
 3. `services/` decide: **jamás conoce HTTP** — ni códigos de estado, ni JSON, ni
    cabeceras. El wrapper del asistente (`services/asistente.py`) respeta la
    regla con la misma técnica que `services/webpay.py`: traduce los errores
-   del SDK de Gemini a señales de dominio — el 503/429 lo decide el router
+   del SDK de IA a señales de dominio — el 503/429 lo decide el router
    ([ADR-017](adr/017-asistente-ia-mini-rag-key-solo-backend.md)).
 4. Solo `main.py` arma la aplicación (`FastAPI()`, CORS, `include_router`).
    Nadie más instancia la app.
@@ -232,7 +232,8 @@ maura/                          ← raíz del proyecto del alumno (D-11, ADR-003
 | [014](adr/014-snapshot-de-precio-en-la-orden.md) | Snapshot de precio en la orden y numero legible como buy_order | Qué muestra un pedido viejo cuando el catálogo cambia (ORDR-01, D-36, D-37) |
 | [015](adr/015-panel-admin-protegido-por-rol.md) | El panel protegido por rol en los dos tiers: RequireAdmin como espejo UX del 403 | Cómo entra la dueña a `/admin` y quién responde cada endpoint (ADMN-01..04, D-55) |
 | [016](adr/016-maquina-de-estados-con-transicion-admin.md) | Máquina de estados de pedidos con UNA transición manual admin (PENDING→CANCELLED) | Qué transiciones existen, quién las ejecuta y cómo se gestionan las huérfanas (ADMN-03, D-50) |
-| [017](adr/017-asistente-ia-mini-rag-key-solo-backend.md) | Asistente IA con mini-RAG, structured output y key solo en el backend | Cómo recomienda la asesora sin alucinar y dónde vive la API key de Gemini (AIAS-01..03, D-56, D-60, D-61) |
+| [017](adr/017-asistente-ia-mini-rag-key-solo-backend.md) | Asistente IA con mini-RAG, structured output y key solo en el backend | Cómo recomienda la asesora sin alucinar y dónde vive la API key (AIAS-01..03, D-56, D-63, D-61; superseded por 018) |
+| [018](adr/018-asistente-ia-groq-structured-outputs.md) | Asistente IA con Groq: structured outputs json_schema y key solo en el backend | Reemplaza el proveedor de ADR-017 tras el cierre del free tier de Google (AIAS-01..03, D-63..D-68) |
 
 ---
 

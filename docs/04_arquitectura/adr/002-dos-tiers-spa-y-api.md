@@ -10,7 +10,7 @@ El diseño definió 3 pantallas responsivas con estados de carga/error/vacío
 (§4.1) y filtros que viven en la dirección de la página (§4.1). Pero el
 objetivo de ESTA guía no es solo publicar una tienda: es que el alumno aprenda
 a **integrar tiers y servicios externos reales** — una SPA que consume un API
-por contrato y, en las fases 3 y 4, un pago Webpay y un asistente Gemini cuyas
+por contrato y, en las fases 3 y 4, un pago Webpay y un asistente de IA (Groq) cuyas
 credenciales y SDK solo pueden vivir en el servidor.
 
 El proyecto hermano demo-cine enfrentó esta misma decisión y eligió lo
@@ -43,7 +43,7 @@ explícito desde `Settings`.
 **Positivas**
 - La frontera entre tiers es un contrato legible, discutible y versionado — el punto pedagógico central de la guía.
 - La SPA es un sitio estático publicable gratis; el API se apaga, escala o reescribe sin tocar la interfaz.
-- Webpay (fase 3) y Gemini (fase 4) encajan naturalmente: credenciales, SDK y llamadas viven solo en el backend.
+- Webpay (fase 3) y el servicio de IA (fase 4) encajan naturalmente: credenciales, SDK y llamadas viven solo en el backend.
 
 **Negativas (honestas)**
 - **SEO client-side**: el HTML llega sin contenido y el buscador debe ejecutar JavaScript. Para una PYME real esto duele; para Maura se acepta porque el foco es pedagógico — y es discusión obligada de clase.
