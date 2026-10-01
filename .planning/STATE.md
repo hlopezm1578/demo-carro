@@ -5,11 +5,11 @@ current_phase: 5
 current_phase_name: Despliegue y cierre de la guía
 current_plan: 5
 status: executing
-stopped_at: Completed 05-04-PLAN.md
-last_updated: "2026-10-01T18:43:29.729Z"
+stopped_at: Completed 05-05-PLAN.md
+last_updated: "2026-10-01T18:49:57.282Z"
 last_activity: 2026-10-01
 last_activity_desc: Phase 5 execution started
-state_head: a521e4a031ee71bfed9ab7e25dad528166d7e12b
+state_head: bee1ab5f21843a1589de56611fe4c7e709414ad7
 progress:
   total_phases: 5
   completed_phases: 4
@@ -88,6 +88,7 @@ Progress: [████████░░] 80%
 | Phase 05 P02 | 9 min | 2 tasks | 2 files |
 | Phase 05 P03 | 11 min | 2 tasks | 3 files |
 | Phase 05 P04 | 8 min | 2 tasks | 1 files |
+| Phase 05 P05 | 6 min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -194,6 +195,9 @@ Recent decisions affecting current work:
 - [Phase 05]: [Phase 05 P03] guia-17 cita verbatim los bloques de guia-04:760-763 y guia-09 _hacia_spa como anclas (las cita, no las reescribe): cero delta UI del UI-SPEC — todo cambio de comportamiento es configuracion
 - [Phase 05]: [Phase 05 P04] guia-18 resuelve el 'anulado con Rechazar' fiel a la evidencia del spike/ADR-012: Paso 3 cubre los DOS caminos (Anular compra y volver -> cancelled sin commit; Rechazar/TSN -> rejected por commit -1) con resultado esperado por estado — la fila 3 de la Gran verificacion hereda esa precision (PAY-04)
 - [Phase 05]: [Phase 05 P04] La Gran verificacion final de la SERIE queda DEFINIDA en guia-18 como tabla de 9 filas con nota D-73 en la introduccion ('la corres TU'): filas fijas heredadas de guia-15:529-530 con URL publica y version QUIETA en 0.4.0 (D-66) — y el Siguiente cierra la serie hacia 06_pruebas/07_despliegue/08_mantenimiento sin guia-19 (molde 'El ciclo se cierra (y se reabre)', 18 guias + 20 ADRs)
+- [Phase 05]: Cierre de SERIE en 05_desarrollo/README: la nota reemplaza la de fase (18 guias completas, el desarrollo termina, el ciclo sigue en docs 06/07/08) y el mapa mental gana la capa de despliegue como ultima vuelta hacia afuera — la frase puente se reescribio segun el precedente de la fase 4 (bdd9408), capas 1-4 byte-intactas
+- [Phase 05]: Quinta corrida D-13/D-18: las 8 filas de los tres READMEs en Listo con links relativos en 6-8 y conteos sincronizados (20 ADRs, 20 decisiones, guias 1-18); el stack del README raiz gana su linea de despliegue (Vercel + Render free tier · URLs publicas HTTPS · SQLite efimero + seed idempotente, ADRs 019-020)
+- [Phase 05]: Gate documental de cierre de fase replicado y en verde (cierre-fase5-ok): 18 guias, 20 ADRs, docs 06/07/08, cadena Siguiente 15->16->17->18->docs y repo guide-only — las tablas se cantan completas solo contra corpus verificado ANTES del commit de estado
 
 ### Pending Todos
 
@@ -214,6 +218,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-01T18:43:29.555Z
-Stopped at: Completed 05-04-PLAN.md
+Last session: 2026-10-01T18:49:57.159Z
+Stopped at: Completed 05-05-PLAN.md
 Resume file: None
