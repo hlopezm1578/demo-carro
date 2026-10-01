@@ -119,3 +119,94 @@
 - Refund de PAID desde el panel — ya es ADMN-05 en REQUIREMENTS v2.
 - Gráficos en métricas — ya es STAKE-04 en REQUIREMENTS v2.
 - Streaming del chat sobre el mismo endpoint.
+
+---
+---
+
+# Sesión 2026-10-01 — Rework Gemini→Groq (interactiva)
+
+**Date:** 2026-10-01
+**Phase:** 4-Panel de administración y asistente IA
+**Mode:** interactiva (usuario seleccionó las 4 áreas y respondió todas las preguntas)
+**Trigger:** decisión del usuario registrada en 04-UAT.md test 2 (Google exige cuenta de facturación para crear keys → D-60 roto para el aula; GROQ_API_KEY ya verificada punta a punta). Usuario eligió "Actualizarlo" el CONTEXT.md existente y "Continuar y replanear después".
+**Areas discussed:** SDK cliente en guia-14, Modelo por defecto, Narrativa y versionado, Cifras del free tier
+
+## SDK cliente en guia-14
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| SDK oficial `groq` | Patrón del corpus (SDK oficial como transbank-sdk): `from groq import Groq`, `chat.completions.create` con `response_format` json_schema, excepciones tipadas (RateLimitError, APIStatusError) para el wrapper | ✓ |
+| `openai` + base_url | Patrón OpenAI-compatible transferible, pero pregunta pedagógica rara para el aula y suma configuración de base_url | |
+| httpx directo | Cero dependencia nueva, pero wrapper a mano sin excepciones tipadas y pierde la lección de SDK oficial | |
+
+**User's choice:** SDK oficial groq → **D-63**
+**Notes:** IN-03 (api_key explícita desde Settings, no auto-pickup) se mantiene con el nuevo SDK — mismo gotcha, ADR-018 lo dice. El research valida el pin de versión.
+
+## Modelo por defecto
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| `openai/gpt-oss-120b` | Insignia open-weights, respuesta más rica (543 tokens en el probe), guía determinista y reproducible | ✓ |
+| `qwen3-27b` | Más liviano (195 tokens), mayor margen ante ráfagas del aula | |
+| Enseñar la elección | GET /models y cada alumno elige — lección de exploración pero mini-verificaciones pierden reproducibilidad | |
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| Constante del backend | `MODELO_ASISTENTE` como `STOCK_BAJO_UMBRAL` en guia-12: constante con respaldo de RN; .env mínimo (solo GROQ_API_KEY) | ✓ |
+| Env var opcional | `GROQ_MODEL` con default — cambia de modelo sin tocar código, pero campo Settings condicional sin lección nueva | |
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| Advertir + /models | 🧠 de deprecación periódica de modelos de Groq + mini-exploración GET /models (probe 200) | ✓ |
+| Sin advertencia | Más corto, pero la guía muere sin herramienta de diagnóstico si deprecan gpt-oss-120b | |
+
+**User's choice:** gpt-oss-120b como constante del backend, con advertencia de deprecación + GET /models → **D-64**
+
+## Narrativa y versionado
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| Limpia + nota breve | guia-14 como si Groq siempre hubiera sido + blockquote ≈5 líneas (patrón guia-12/api-admin-estado) apuntando a ADR-018 | ✓ |
+| Limpia pura | Solo ADR-018 registra el swap — máxima simpleza, pierde la lección "los proveedores cambian y tu muralla sobrevive" | |
+| Lección completa | Construir Gemini, ver el 402, migrar — rico pero duplica la mitad de integración y ata el texto a una política de Google | |
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| 0.4.0 agnóstico | Descripciones sin proveedor ("el servicio de IA"); migraciones futuras no tocan el yaml; cero churn de versión | ✓ |
+| 0.4.0 nombrando Groq | Más concreto en /docs, pero acopla el contrato al proveedor | |
+| Subir a 0.4.1 | Semver legítimo para cambio documental, pero bump artificial (0.4.0 nunca salió por separado) y toca la enseñanza de guia-12 | |
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| Corpus completo | 64 menciones en 12 archivos actualizadas (READMEs, RNF-08/09, DFDs, docs/04 README, guia-12/13, ADR-002 incluido); ADR-017 solo marca de superseded | ✓ |
+| Solo el núcleo | guia-14/15 + ADR + contrato — deja "asesora Gemini" viva en READMEs y docs/02/03 | |
+| Completo, ADR-002 intacto | Disciplina de inmutabilidad estricta — deja 2 menciones vivas desactualizadas | |
+
+**User's choice:** Limpia + nota breve; contrato 0.4.0 agnóstico; barrido corpus completo → **D-65, D-66, D-67**
+
+## Cifras del free tier
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| Citar con fuente | Guía cita 30 RPM / 14.400 RPD con link y "a la fecha"; research valida contra docs oficiales (firmar con evidencia) | ✓ |
+| Seguir sin cifras | Robustez ante cambios, pero el motivo original (fuente inexistente en Gemini) ya no aplica | |
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| RN estable, guía concreta | RNF-08 sin números ("límites documentados públicamente por el proveedor"); la guía y el 🧠 del 429 citan las cifras | ✓ |
+| Cifras dentro de la RN | RN autocontenida pero cada cambio de cuota de Groq la deja desactualizada (la RN es el artefacto más estable) | |
+
+**User's choice:** Citar con fuente; RN estable + guía concreta → **D-68**
+**Notes:** Cierra el concern RPM/RPD de STATE.md (moría con Gemini; Groq publica los límites).
+
+## Claude's Discretion (rework)
+
+- Pin de versión del SDK `groq` y sintaxis exacta de `response_format` json_schema (research valida contra doc oficial).
+- Wording agnóstico exacto de las 8 descripciones del yaml; estructura interna de ADR-018; nota 🧠 OpenAI-compatible.
+- Re-escritura de RNF-08/09 y entidad GEM/DFD 15.0 sin renumerar series.
+- Si PROJECT.md/STACK.md (.planning) se actualizan en el rework o al cierre de fase (transición).
+- Secuencia de re-verificación del UAT test 2 y cierre de la verificación de fase.
+
+## Deferred Ideas (sesión 2026-10-01)
+
+Ninguna — la discusión se mantuvo dentro del dominio del rework.

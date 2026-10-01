@@ -1,7 +1,8 @@
 # Phase 4: Panel de administración y asistente IA - Context
 
 **Gathered:** 2026-09-30
-**Status:** Ready for planning
+**Updated:** 2026-10-01 — rework Gemini→Groq (D-63..D-68)
+**Status:** Ready for rework planning (Gemini→Groq)
 
 <domain>
 ## Phase Boundary
@@ -19,7 +20,13 @@ La verificación de planes es documental (greps/estructura); el UAT runtime es d
 
 Requisitos cubiertos: ADMN-01, ADMN-02, ADMN-03, ADMN-04, AIAS-01, AIAS-02, AIAS-03.
 
-**Concern abierto (NO decidido en esta discusión, blocker heredado de STATE.md):** los límites RPM/RPD del free tier de Gemini requieren verificación logueada en `aistudio.google.com/rate-limit` — solo el usuario puede hacerla. La guía NO promete cifras de límites sin esa verificación; enseña el manejo del error 429 sin prometer números.
+**Concern abierto (NO decidido en esta discusión, blocker heredado de STATE.md):** los límites RPM/RPD del free tier de Gemini requerían verificación logueada en `aistudio.google.com/rate-limit` — solo el usuario puede hacerla. La guía NO promete cifras de límites sin esa verificación; enseña el manejo del error 429 sin prometer números. **[CERRADO por el rework Groq (2026-10-01): el proveedor cambió y los límites del free tier de Groq son documentación pública — D-63/D-68.]**
+
+## Rework boundary (actualización 2026-10-01): reemplazo de Gemini por Groq
+
+La fase 4 ya está ejecutada y verificada (22/25, con el UAT delegado 4/5 pass), pero **el camino Gemini se cerró**: la primera key del usuario autenticó pero su proyecto tenía créditos agotados (402 real de Google) y Google pasó a exigir cuenta de facturación para crear keys nuevas — **D-60 quedó roto para el aula**. Decisión del usuario (2026-10-01): **reemplazar Gemini por Groq** (key sin tarjeta en console.groq.com, free tier público 30 RPM/14.400 RPD, Structured Outputs `json_schema` nativo, API OpenAI-compatible), con la GROQ_API_KEY ya verificada punta a punta (models 200 + json_schema 200 con voz de Maura e ids válidos — 04-UAT.md test 2).
+
+El rework cambia de PROVEEDOR, no de capacidad: la burbuja, el endpoint `/api/asistente`, la muralla anti-alucinación (D-56), la degradación (D-61) y el grep del build (AIAS-03) se mantienen. Alcanza a: reescritura de la mitad de integración de guia-14, ajustes puntuales de guia-15 (grep `GROQ_API_KEY`), ADR-018 que supersede ADR-017, contrato 0.4.0 agnóstico, barrido de las 64 menciones a Gemini en 12 archivos, re-verificación del UAT test 2 y cierre de la verificación de fase.
 
 </domain>
 
@@ -45,7 +52,7 @@ Requisitos cubiertos: ADMN-01, ADMN-02, ADMN-03, ADMN-04, AIAS-01, AIAS-02, AIAS
 - **D-55:** **Ruta `/admin` con sub-rutas bajo un layout propio del panel** (propuesta: productos, pedidos, métricas; estructura exacta a discreción), protegida por un guard por rol — RequireAdmin que reusa el patrón RequireAuth + returnTo (D-32) sumando el claim de rol desde el primer token (ADR-011). El link "Panel" en el navbar solo es visible con rol admin; una clienta que fuerza `/admin` ve una página de no autorizado — el espejo frontend del 403 que D-33 enseñó en backend.
 
 ### Asistente IA: estrategia mini-RAG (AIAS-02)
-- **D-56:** **Retrieval trivial y honesto: el catálogo activo completo va en el system prompt de cada request** (12 SKU: id, nombre, familia aromática, notas, precio — cabe entero). Gemini responde **JSON estructurado** (texto de recomendación + ids de productos citados); **el backend valida cada id contra la BD** antes de responder y arma las product cards que el chat muestra clicables (AIAS-02 palabra por palabra). Sin embeddings ni vector store: el catálogo real cabe completo y el Out of Scope ya veta el motor de recomendación propio. La forma exacta de forzar JSON en google-genai 2.25 (`response_mime_type`/`response_schema` o equivalente) **la valida el research contra la doc oficial — no se firma sobre supuestos** (misma lección que D-41 con el spike de Webpay) — **Reversibility:** costly — define el contrato del endpoint de chat, el schema de respuesta y la estructura de las guías.
+- **D-56:** **Retrieval trivial y honesto: el catálogo activo completo va en el system prompt de cada request** (12 SKU: id, nombre, familia aromática, notas, precio — cabe entero). Gemini responde **JSON estructurado** (texto de recomendación + ids de productos citados); **el backend valida cada id contra la BD** antes de responder y arma las product cards que el chat muestra clicables (AIAS-02 palabra por palabra). Sin embeddings ni vector store: el catálogo real cabe completo y el Out of Scope ya veta el motor de recomendación propio. La forma exacta de forzar JSON en google-genai 2.25 (`response_mime_type`/`response_schema` o equivalente) **la valida el research contra la doc oficial — no se firma sobre supuestos** (misma lección que D-41 con el spike de Webpay) — **Reversibility:** costly — define el contrato del endpoint de chat, el schema de respuesta y la estructura de las guías. **[Rework 2026-10-01: la muralla mini-RAG (prompt + validación de ids + truncado a 3) se MANTIENE íntegra; el mecanismo de JSON estructurado pasa a `response_format` `json_schema` de Groq, ya verificado punta a punta — D-63.]**
 
 ### Conversación del chat (AIAS-01)
 - **D-57:** **Respuesta única request-response, sin streaming.** La lección es la integración del servicio externo y su contrato, no SSE/streaming de tokens.
@@ -53,11 +60,22 @@ Requisitos cubiertos: ADMN-01, ADMN-02, ADMN-03, ADMN-04, AIAS-01, AIAS-02, AIAS
 - **D-59:** **Endpoint público, sin login** — la asesora atiende a quien navega la tienda (P8: "recomiende aromas del catálogo a cada clienta, como lo haría Maura en persona"), como `/api/pago/retorno` ya es público por diseño. Salvaguardas básicas de input (largo máximo de mensaje y del historial enviado) protegen el free tier. La burbuja flotante vive en el layout de la tienda (visible en las páginas públicas), con panel de chat desplegable — la forma exacta a discreción del UI.
 
 ### API key y degradación (AIAS-03)
-- **D-60:** **Cada alumno crea SU PROPIA API key gratis en Google AI Studio** — paso del alumno dentro de la guía (mismo patrón que D-08 con las fotos: nada compartido por el proyecto), sin tarjeta de crédito. `GEMINI_API_KEY` vive en el `.env` del backend vía pydantic-settings, como `secret_key` en fase 2 — jamás en código ni en el frontend.
+- **D-60:** **Cada alumno crea SU PROPIA API key gratis en Google AI Studio** — paso del alumno dentro de la guía (mismo patrón que D-08 con las fotos: nada compartido por el proyecto), sin tarjeta de crédito. `GEMINI_API_KEY` vive en el `.env` del backend vía pydantic-settings, como `secret_key` en fase 2 — jamás en código ni en el frontend. **[ROTO 2026-10-01: Google exige cuenta de facturación para crear keys nuevas — el flujo del alumno quedó imposible para el aula. SUPERSEDED por D-63: el PATRÓN (key propia del alumno, gratis, sin tarjeta) se mantiene con console.groq.com y `GROQ_API_KEY`.]**
 - **D-61:** **Sin key la app arranca normal (degradación, NO fail-fast)** — el asistente es un servicio opcional, a diferencia de `secret_key`: sin key el endpoint responde **503 con mensaje amable** y la burbuja muestra "asistente no disponible"; la tienda sigue 100% operativa. La guía enseña el manejo de errores del servicio externo: **429** (cuota del free tier), timeout / error de red de Gemini → mensaje amable + reintentar (el wrapper atrapa los errores del SDK, jamás un 500 crudo — mismo patrón que IN-06 con `TransbankError`). **AIAS-03 se verifica con grep sobre el build del frontend** (`dist/`) buscando la key sin resultados — pieza fija de la Gran verificación final de la fase.
 
 ### Partición de la fase
 - **D-62:** **Orden de construcción: contrato 0.4.0 + ADRs primero (D-15), luego panel admin completo (backend → frontend), después asistente IA (backend → burbuja frontend), cerrando con la Gran verificación final de fase 4.** El admin va antes que la IA: el panel no depende del asistente, y la burbuja reusa las product cards del catálogo ya existentes. La partición exacta en sub-guías `guia-12+` es discreción del planner bajo este orden.
+
+### Rework 2026-10-01: reemplazo de Gemini por Groq (D-63..D-68)
+
+*Base factual: decisión del usuario registrada en `04-UAT.md` test 2 (Google exige cuenta de facturación → D-60 roto; 402 real con créditos agotados) y probe punta a punta de Groq (models 200 + json_schema 200 con voz de Maura e ids válidos en `openai/gpt-oss-120b` y `qwen/qwen3.8-27b`). D-57/D-58/D-59/D-61 y la muralla D-56 se mantienen intactas.*
+
+- **D-63:** **Proveedor Groq con SDK oficial `groq`** — mismo patrón del corpus (SDK oficial como `transbank-sdk` y como fue `google-genai`): `from groq import Groq`, `client.chat.completions.create(...)` forzando JSON con `response_format` `json_schema` (shape `Recomendacion {respuesta, productos}`). El wrapper de guia-14 atrapa las excepciones tipadas del SDK (`RateLimitError` → 429 amable, el resto → 503 amable, jamás 500 — D-61 intacto). El paso del alumno se traslada: SU PROPIA key gratis SIN tarjeta en console.groq.com (`GROQ_API_KEY` en el `.env` del backend vía pydantic-settings). La cláusula IN-03 se mantiene con el nuevo SDK: `api_key` explícita desde Settings, no auto-pickup del entorno (el SDK `groq` también auto-pickupea — mismo gotcha, el ADR-018 lo dice). El research valida pin de versión y sintaxis exacta contra la doc oficial — **Reversibility:** costly — reescribe la mitad de integración de guia-14, agrega ADR-018 y dispara el barrido D-67.
+- **D-64:** **Modelo por defecto `openai/gpt-oss-120b` como constante del backend** (`MODELO_ASISTENTE`), mismo patrón que `STOCK_BAJO_UMBRAL=5` en guia-12: constante con nombre y respaldo de requerimiento. El `.env` del alumno queda mínimo: solo `GROQ_API_KEY`. La guía advierte el riesgo de deprecación de modelos (🧠: Groq depreca periódicamente) e incluye mini-exploración `GET /models` (probado 200 en el probe) como herramienta de diagnóstico.
+- **D-65:** **Narrativa limpia con nota breve: guia-14 se reescribe como si Groq siempre hubiera sido, abriendo con un blockquote breve (≈5 líneas) que narra el swap y apunta a ADR-018** — mismo patrón honesto de guia-12 con el retiro de `/api/admin/estado` (D-54). El registro completo del cambio (402 real, exigencia de billing, probe Groq) vive en **ADR-018, que supersede ADR-017**; ADR-017 solo recibe la marca de superseded, cuerpo byte-intacto.
+- **D-66:** **El contrato queda 0.4.0 AGNÓSTICO del proveedor: las 8 menciones a Gemini en `contrato_api.yaml` se reescriben sin nombrar proveedor** ("el servicio de IA", "cuota del free tier consumida", "sin la API key del asistente en el `.env`") y la versión NO sube. El contrato describe QUÉ hace el endpoint, no CON QUÉ proveedor: una migración futura no vuelve a tocar el yaml, y el bump artificial a 0.4.1 se evita (0.4.0 nunca salió por separado — se construyó completo en guias 12-15). El paréntesis "sin cifras de límites (no son públicos sin login)" muere con Groq (D-68). Cero churn en guia-12 y en la fila contrato ↔ `/docs` de la Gran verificación final — **Reversibility:** costly — reescribe descripciones publicadas del yaml 0.4.0.
+- **D-67:** **Barrido COMPLETO del corpus: las 64 menciones a Gemini/google-genai en 12 archivos se actualizan** (guias 12-15, contrato, ADRs, docs/02/03, READMEs de docs y raíz, índice de ADRs): el alumno nunca lee "asesora Gemini" en un documento vigente. ADR-002 también se toca (2 líneas: describe el sistema vigente, no un momento histórico); ADR-017 es la única excepción (marca de superseded, cuerpo intacto). El taller `maura-uat` ya quedó con `GROQ_API_KEY` (GEMINI removida); el UAT test 2 se re-verifica tras el rework — **Reversibility:** costly — toca 12 archivos del producto.
+- **D-68:** **Cifras del free tier: la guía las cita con fuente, la RN no.** Guía/🧠 del 429 citan **30 RPM / 14.400 RPD** con link a las docs de límites de Groq y "a la fecha de esta guía" (el research las valida contra la fuente oficial antes de fijarlas — disciplina firmar-con-evidencia de D-56). RNF-08 queda estable SIN números: "degrada amable ante cuota consumida; los límites exactos son los documentados públicamente por el proveedor". Cierra el concern RPM/RPD de STATE.md (moría con Gemini; Groq los publica).
 
 ### Claude's Discretion
 - Nombres y estructura exacta de los endpoints nuevos al extender `contrato_api.yaml` a 0.4.0 (tag Administración: `/api/admin/productos*`, `/api/admin/pedidos*`, `/api/admin/metricas`; tag Asistente: `/api/asistente` vs `/api/chat`; schemas ProductoCrear/ProductoEditar/PedidoTransicion/Metricas/ChatMensaje).
@@ -69,6 +87,15 @@ Requisitos cubiertos: ADMN-01, ADMN-02, ADMN-03, ADMN-04, AIAS-01, AIAS-02, AIAS
 - Código HTTP para transición ilegal de pedidos (409 vs 422) y demás detalles finos del contrato.
 - Copys del panel, la burbuja y los estados vacíos (tokens y Copywriting Contract de `01-UI-SPEC.md` / `02-UI-SPEC.md`); la voz de la asesora conecta con la persona de Maura (D-02).
 - Cómo se parte el trabajo en sub-guías `guia-12+` respetando el orden D-62, y qué incluye la Gran verificación final además del grep del build (tabla CS/RF + fila contrato 0.4.0 ↔ `/docs` con Authorize admin, como siempre).
+
+### Claude's Discretion (rework Groq)
+- Pin de versión del SDK `groq` y sintaxis exacta de `response_format` `json_schema` (el research las valida contra la doc oficial — D-56/D-63 exigen firmar con evidencia, no supuestos).
+- Wording agnóstico exacto de las 8 descripciones del yaml (D-66 fija el principio; las palabras concretas son libres).
+- Estructura interna y título de ADR-018 (qué secciones de ADR-017 se re-narran, cuánta evidencia del 402/billing se cita).
+- Cuáles mini-verificaciones de guia-14 cambian de texto (la de versión del SDK, la de json_schema ya probada en el probe) y la nota 🧠 OpenAI-compatible como conocimiento transferible.
+- Re-escritura exacta de RNF-08/09 (docs/02) y de la entidad GEM/DFD 15.0 (docs/03) manteniendo las series sin renumerar.
+- Si la actualización de los documentos vivos del proyecto (`.planning/PROJECT.md` constraints/Key Decisions de IA, nota groq en `.planning/research/STACK.md`) va dentro del rework o al cierre de fase (transición) — ambos son válidos mientras no queden diciendo Gemini al partir la fase 5.
+- Cómo se re-verifica el UAT test 2 y se cierra la verificación de fase (los backstops de concurrencia AIAS-03 ya tienen evidencia parcial del probe; el planner decide la secuencia).
 
 </decisions>
 
@@ -102,8 +129,17 @@ Requisitos cubiertos: ADMN-01, ADMN-02, ADMN-03, ADMN-04, AIAS-01, AIAS-02, AIAS
 - `D:/Repos/demo-cine/docs/` — Referencia externa de formato (repo hermano): estructura y tono de guías y ADRs para replicar.
 
 ### Fuentes externas de la integración (para research, no archivos del repo)
-- Documentación oficial de la Gemini API y el SDK `python-genai` (github.com/googleapis/python-genai, README main) — validar structured output (JSON), errores del SDK y env var `GEMINI_API_KEY`.
-- Google AI Studio (aistudio.google.com) — paso del alumno para crear su key gratis (D-60); la página de rate limits requiere login del usuario (concern abierto).
+- Documentación oficial de Groq (console.groq.com/docs): SDK `groq` para Python (pin de versión), `response_format` `json_schema` (Structured Outputs), excepciones tipadas del SDK, env var `GROQ_API_KEY`, y la página pública de rate limits (30 RPM / 14.400 RPD del free tier — D-68 exige validarlas contra esta fuente).
+- console.groq.com — paso del alumno para crear su key gratis sin tarjeta (traslado del patrón D-60, roto con Google).
+- *(Obsoleto con el rework: Google AI Studio / SDK `python-genai` — D-63 los reemplaza; quedan como contexto histórico en ADR-017/018.)*
+
+### Evidencia y decisión del rework Groq (2026-10-01)
+- `.planning/phases/04-panel-de-administraci-n-y-asistente-ia/04-UAT.md` — Test 2: la decisión del usuario (Gemini→Groq) con la evidencia completa (402 real, exigencia de billing, probe punta a punta de GROQ_API_KEY con json_schema y voz de Maura) y la nota TLS truststore de ESTA máquina para el taller.
+- `.planning/phases/04-panel-de-administraci-n-y-asistente-ia/04-VERIFICATION.md` — Estado 22/25: gaps_remaining (happy path asistente + 2 backstops de concurrencia) que el rework desbloquea.
+- `docs/04_arquitectura/adr/017-asistente-ia-mini-rag-key-solo-backend.md` — El ADR a superseder: su lógica mini-RAG/degradación se mantiene; cambian proveedor y SDK (ADR-018).
+- `docs/05_desarrollo/guia-14-asistente-backend.md` — La guía cuya mitad de integración se reescribe (54 menciones a Gemini).
+- `docs/05_desarrollo/guia-15-asistente-cierre.md` — Cierre: fila 8 (happy path) y fila 13 (grep del build pasa a `GROQ_API_KEY`).
+- `docs/04_arquitectura/contrato_api.yaml` — Las 8 menciones a Gemini que se vuelven agnósticas (D-66).
 
 </canonical_refs>
 
@@ -130,6 +166,11 @@ Requisitos cubiertos: ADMN-01, ADMN-02, ADMN-03, ADMN-04, AIAS-01, AIAS-02, AIAS
 - Contrato 0.3.0 → 0.4.0: tags nuevos de administración y asistente antes de toda guía (D-15).
 - El historial de pedidos del cliente (guia-11) ya muestra PENDING "en curso" — la cancelación del admin (D-50) se refleja ahí como CANCELLED sin editar la guía anterior.
 
+### Estado actual del taller (insumo del rework, UAT 2026-10-01)
+- `D:/Repos/maura-uat` quedó con la app completa hasta guia-15, `.env` del backend con `GROQ_API_KEY` (GEMINI removida) y los servidores detenidos con puertos libres — el rework del taller arranca desde ahí.
+- El probe Groq ya ejercitó `GET /models` y `POST /chat/completions` con `json_schema` en `openai/gpt-oss-120b` (543 tokens) y `qwen/qwen3.8-27b` (195 tokens): respuesta en voz de Maura con ids válidos del catálogo real.
+- Nota de entorno de la máquina del taller: api.groq.com requiere TLS contra el almacén de Windows (middlebox local bloquea revocación; el probe usó truststore) — considerarlo al re-integrar; las máquinas de los alumnos no tienen por qué tener el problema.
+
 </code_context>
 
 <specifics>
@@ -140,7 +181,10 @@ Requisitos cubiertos: ADMN-01, ADMN-02, ADMN-03, ADMN-04, AIAS-01, AIAS-02, AIAS
 - Gran verificación final de fase 4: tabla numerada CS/RF + fila contrato 0.4.0 ↔ `/docs` (Authorize admin) **+ grep del build del frontend sin rastro de `GEMINI_API_KEY`** (AIAS-03).
 - La asesora recomienda por familia aromática y notas (el eje del catálogo desde D-05) hablando con la voz de Maura (D-02) — ej. "si te gusta lo cítrico…".
 - El admin anula una PENDING huérfana → la clienta la ve CANCELLED en su historial sin re-ediciones de la guía 11.
-- Sin `GEMINI_API_KEY` en el `.env`: burbuja visible pero responde "asistente no disponible" (503 amable, D-61) — la tienda nunca depende de la IA para operar.
+- Sin `GEMINI_API_KEY` en el `.env`: burbuja visible pero responde "asistente no disponible" (503 amable, D-61) — la tienda nunca depende de la IA para operar. *(Con el rework: `GROQ_API_KEY`; la degradación y el copy quedan idénticos.)*
+- Rework Groq: modelo por defecto `openai/gpt-oss-120b` en constante `MODELO_ASISTENTE`; grep del build (fila 13, guia-15) busca `GROQ_API_KEY` en `dist/` con CERO coincidencias y control positivo.
+- Blockquote de apertura de guia-14 (D-65): "el proyecto nació con Gemini; Google rompió el free tier (billing obligatorio + 402 con créditos agotados) → migración documentada en ADR-018" — ≈5 líneas, el registro completo vive en el ADR.
+- RNF-08 reescrita sin números ("los límites exactos son los documentados públicamente por el proveedor"); la guía cita "30 RPM / 14.400 RPD a la fecha" con link a las docs de Groq.
 
 </specifics>
 
@@ -157,4 +201,4 @@ Requisitos cubiertos: ADMN-01, ADMN-02, ADMN-03, ADMN-04, AIAS-01, AIAS-02, AIAS
 ---
 
 *Phase: 4-Panel de administración y asistente IA*
-*Context gathered: 2026-09-30*
+*Context gathered: 2026-09-30 · updated 2026-10-01 (rework Gemini→Groq, D-63..D-68)*
