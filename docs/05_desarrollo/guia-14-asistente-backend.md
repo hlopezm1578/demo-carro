@@ -423,9 +423,12 @@ class AsistenteService:
         catalogo = ProductoRepository(self.db).listar()
         ids_validos = {p.id for p in catalogo}
 
-        if settings.gemini_api_key is None:
-            # D-61: degradación TEMPRANA — ni client ni red. La tienda
-            # sigue operativa; solo la asesora no está.
+        if not settings.gemini_api_key:
+            # D-61: degradación TEMPRANA — ni client ni red. `not` cubre
+            # los DOS estados sin key: ausente (None) y la línea VACÍA
+            # que la plantilla modela (`GEMINI_API_KEY=` en el
+            # .env.example). La tienda sigue operativa; solo la asesora
+            # no está.
             raise AsistenteNoDisponible()
 
         try:
