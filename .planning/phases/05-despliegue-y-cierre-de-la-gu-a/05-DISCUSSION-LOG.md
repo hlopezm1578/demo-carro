@@ -62,6 +62,16 @@
 
 ---
 
+## CORRECCIÓN DE ALCANCE DEL USUARIO (mid-pipeline, 2026-10-01)
+
+**User message (verbatim):** "esta fase solo es la escritura de las guias, no la probaremos"
+
+**Effect:** **D-73 supersede a D-72.** La fase 5 es SOLO ESCRITURA de guías y documentos: sin spike runtime, sin deploy del taller maura-uat, sin UAT runtime de despliegue, sin verificación de los 4 flujos contra un ambiente desplegado por parte del proyecto. El alumno deploya siguiendo la guía; las verificaciones de la guía (mini-verificaciones y Gran verificación final) las define la guía y las corre el alumno en sus cuentas. La verificación de planes y de fase del proyecto es documental (greps/estructura — estándar de la serie guide-only). El ADR-019 firma la plataforma con evidencia documental (`05-RESEARCH.md`, docs oficiales citadas con URL).
+
+**Notes:** Intervención del usuario durante el pipeline `--auto` (tras completarse el research y el UI-SPEC, antes del planner). El UI-SPEC ya escrito sigue válido (contrato de herencia + Production Parity & Routing definido para la guía); el research documental sigue válido íntegro; el bloqueo del spike detectado por el research (maura-uat no es git repo) queda irrelevante.
+
+---
+
 ## Claude's Discretion
 
 - Estructura y cantidad de guías 16+ (candidato: deploy API → deploy frontend + fallback → verificación de flujos + cierre), bajo D-16.

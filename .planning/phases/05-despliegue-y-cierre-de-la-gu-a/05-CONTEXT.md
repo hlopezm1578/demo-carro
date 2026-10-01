@@ -1,6 +1,7 @@
 # Phase 5: Despliegue y cierre de la guía - Context
 
 **Gathered:** 2026-10-01
+**Updated:** 2026-10-01 — corrección de alcance del usuario a mitad del pipeline: **la fase es SOLO escritura de las guías, sin ejecutar ni probar el deploy** (D-73 supersede a D-72)
 **Status:** Ready for planning
 **Mode:** `--auto` (discusión autónoma — decisiones auto-seleccionadas con la opción recomendada; auditables en `05-DISCUSSION-LOG.md`)
 
@@ -14,19 +15,17 @@
 
 Como documentos, la fase:
 
-- **Empieza con el spike de deploy runtime en `D:/Repos/maura-uat`** (D-72 — patrón D-38/D-41 de la fase 3): deployar la app del taller a los servicios reales ANTES de firmar plataforma, ADR, doc 07 y guías.
-- Extiende `docs/04_arquitectura/adr/` con ADRs nuevos continuando desde ADR-019 (candidatos: decisión de despliegue free tier, persistencia efímera aceptada).
-- Extiende `docs/05_desarrollo/` con las guías 16+ (deploy API, deploy frontend + fallback SPA, verificación de los 4 flujos en producción) bajo la estructura canónica 🧠/✅/📝 y la convención "Gran verificación final".
+- **Escribe las guías y documentos SOLO — sin ejecución runtime** (D-73, corrección del usuario): la fase NO deploya el taller maura-uat, NO corre spike runtime y NO verifica los flujos Webpay contra un ambiente desplegado. El que deploya es el ALUMNO siguiendo las guías; las mini-verificaciones y la Gran verificación final de la guía las corre el alumno en SUS cuentas.
+- Extiende `docs/04_arquitectura/adr/` con ADRs nuevos continuando desde ADR-019 (candidatos: decisión de despliegue free tier, persistencia efímera aceptada) — firmados con evidencia DOCUMENTAL (fuentes oficiales citadas en `05-RESEARCH.md`), no con runtime propio.
+- Extiende `docs/05_desarrollo/` con las guías 16+ (deploy API, deploy frontend + fallback SPA, verificación de los 4 flujos en producción) bajo la estructura canónica 🧠/✅/📝 y la convención "Gran verificación final" — la guía DEFINE la verificación para el alumno; el proyecto no la ejecuta.
 - Escribe `docs/06_pruebas.md`, `docs/07_despliegue.md`, `docs/08_mantenimiento.md` y cierra las tablas de estado de TODOS los READMEs (fila 5 a Lista, filas 6-8 a Listo — D-13/D-18, quinta corrida).
 - Cierra los índices: REQUIREMENTS (GUIDE-01/DEPL-01/DEPL-02 a Complete), ROADMAP §Progress, PROJECT.md Key Decisions.
 
-La verificación de planes es documental (greps/estructura); el UAT runtime es delegado al agente en `D:/Repos/maura-uat` (instrucción persistida en AGENTS.md) — esta vez deployando el taller a los servicios reales y corriendo los 4 flujos Webpay contra el ambiente desplegado.
+La verificación de planes Y de fase es documental (greps/estructura), como toda la serie guide-only. **No hay UAT delegado de despliegue en esta fase** — la instrucción persistida de maura-uat no aplica al deploy (las reglas de fix en ambos lugares siguen vigentes si se detectan bugs de guía).
 
-Requisitos cubiertos: DEPL-01, DEPL-02, GUIDE-01.
+Requisitos cubiertos: DEPL-01, DEPL-02, GUIDE-01 — cubiertos DOCUMENTALMENTE: las guías 16+ existen, son paso a paso y enseñan exactamente lo que los requisitos describen (deploy free tier + CORS, fallback SPA + los 4 flujos verificados por el alumno); el ciclo documental queda completo y trazable.
 
-**Nota operativa del UAT (no bloquea planning):** deployar requiere cuentas free en las plataformas elegidas. El taller maura-uat usa cuentas creadas para él (sin tarjeta, como el alumno); si algún servicio exige verificación humana/pago, el usuario participa en ese paso puntual. El spike lo detecta temprano.
-
-**Cierre del concern de STATE.md:** "elegir plataforma de despliegue free tier" se resuelve en esta discusión (D-69); "el deploy congela `return_url`" se implementa como env var de producción en las guías (nombres a discreción del research).
+**Cierre del concern de STATE.md:** "elegir plataforma de despliegue free tier" se resuelve en esta discusión (D-69); "el deploy congela `return_url`" se implementa como env var de producción en las guías (nombres resueltos por el research: `backend_url`, `cors_origins[0]`, `VITE_API_URL`).
 
 </domain>
 
@@ -36,7 +35,7 @@ Requisitos cubiertos: DEPL-01, DEPL-02, GUIDE-01.
 *La numeración D continúa desde la fase 4 (D-01..D-18 en `01-CONTEXT.md`, D-19..D-33 en `02-CONTEXT.md`, D-34..D-49 en `03-CONTEXT.md`, D-50..D-68 en `04-CONTEXT.md`).*
 
 ### Plataforma de despliegue (DEPL-01 — resuelve el blocker de STATE.md)
-- **D-69:** **Una plataforma por tier, free y sin tarjeta, candidata Vercel (frontend estático) + Render (API), validada por spike runtime ANTES de firmar.** El criterio es pedagógico: un solo camino por tier (nada de menús de opciones que dupliquen la guía), tier gratuito sin tarjeta de crédito (misma vara que D-60/D-63 con la API key), soporte real para SPA Vite (fallback a index.html incluido o configurable) y para FastAPI/Python. La candidata sale del consenso ya investigado en `.planning/research/STACK.md` (static en Vercel/Netlify/Cloudflare Pages + Render free API con spin-down y disco efímero); **el spike de deploy (D-72) la corrobora con evidencia runtime y puede sustituirla con evidencia si encuentra bloqueo** (p. ej. regional o de cuota) — el ADR-019 registra la elección final con esa evidencia, misma disciplina que D-41 con el retorno de Webpay. El research valida además cómo cerró su ciclo el repo hermano `demo-cine` para consistencia de la serie — **Reversibility:** costly — doc 07, ADR-019 y las guías 16+ se estructuran alrededor de la plataforma elegida; cambiarla después reescribe la etapa de despliegue completa.
+- **D-69:** **Una plataforma por tier, free y sin tarjeta, candidata Vercel (frontend estático) + Render (API), validada por spike runtime ANTES de firmar.** El criterio es pedagógico: un solo camino por tier (nada de menús de opciones que dupliquen la guía), tier gratuito sin tarjeta de crédito (misma vara que D-60/D-63 con la API key), soporte real para SPA Vite (fallback a index.html incluido o configurable) y para FastAPI/Python. La candidata sale del consenso ya investigado en `.planning/research/STACK.md` (static en Vercel/Netlify/Cloudflare Pages + Render free API con spin-down y disco efímero); **el spike de deploy (D-72) la corrobora con evidencia runtime y puede sustituirla con evidencia si encuentra bloqueo** (p. ej. regional o de cuota) — el ADR-019 registra la elección final con esa evidencia, misma disciplina que D-41 con el retorno de Webpay. El research valida además cómo cerró su ciclo el repo hermano `demo-cine` para consistencia de la serie — **Reversibility:** costly — doc 07, ADR-019 y las guías 16+ se estructuran alrededor de la plataforma elegida; cambiarla después reescribe la etapa de despliegue completa. **[Actualización D-73: sin spike runtime, la corroboración quedó DOCUMENTAL — `05-RESEARCH.md` citó las docs oficiales de ambas plataformas (SPA fallback, FastAPI deploy, free tier) y no encontró bloqueo para la candidata; sustitución solo si apareciera evidencia documental en contra antes de firmar el ADR-019.]**
 
 ### Persistencia en el free tier
 - **D-70:** **SQLite + seed idempotente en producción, con el trade-off del disco efímero documentado honestamente; PostgreSQL (Neon free tier) queda como camino de crecimiento MENCIONADO, no implementado.** Render free reinicia/borra el disco en redeploys y spin-downs: la BD se pierde y el seed upsert (D-05/D-06/D-07, converge sin duplicar) la restaura — esa ES la lección: estado efímero + seed idempotente como estrategia explícita, no como bug. El sandbox de Webpay y la PYME ficticia hacen el trade-off aceptable para el aula (STACK.md ya lo declara así para la guía base). La migración futura es un cambio de `DATABASE_URL` + driver `psycopg` (STACK.md la documenta como variante) — la guía lo nombra como "cómo crecería esto" sin construirlo — **Reversibility:** reversible — el swap a PostgreSQL toca solo la URL de conexión y el driver; las guías no se reescriben, se extienden.
@@ -45,7 +44,10 @@ Requisitos cubiertos: DEPL-01, DEPL-02, GUIDE-01.
 - **D-71:** **La fase 5 escribe los TRES documentos que faltan: `06_pruebas.md`, `07_despliegue.md` y `08_mantenimiento.md`.** El SC3 de GUIDE-01 exige el ciclo completo palabra por palabra ("necesidad → requerimientos → diseño → arquitectura con ADRs → desarrollo guiado → pruebas → despliegue → mantenimiento") y esta es la última fase: dejar alguno pendiente dejaría GUIDE-01 abierto. Reparto natural: **06** sintetiza la estrategia de pruebas ya vivida (mini-verificaciones por guía, Gran verificación final por fase, UAT runtime contra servicios reales — lo que el alumno ya hizo, ahora nombrado como método); **07** es la decisión de despliegue (candidata D-69, ADR-019, el porqué de free tier y del orden final de la fase); **08** cierra prospectivamente (v2 con los diferidos de REQUIREMENTS, cómo se mantiene esto vivo). El contenido exacto de cada doc es discreción del planner con `demo-cine` como referencia de formato — **Reversibility:** costly — la estructura del cierre y las tablas de estado de TODOS los READMEs (quinta corrida de D-13/D-18) se montan sobre qué docs existen y qué dicen.
 
 ### Disciplina de evidencia
-- **D-72:** **El spike de deploy runtime es el PRIMER plan de la fase, antes de ADRs, doc 07 y guías** (patrón D-38/D-41 de la fase 3, replicado): en `D:/Repos/maura-uat`, deployar la app del taller (ya completa hasta guia-15) a los dos servicios reales, correr los 4 flujos Webpay contra el ambiente desplegado, cronometrar el spin-down y documentar los gotchas (return_url congelado, CORS, fallback SPA, disco efímero). Sus hallazgos alimentan ADR-019, doc 07 y las guías 16+ — la guía nace sin zonas oscuras y el UAT final no descubre nada nuevo. El código/notas del spike viven en `.planning/`, jamás en el repo (D-17) — **Reversibility:** one-way — el ADR-019 firma la elección de plataforma citando este spike como evidencia; re-hacerlo después significaría re-firmar el ADR y re-verificar docs ya cerradas.
+- **D-72:** **El spike de deploy runtime es el PRIMER plan de la fase, antes de ADRs, doc 07 y guías** (patrón D-38/D-41 de la fase 3, replicado): en `D:/Repos/maura-uat`, deployar la app del taller (ya completa hasta guia-15) a los dos servicios reales, correr los 4 flujos Webpay contra el ambiente desplegado, cronometrar el spin-down y documentar los gotchas (return_url congelado, CORS, fallback SPA, disco efímero). Sus hallazgos alimentan ADR-019, doc 07 y las guías 16+ — la guía nace sin zonas oscuras y el UAT final no descubre nada nuevo. El código/notas del spike viven en `.planning/`, jamás en el repo (D-17) — **Reversibility:** one-way — el ADR-019 firma la elección de plataforma citando este spike como evidencia; re-hacerlo después significaría re-firmar el ADR y re-verificar docs ya cerradas. **[SUPERSEDED por D-73 (corrección del usuario, 2026-10-01): la fase es solo escritura — no se ejecuta runtime, no hay spike ni UAT de despliegue. La evidencia del ADR-019 pasa a ser documental: fuentes oficiales citadas en `05-RESEARCH.md`.]**
+
+### Alcance de ejecución (corrección del usuario, 2026-10-01)
+- **D-73:** **La fase 5 es SOLO ESCRITURA de las guías y documentos — el proyecto NO ejecuta ni prueba el deploy.** Decisión del usuario a mitad del pipeline ("esta fase solo es la escritura de las guías, no la probaremos"): sin spike runtime (D-72 superseded), sin deployar el taller maura-uat, sin verificación de los 4 flujos contra un ambiente desplegado por parte del proyecto. Las guías 16+ enseñan el deploy al alumno paso a paso con mini-verificaciones y una Gran verificación final QUE EL ALUMNO CORRE en sus propias cuentas free; la guía las define con exactitud (URLs de plataforma, tarjetas de prueba de Webpay de la fase 3, pasos numerados), pero el proyecto no las ejecuta. La verificación de planes y de fase es documental (greps/estructura — la forma estándar de la serie guide-only). El ADR-019 firma la elección de plataforma con evidencia documental (docs oficiales de Vercel/Render citadas con URL en `05-RESEARCH.md`, misma vara de citación que D-68 con los rate limits) — **Reversibility:** costly — estructura toda la fase: qué planes existen (sin plan de spike/UAT), qué verifica la Gran verificación final y cómo cierran los índices.
 
 ### Claude's Discretion
 - Estructura exacta de las guías 16+ y cuántas son (candidato natural: deploy API → deploy frontend + fallback → verificación de flujos + cierre; el planner parte bajo D-16 como siempre).
@@ -55,8 +57,8 @@ Requisitos cubiertos: DEPL-01, DEPL-02, GUIDE-01.
 - Si `docs/02_requerimientos.md` gana RF/RNF de despliegue o el tema vive solo en doc 07 (P1-P8 ya están todas cubiertas; DEPL es infraestructura del ciclo, no petición de Maura — aunque P1 "que se abra desde cualquier dispositivo" es el ángulo narrativo natural).
 - Contenido y estructura de `06_pruebas.md` y `08_mantenimiento.md` (con `demo-cine` como referencia de formato y tono).
 - Cómo la Gran verificación final de fase 5 verifica: refresh de rutas sin 404, los 4 flujos contra el ambiente desplegado, contrato ↔ `/docs` público, y grep del build (AIAS-03) en producción — la forma exacta de la tabla es libre.
-- Copys de las pantallas/estados nuevos que el deploy agregue (ninguno esperado — el deploy no cambia UI; solo si el spike descubre algo) y de los READMEs.
-- Cómo el taller maneja las cuentas de plataforma del UAT delegado (nota operativa del dominio) y qué hace si un servicio exige verificación humana.
+- Copys de las pantallas/estados nuevos que el deploy agregue (ninguno esperado — el deploy no cambia UI; solo si apareciera algo) y de los READMEs.
+- Cómo la Gran verificación final de fase 5 queda DEFINIDA en la guía para el alumno (D-73 fija que el proyecto no la ejecuta; la forma exacta de la tabla es libre).
 
 </decisions>
 
@@ -77,7 +79,7 @@ Requisitos cubiertos: DEPL-01, DEPL-02, GUIDE-01.
 
 ### Research ya hecho (insumo directo, no repetir de cero)
 - `.planning/research/STACK.md` — Free-hosting consensus (static Vercel/Netlify/Cloudflare Pages + Render free API con spin-down y disco efímero), variante PostgreSQL (Neon + psycopg, solo cambiar `DATABASE_URL`), y la declaración explícita de que SQLite + seed idempotente es aceptable para la guía base documentando el trade-off (D-70 la cita).
-- `.planning/phases/03-checkout-webpay-y-rdenes/03-SPIKE-RETORNO.md` — El patrón de spike runtime que D-72 replica (estructura de hallazgos, evidencia por flujo).
+- `.planning/phases/03-checkout-webpay-y-rdenes/03-SPIKE-RETORNO.md` — El patrón de firma con evidencia que esta fase adapta a lo documental (D-73): estructura de hallazgos por flujo, hoy citados desde `05-RESEARCH.md`.
 
 ### Docs del ciclo que esta fase cierra o extiende
 - `docs/README.md` — Tabla del ciclo: filas 6-8 (`06_pruebas.md`, `07_despliegue.md`, `08_mantenimiento.md`) hoy ⏳ Pendiente (D-71 las escribe); fila 5 pasa a Lista.
@@ -91,9 +93,9 @@ Requisitos cubiertos: DEPL-01, DEPL-02, GUIDE-01.
 - `docs/05_desarrollo/guia-15-asistente-cierre.md` — Último eslabón actual: su "Siguiente" y su Gran verificación final son los que la fase 5 enlaza y replica (con el grep del build ya probado).
 - `D:/Repos/demo-cine/docs/` — Referencia externa de formato (repo hermano): cómo cerró su ciclo de vida documental, tono de los docs de cierre.
 
-### Fuentes externas (para research/spike, no archivos del repo)
-- Documentación oficial de las plataformas candidatas (vercel.com/docs, render.com/docs): deploy de SPA Vite con fallback a index.html, deploy de FastAPI (build/start commands, env vars), límites del free tier (spin-down, disco efímero) — validar contra la fuente antes de fijar cifras en la guía (misma vara que D-68).
-- transbankdevelopers.cl — `return_url` en ambiente de integración: requisitos de URL pública/HTTPS para el retorno (el spike lo corrobora runtime, no contra la doc sola).
+### Fuentes externas (para research/guías, no archivos del repo)
+- Documentación oficial de las plataformas elegidas (vercel.com/docs, render.com/docs): deploy de SPA Vite con fallback a index.html, deploy de FastAPI (build/start commands, env vars), límites del free tier (spin-down, disco efímero) — `05-RESEARCH.md` ya las citó con URL; las guías citan las mismas fuentes (misma vara que D-68).
+- transbankdevelopers.cl — `return_url` en ambiente de integración: requisitos de URL pública/HTTPS para el retorno (las guías lo enseñan con la cita documental).
 
 </canonical_refs>
 
@@ -108,8 +110,8 @@ Requisitos cubiertos: DEPL-01, DEPL-02, GUIDE-01.
 
 ### Established Patterns
 - Backend en capas routers → services → repositories; solo `main.py` arma la app (con CORS ya en [GET,POST,PUT,PATCH] desde guia-12); secretos por env var vía pydantic-settings (`.env` + `SettingsConfigDict`).
-- Firmar con evidencia antes de escribir: spike runtime → ADR → contrato → docs → guías (D-38/D-41/D-56/D-68) — D-72 lo aplica al deploy.
-- UAT delegado al agente en maura-uat (instrucción persistida en AGENTS.md) — fase 5 lo extiende a deployar el taller.
+- Firmar con evidencia documental antes de escribir: fuentes oficiales citadas con URL → ADR → docs → guías (D-38/D-41/D-56/D-68 adaptados por D-73: la evidencia es documental, no runtime, porque el proyecto no ejecuta el deploy).
+- UAT delegado al agente en maura-uat (instrucción persistida en AGENTS.md) — **NO aplica al deploy en esta fase** (D-73); las reglas de fix en ambos lugares siguen vigentes si se detectan bugs de guía.
 - Bugs de guía: fix en AMBOS lugares (guía en demo-carro + taller en maura-uat) — regla persistida.
 
 ### Integration Points
@@ -125,12 +127,12 @@ Requisitos cubiertos: DEPL-01, DEPL-02, GUIDE-01.
 <specifics>
 ## Specific Ideas
 
-- La Gran verificación final de fase 5 (la última de la serie): tabla numerada CS/RF con los 4 flujos Webpay corridos contra el AMBIENTE DESPLEGADO (no localhost), refresh de rutas sin 404, contrato ↔ `/docs` público en la URL de la API, y el grep del build (AIAS-03) re-verificado en producción.
+- Cómo la Gran verificación final de fase 5 (la guía la DEFINE para el alumno, el proyecto no la corre — D-73): tabla numerada CS/RF con los 4 flujos Webpay contra el AMBIENTE DESPLEGADO del alumno, refresh de rutas sin 404, contrato ↔ `/docs` público en la URL de la API, y el grep del build (AIAS-03) re-verificado en producción.
 - El spin-down del free tier como momento pedagógico: la primera request tras el sueño arranca fría (decenas de segundos) — la guía lo nombra honestamente en vez de esconderlo (misma honestidad que PENDING "en curso" de D-48).
 - Narrativa del cierre: el deploy materializa P1 de docs/01 ("que se abra desde cualquier dispositivo") — la primera petición de Maura es la última en cumplirse; buen arco para el doc 07 y la guía de cierre.
 - `08_mantenimiento.md` mira hacia adelante: v2 con los diferidos reales de REQUIREMENTS (PAY-05 guest checkout, ADMN-05 refund, STAKE-*), upgrade path a PostgreSQL (D-70), y cómo se mantiene la guía viva.
 - `06_pruebas.md` nombra como método lo que el alumno ya vivió: mini-verificación por paso, Gran verificación final por fase, verificación runtime contra servicios reales (Webpay integración, Groq) — el porqué de cada una.
-- Nota operativa del UAT: el taller deploya con cuentas free creadas para maura-uat (sin tarjeta); si un servicio exige verificación humana, el usuario participa en ese paso puntual.
+- La verificación documental de ESTA fase (la que sí corre el proyecto): greps de estructura/conteos — guías 16+ presentes con la estructura canónica, cadena Siguiente continua, docs 06/07/08 existen, filas de READMEs en Listo, conteos de ADRs/decisiones, repo guide-only intacto.
 
 </specifics>
 
