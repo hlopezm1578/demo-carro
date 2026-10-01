@@ -52,11 +52,11 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **ADMN-03**: Admin gestiona pedidos con transiciones de estado validadas en el backend
 - [x] **ADMN-04**: Admin ve métricas básicas del negocio (tarjetas y tabla, sin librerías de gráficos)
 
-### Asistente IA (Gemini)
+### Asistente IA (Groq)
 
 - [x] **AIAS-01**: Cliente usa un chat (burbuja en la tienda) donde el asistente recomienda productos del catálogo real
 - [x] **AIAS-02**: El asistente responde solo con productos existentes (mini-RAG sobre el catálogo + validación de ids contra BD) y muestra product cards clicables desde el chat
-- [x] **AIAS-03**: La API key de Gemini vive solo en el backend (variable de entorno), nunca en el código ni el bundle del frontend
+- [x] **AIAS-03**: La API key del asistente (Groq) vive solo en el backend (variable de entorno), nunca en el código ni el bundle del frontend
 
 ### Despliegue
 
@@ -89,12 +89,12 @@ Explicitly excluded. Documented to prevent scope creep.
 |---------|--------|
 | Pagos reales en producción | La guía opera solo en sandbox/integración con credenciales públicas de Transbank |
 | Stripe como pasarela | No permite comercios registrados en Chile (verificado contra stripe.com/global) |
-| SDK `google-generativeai` | Deprecado (EOL 2025-11-30); se usa `google-genai` |
+| SDK `google-generativeai` | Deprecado (EOL 2025-11-30); no se usa |
 | Mercado Pago, Flow o Khipu | Requisitos de sandbox no verificables contra fuente primaria en la exploración |
 | i18n / multi-moneda | Fuera del objetivo pedagógico; esencia chilena single-locale |
 | Marketplace multi-vendedor | Complejidad de plataforma, no aplica a una PYME single-brand |
 | Logística courier / envíos con tracking | Se modela el pedido, no la logística física |
-| Motor ML de recomendación propio | El asistente usa Gemini con mini-RAG; no se entrena un modelo |
+| Motor ML de recomendación propio | El asistente usa un LLM hospedado (Groq) con mini-RAG; no se entrena un modelo |
 | Webpay Mall / captura diferida | Modalidades fuera del caso de la PYME |
 | SSR / SEO server-side | La decisión pedagógica es SPA + API estrictamente separadas |
 | Renderizado de plantillas en el servidor | Ídem — dos tiers separados es decisión de arquitectura de la guía |

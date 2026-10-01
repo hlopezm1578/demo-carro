@@ -1,6 +1,6 @@
 # Stack Research
 
-**Domain:** Educational two-tier e-commerce (body splash store, fictional Chilean PYME) — React SPA + layered FastAPI + Webpay (Transbank) sandbox + Gemini AI assistant
+**Domain:** Educational two-tier e-commerce (body splash store, fictional Chilean PYME) — React SPA + layered FastAPI + Webpay (Transbank) sandbox + Groq AI sales assistant
 **Researched:** 2026-09-28
 **Confidence:** HIGH for version pins (verified against npm/PyPI registry APIs + GitHub + official docs the same day); MEDIUM for community-consensus opinions (state management, hosting), each tagged below.
 
@@ -10,6 +10,9 @@
 - **Node.js 22 LTS (>= 22.22)** or Node 24. React Router 8 requires Node 22.22.0+ (its Vite-8 engines constraint `^20.19.0 || >=22.12.0` is looser — the router is the binding constraint).
 
 ## Recommended Stack
+
+> Rework 2026-10-01: el asistente migró de Gemini a Groq (D-63, ADR-018) — la fila
+> google-genai de la tabla Core quedó obsoleta.
 
 ### Core Technologies
 
@@ -27,10 +30,10 @@
 | SQLAlchemy | 2.1.1 | ORM (models layer) | Current 2.x line (2026-09-25), Python >=3.11. Declarative models + explicit `Session` per request is the mainstream layered-FastAPI pattern | HIGH (registry) |
 | Alembic | 1.20.0 | Migrations | The SQLAlchemy migration tool; no credible alternative | HIGH (registry) |
 | Pydantic | 2.13.5 | API schemas (contracts layer) | Bundled with FastAPI; Pydantic v2 schemas kept separate from ORM models keeps the layers pedagogically explicit | HIGH (registry) |
-| pydantic-settings | 2.15.0 | Typed env config | Standard loader for `DATABASE_URL`, `GEMINI_API_KEY`, JWT secret — never hardcode secrets | HIGH (registry) |
+| pydantic-settings | 2.15.0 | Typed env config | Standard loader for `DATABASE_URL`, `GROQ_API_KEY`, JWT secret — never hardcode secrets | HIGH (registry) |
 | SQLite | stdlib (Python 3.12) | Default database | The official FastAPI SQL tutorial itself uses SQLite: zero setup, file-based, perfect for a classroom. SQLAlchemy makes the later switch to PostgreSQL a connection-string change | HIGH (official tutorial + multiple case studies) |
 | transbank-sdk (Python) | 6.1.0 | Webpay Plus REST (integration env) | Official Transbank SDK, current (published 2025-06-24, unchanged). Integration credentials are public (commerce code 597055555532), SDK preconfigured for the integration environment. Uses sync `requests` — call it from sync `def` routes | HIGH (registry + GitHub README; matches PROJECT.md prior verification) |
-| google-genai (Python) | 2.25.0 (pin `>=2.25,<3`) | Gemini AI sales assistant | Official SDK, current (2026-09-22), Python >=3.10. README advises pinning `< 3.0.0` (breaking changes planned for 3.x) | HIGH (registry + GitHub README; matches PROJECT.md) |
+| groq (Python) | 1.7.0 (pin `>=1.7,<2`) | Groq AI sales assistant | Official SDK (github.com/groq/groq-python), probe-verified 2026-10-01; Python >=3.10 — reemplaza al SDK de IA anterior (ADR-018) | HIGH (registry + GitHub README + probe punta a punta 2026-10-01) |
 | PyJWT | 2.15.0 | JWT encode/decode (accounts) | What the current official FastAPI security tutorial uses; actively maintained (2.15.0 released 2026-09-23) | HIGH (official docs + PyPI) |
 | pwdlib[argon2] | 0.3.1 | Password hashing | The official FastAPI tutorial's current choice (`PasswordHash.recommended()` = Argon2); replaces unmaintained passlib | HIGH (official docs + PyPI) |
 | pytest | 9.1.1 | Backend tests | Current major (9.x since June 2026); FastAPI `TestClient` (httpx-based) makes API testing sync and simple | HIGH (registry) |
@@ -72,7 +75,7 @@ npm install tailwindcss @tailwindcss/vite
 
 # Backend (FastAPI layered API)
 uv init backend && cd backend
-uv add "fastapi[standard]" "google-genai>=2.25,<3" "transbank-sdk==6.1.0"
+uv add "fastapi[standard]" "groq>=1.7,<2" "transbank-sdk==6.1.0"
 uv add "sqlalchemy>=2.1" "alembic>=1.20" "pydantic-settings"
 uv add "pyjwt" "pwdlib[argon2]"
 
@@ -80,7 +83,7 @@ uv add "pyjwt" "pwdlib[argon2]"
 uv add --dev pytest ruff
 ```
 
-pip/venv alternative for the backend: `pip install "fastapi[standard]" "google-genai>=2.25,<3" transbank-sdk==6.1.0 sqlalchemy alembic pydantic-settings pyjwt "pwdlib[argon2]"` and `pip install pytest ruff`.
+pip/venv alternative for the backend: `pip install "fastapi[standard]" "groq>=1.7,<2" transbank-sdk==6.1.0 sqlalchemy alembic pydantic-settings pyjwt "pwdlib[argon2]"` and `pip install pytest ruff`.
 
 ## Alternatives Considered
 
@@ -99,14 +102,14 @@ pip/venv alternative for the backend: `pip install "fastapi[standard]" "google-g
 
 | Avoid | Why | Use Instead |
 |-------|-----|-------------|
-| google-generativeai (old Gemini SDK) | Deprecated; support ended 2025-11-30 (verified in prior exploration, recorded in PROJECT.md) | `google-genai` pinned `>=2.25,<3` |
+| google-generativeai (old Gemini SDK) | Deprecated; support ended 2025-11-30 (verified in prior exploration, recorded in PROJECT.md) | groq pinned `>=1.7,<2` (google-genai retirado 2026-10-01 — ADR-018) |
 | python-jose | Effectively unmaintained (last release 3.3.0) with open CVEs: CVE-2024-33663 (algorithm confusion with OpenSSH ECDSA keys) and CVE-2024-33664. Removed from the official FastAPI tutorial | PyJWT 2.15.0 (`import jwt`, explicit `algorithms=["HS256"]`) |
 | passlib | Unmaintained since 2020 (1.7.4); brittle against bcrypt 5.x. Official docs now mention it only for verifying legacy hashes | pwdlib[argon2] |
 | Server-side templating (Jinja2/MVC) | Explicitly out of scope — the pedagogy requires SPA + separate API (PROJECT.md). Note jinja2 arrives inside `fastapi[standard]` but stays unused | React SPA + JSON API |
 | Stripe | Does not operate for Chile-registered merchants (verified against stripe.com/global, recorded in PROJECT.md) | Webpay Plus integration environment |
 | "tbk-qa" commerce code circulating in search results | False rumor — verified in prior exploration | Public integration credentials: commerce code 597055555532 against `webpay3gint.transbank.cl` |
 | MySQL | No advantage for this scope; adds a server to manage and is not the documented FastAPI upgrade path | SQLite default; PostgreSQL as the growth path |
-| pinning `google-genai >=3` when it ships | README warns 3.x removes/moves several APIs | Pin `>=2.25,<3` |
+| pinning `groq >=2` when it ships | El README sigue SemVer "en general" sin prometer pureza en los minors — el major es la única frontera que se compromete a romper | Pin `>=1.7,<2` |
 
 ## Stack Patterns by Variant
 
@@ -115,7 +118,7 @@ pip/venv alternative for the backend: `pip install "fastapi[standard]" "google-g
 - Because Render free instances have ephemeral disk — SQLite files there are wiped on redeploys/spin-downs. For the base guide, an idempotent seed script + SQLite is acceptable (sandbox payments, fictional PYME); document this trade-off explicitly to students
 
 **If the guide adds an async module:**
-- `async def` routes + `AsyncSession` + aiosqlite (or asyncpg with Postgres) + `client.aio.models.generate_content` for Gemini
+- `async def` routes + `AsyncSession` + aiosqlite (or asyncpg with Postgres) + `AsyncGroq` con `await client.chat.completions.create` (groq)
 - Keep Webpay calls behind `run_in_threadpool` regardless — the SDK is synchronous `requests`
 
 **If TypeScript friction hurts the timeline:**
@@ -131,8 +134,8 @@ pip/venv alternative for the backend: `pip install "fastapi[standard]" "google-g
 | react-router@8.4.0 | react >= 19.2.7, vite >= 7, node >= 22.22.0 | v8 is ESM-only; the router's Node floor (22.22) is stricter than Vite 8's engines (`^20.19.0 \|\| >=22.12.0`) |
 | vite@8.3.1 + @vitejs/plugin-react@6.1.1 | node `^20.19.0 \|\| >=22.12.0` | Template pins plugin ^6.1.1 alongside vite ^8.3.1 |
 | typescript ~6.0.2 (template pin) | Vite react-ts scaffold | npm `latest` tag is 7.0.2 — do NOT bump blindly; the official template still validates 6.x |
-| Python 3.12 runtime | fastapi >= 3.10, sqlalchemy 2.1 >= 3.11, transbank-sdk (README "3.12+", classifiers 3.8–3.12), google-genai >= 3.10, alembic >= 3.10, pwdlib >= 3.10 | 3.13/3.14 exceed the Transbank SDK's declared classifiers — do not use for the backend |
-| google-genai 2.25.0 | Pin `< 3.0.0` | README: breaking changes land in 3.x |
+| Python 3.12 runtime | fastapi >= 3.10, sqlalchemy 2.1 >= 3.11, transbank-sdk (README "3.12+", classifiers 3.8–3.12), groq >= 3.10, alembic >= 3.10, pwdlib >= 3.10 | 3.13/3.14 exceed the Transbank SDK's declared classifiers — do not use for the backend |
+| groq 1.7.0 | Pin `>=1.7,<2` | Piso probe-verified 2026-10-01; techo = próximo major (ADR-018) |
 | tailwindcss@4.3.3 | @tailwindcss/vite@4.3.3 | Keep both on the same version line; v4 = no config file, no PostCSS |
 | pytest@9.1.1 | pytest-asyncio@1.4.0 | Only relevant if async tests are adopted |
 | transbank-sdk 6.1.0 | marshmallow <= 3.26.1, requests >= 2.20 (auto-resolved) | Deps are sync — keep Webpay calls in sync routes |
