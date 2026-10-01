@@ -3,18 +3,18 @@ gsd_state_version: "1.0"
 milestone: v2.25.0
 current_phase: 5
 current_phase_name: Despliegue y cierre de la guía
-current_plan: 3
+current_plan: 4
 status: executing
-stopped_at: Completed 05-02-PLAN.md
-last_updated: "2026-10-01T18:16:16.589Z"
+stopped_at: Completed 05-03-PLAN.md
+last_updated: "2026-10-01T18:30:29.699Z"
 last_activity: 2026-10-01
 last_activity_desc: Phase 5 execution started
-state_head: cc6aead19a69aa1279a03214f42022998de775b9
+state_head: 65ad0475c0f3abe6b69e6c1802362ac79c55062d
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 29
-  completed_plans: 26
+  completed_plans: 27
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-09-30)
 ## Current Position
 
 Phase: 5 (Despliegue y cierre de la guía) — EXECUTING
-Current Plan: 3
+Current Plan: 4
 Total Plans in Phase: 5
 Status: Ready to execute
 Last activity: 2026-10-01 — Phase 5 execution started
@@ -86,6 +86,7 @@ Progress: [████████░░] 80%
 | Phase 04 P08 | 21 min | 3 tasks | 10 files |
 | Phase 05 P01 | 8 min | 2 tasks | 4 files |
 | Phase 05 P02 | 9 min | 2 tasks | 2 files |
+| Phase 05 P03 | 11 min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -186,6 +187,10 @@ Recent decisions affecting current work:
 - [Phase 05]: [Phase 05 P01] ADR-020 firma D-70 con las DOS capas del Pitfall 5 en bullets separados: build-time SIEMPRE revive (seed al Build Command, upsert D-05/D-06/D-07 — re-ejecutar el deploy es seguro) / runtime se pierde (el historial de pedidos NO sobrevive un ciclo); PostgreSQL (Neon + cambio de DATABASE_URL) mencionado como camino de crecimiento, no implementado
 - [Phase 05]: [Phase 05 P02] docs/06 declara la divergencia con demo-cine en prosa sin nombrar la suite vetada (gate negativo veta la palabra misma): la tabla metodo <-> defensa tiene 4 filas — la instancia final contra el ambiente desplegado (guia-18, D-73 'la corres TU') es fila propia y el metodo queda completo de punta a punta
 - [Phase 05]: [Phase 05 P02] doc 08 cubre los 8 diferidos v2 reales (PAY-05 worked example + STORE-05/ORDR-03/ADMN-05/STAKE-01..04 con su primera puerta) y cita el swap Gemini->Groq con su mecanica supersede (ADR-017 Superseded por ADR-018) y la leccion D-15 aplicada al mantenimiento: firmar antes de reescribir
+- [Phase 05]: [Phase 05 P03] guia-16 ensena el paso 0 git con el estado REAL de los .gitignore del taller (backend a mano en guia-01 por --vcs none; frontend vino con el scaffold de Vite de guia-02) y la mini-verificacion nombra .env/maura.db/node_modules como los tres que NO suben a GitHub
+- [Phase 05]: [Phase 05 P03] El grep del build en produccion (guia-17) se ensena como rebuild local con la MISMA env var de Vercel (Vite hace el mismo reemplazo estatico) con control positivo (URL publica en dist/) y negativo (GROQ_API_KEY -> cero), por shell como guia-15:530
+- [Phase 05]: [Phase 05 P03] La promesa de guia-01 se cobra con la vuelta de tuerca honesta: el arranque de produccion es uv run uvicorn con $PORT (forma oficial de Render para FastAPI, citada), no fastapi run — narrado en el piensa del Paso 1
+- [Phase 05]: [Phase 05 P03] guia-17 cita verbatim los bloques de guia-04:760-763 y guia-09 _hacia_spa como anclas (las cita, no las reescribe): cero delta UI del UI-SPEC — todo cambio de comportamiento es configuracion
 
 ### Pending Todos
 
@@ -206,6 +211,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-01T18:16:00.794Z
-Stopped at: Completed 05-02-PLAN.md
+Last session: 2026-10-01T18:30:29.538Z
+Stopped at: Completed 05-03-PLAN.md
 Resume file: None

@@ -60,7 +60,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Despliegue
 
-- [ ] **DEPL-01**: Frontend estático y API quedan desplegados en free tier con URLs públicas y CORS de producción configurado
+- [x] **DEPL-01**: Frontend estático y API quedan desplegados en free tier con URLs públicas y CORS de producción configurado
 - [ ] **DEPL-02**: El refresh de rutas de la SPA no da 404 (fallback a index.html) y los 4 flujos de retorno de Webpay se verifican contra el ambiente desplegado
 
 ## v2 Requirements
@@ -132,7 +132,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AIAS-01 | Phase 4 | Complete |
 | AIAS-02 | Phase 4 | Complete |
 | AIAS-03 | Phase 4 | Complete |
-| DEPL-01 | Phase 5 | Pending |
+| DEPL-01 | Phase 5 | Complete |
 | DEPL-02 | Phase 5 | Pending |
 
 **Coverage:**
