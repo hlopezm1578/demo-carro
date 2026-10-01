@@ -702,8 +702,8 @@ Con ambos servidores corriendo, el seed corrido y TU key en el `.env`:
   fases futuras heredan: el grep del build (`GROQ_API_KEY` sin
   coincidencias en `dist/`, comando por shell, Pitfall 8)
 
-**Siguiente:** la fase 5 — el despliegue: la tienda y su API en internet
-con tier gratuito… y la que congela el `return_url` que Webpay exige
-(la URL pública de TU backend, definida al fin). La clave: TODO lo
-construido hasta hoy corriendo en vivo — con el contrato, los 18 ADRs y
+**Siguiente:** `guia-16-despliegue-api.md` — la fase 5 arranca: tu API en
+internet con tier gratuito… y la que congela el `return_url` que Webpay
+exige (la URL pública de TU backend, definida al fin). La clave: TODO lo
+construido hasta hoy corriendo en vivo — con el contrato, los 20 ADRs y
 el grep del build como red de seguridad.
