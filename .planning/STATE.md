@@ -3,18 +3,18 @@ gsd_state_version: "1.0"
 milestone: v2.25.0
 current_phase: 5
 current_phase_name: Despliegue y cierre de la guía
-current_plan: 2
+current_plan: 3
 status: executing
-stopped_at: Completed 05-01-PLAN.md
-last_updated: "2026-10-01T18:04:01.983Z"
+stopped_at: Completed 05-02-PLAN.md
+last_updated: "2026-10-01T18:16:16.589Z"
 last_activity: 2026-10-01
 last_activity_desc: Phase 5 execution started
-state_head: 82611094de0f183f5d771a3bccac8b03cc48c7fb
+state_head: cc6aead19a69aa1279a03214f42022998de775b9
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 29
-  completed_plans: 25
+  completed_plans: 26
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-09-30)
 ## Current Position
 
 Phase: 5 (Despliegue y cierre de la guía) — EXECUTING
-Current Plan: 2
+Current Plan: 3
 Total Plans in Phase: 5
 Status: Ready to execute
 Last activity: 2026-10-01 — Phase 5 execution started
@@ -85,6 +85,7 @@ Progress: [████████░░] 80%
 | Phase 04 P07 | 16 min | 2 tasks | 2 files |
 | Phase 04 P08 | 21 min | 3 tasks | 10 files |
 | Phase 05 P01 | 8 min | 2 tasks | 4 files |
+| Phase 05 P02 | 9 min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -183,6 +184,8 @@ Recent decisions affecting current work:
 - [Phase 04]: Taller maura-uat re-integrado con la guia-14 reescrita como alumno (regla dos lugares): happy path 200 REAL con ids existentes, 503 amable sin key, paralelas sin 500, grep dist/ cero — UAT 5/5 pass; truststore como nota taller-only (Pitfall 9)
 - [Phase 05]: [Phase 05 P01] ADR-019 firma D-69 con evidencia DOCUMENTAL (D-73, D-72 superseded): una plataforma por tier (Vercel Hobby + Render Free, free sin tarjeta — misma vara que D-63), PYTHON_VERSION=3.12.x fully-qualified, triple BACKEND_URL/CORS_ORIGINS/VITE_API_URL congelado por el codigo existente, SECRET_KEY nueva por entorno, TLS de plataforma; negativas honestas (hibernacion ~15 min/wake ~1 min, /docs publico como trade-off, free tier no es produccion seria)
 - [Phase 05]: [Phase 05 P01] ADR-020 firma D-70 con las DOS capas del Pitfall 5 en bullets separados: build-time SIEMPRE revive (seed al Build Command, upsert D-05/D-06/D-07 — re-ejecutar el deploy es seguro) / runtime se pierde (el historial de pedidos NO sobrevive un ciclo); PostgreSQL (Neon + cambio de DATABASE_URL) mencionado como camino de crecimiento, no implementado
+- [Phase 05]: [Phase 05 P02] docs/06 declara la divergencia con demo-cine en prosa sin nombrar la suite vetada (gate negativo veta la palabra misma): la tabla metodo <-> defensa tiene 4 filas — la instancia final contra el ambiente desplegado (guia-18, D-73 'la corres TU') es fila propia y el metodo queda completo de punta a punta
+- [Phase 05]: [Phase 05 P02] doc 08 cubre los 8 diferidos v2 reales (PAY-05 worked example + STORE-05/ORDR-03/ADMN-05/STAKE-01..04 con su primera puerta) y cita el swap Gemini->Groq con su mecanica supersede (ADR-017 Superseded por ADR-018) y la leccion D-15 aplicada al mantenimiento: firmar antes de reescribir
 
 ### Pending Todos
 
@@ -203,6 +206,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-01T18:04:01.813Z
-Stopped at: Completed 05-01-PLAN.md
+Last session: 2026-10-01T18:16:00.794Z
+Stopped at: Completed 05-02-PLAN.md
 Resume file: None
