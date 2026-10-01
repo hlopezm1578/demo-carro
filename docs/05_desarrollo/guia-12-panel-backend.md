@@ -816,6 +816,10 @@ from app.schemas.producto import Error  # el cuerpo de error vive en schemas/pro
 from app.security import get_current_admin
 from app.services.admin import AdminService, MetricasService, TransicionIlegal
 
+# SIN prefijo propio: el registro de la guía 5 ya monta este router bajo
+# /api/admin — por eso CADA path trae SU segmento en el decorador
+# (/productos, /pedidos, /metricas): prefijo del include + segmento del
+# decorador = el path exacto del contrato.
 router = APIRouter(tags=["Administración"])
 
 # 401 y 403, los DOS códigos del guard por rol (ADR-015), declarados una
@@ -832,7 +836,7 @@ PROTEGIDO = {
 }
 
 
-@router.get("", response_model=list[ProductoAdmin], responses={**PROTEGIDO})
+@router.get("/productos", response_model=list[ProductoAdmin], responses={**PROTEGIDO})
 def listar_productos(
     actual: Usuario = Depends(get_current_admin),
     db: Session = Depends(get_session),
@@ -842,7 +846,7 @@ def listar_productos(
 
 
 @router.post(
-    "",
+    "/productos",
     response_model=ProductoAdmin,
     status_code=status.HTTP_201_CREATED,  # creado — y nace SIEMPRE activo (D-52)
     responses={**PROTEGIDO, 422: {"description": "Cuerpo mal formado (familia fuera del enum, precio o stock negativos, campos faltantes) — validación declarativa", "model": Error}},
@@ -857,7 +861,7 @@ def crear_producto(
 
 
 @router.put(
-    "/{producto_id}",
+    "/productos/{producto_id}",
     response_model=ProductoAdmin,
     responses={
         **PROTEGIDO,
@@ -879,7 +883,7 @@ def editar_producto(
 
 
 @router.patch(
-    "/{producto_id}/activo",
+    "/productos/{producto_id}/activo",
     response_model=ProductoAdmin,
     responses={
         **PROTEGIDO,
