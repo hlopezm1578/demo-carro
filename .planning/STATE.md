@@ -3,18 +3,18 @@ gsd_state_version: "1.0"
 milestone: v2.25.0
 current_phase: 04
 current_phase_name: Panel de administración y asistente IA
-current_plan: 3
+current_plan: 4
 status: executing
-stopped_at: Completed 04-07-PLAN.md
-last_updated: "2026-10-01T15:02:41.670Z"
+stopped_at: Completed 04-08-PLAN.md
+last_updated: "2026-10-01T15:28:53.167Z"
 last_activity: 2026-10-01
 last_activity_desc: Phase 04 execution started
-state_head: 61aff278563b1803c7f2c9357d8c1dd01f1533c1
+state_head: f1360dd505a88dc07928872e444cf0e1009f5ec6
 progress:
   total_phases: 5
   completed_phases: 3
   total_plans: 24
-  completed_plans: 23
+  completed_plans: 24
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-09-30)
 ## Current Position
 
 Phase: 04 (Panel de administración y asistente IA) — EXECUTING
-Current Plan: 3
+Current Plan: 4
 Total Plans in Phase: 8
 Status: Ready to execute
 Last activity: 2026-10-01 — Phase 04 execution started
@@ -82,6 +82,7 @@ Progress: [██████░░░░] 60%
 | Phase 4 P05 | 2 min | 2 tasks | 3 files |
 | Phase 04 P06 | 10 min | 3 tasks | 7 files |
 | Phase 04 P07 | 16 min | 2 tasks | 2 files |
+| Phase 04 P08 | 21 min | 3 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -175,6 +176,9 @@ Recent decisions affecting current work:
 - [Phase 04]: [04-06] Contrato 0.4.0 agnostico del proveedor (D-66): las 8 descripciones reescritas con 'servicio de IA' / 'API key del asistente', el parentesis 'no son publicos sin login' muere (D-68), version NO sube y paths/schemas/copys locked intactos — cero churn para guia-12 y la fila contrato<->/docs
 - [Phase 04]: [04-07] guia-14 reescrita como si Groq siempre hubiera sido (D-65): blockquote del swap cita ADR-018 y confina TODA menciona a Gemini/google-genai (gates awk de region); SDK groq >=1.7,<2 piso/techo, key del alumno en console.groq.com (D-63), json_schema strict con ConfigDict(extra=forbid) doble duty (Pitfall 2), MODELO_ASISTENTE=openai/gpt-oss-120b + models.list (D-64), cifras 30 RPM/1.000 RPD con URL y 'a la fecha' (D-68)
 - [Phase 04]: [04-07] guia-15 ajustada sin tocar esqueleto: grep del build con GROQ_API_KEY (CERO coincidencias + control positivo + Select-String, Pitfall 8), filas 8-10/13, nota honesta console.groq.com/D-63 y conteo 18 ADRs; router/copys locked de guia-14 byte-intactos salvo 2 descripciones al wording agnostico del contrato (D-66 verificado con diff de precision)
+- [Phase 04]: Barrido D-67 cerrado con gate replicable: corpus docs/+README CERO Gemini vivo; las unicas menciones supervivientes son historia sancionada (ADR-017 superseded byte-intacto, ADR-018 registro del swap D-65, blockquote de guia-14); conteos 18 ADRs/18 decisiones sin marcar desarrollo completo
+- [Phase 04]: Anclas de planning sin proveedor muerto: ROADMAP frases vivas corregidas con anotaciones de planes intactas, REQUIREMENTS AIAS-03 agnostico (Groq), PROJECT/STACK declarando Groq con nota fechada ADR-018 y concern RPM/RPD cerrado por D-68 — la fase 5 no parte leyendo Gemini
+- [Phase 04]: Taller maura-uat re-integrado con la guia-14 reescrita como alumno (regla dos lugares): happy path 200 REAL con ids existentes, 503 amable sin key, paralelas sin 500, grep dist/ cero — UAT 5/5 pass; truststore como nota taller-only (Pitfall 9)
 
 ### Pending Todos
 
@@ -195,6 +199,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-01T15:02:24.908Z
-Stopped at: Completed 04-07-PLAN.md
+Last session: 2026-10-01T15:28:53.039Z
+Stopped at: Completed 04-08-PLAN.md
 Resume file: None

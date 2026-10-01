@@ -135,7 +135,7 @@ Plans:
   3. Cliente usa la burbuja de chat de la tienda y el asistente recomienda solo productos existentes del catálogo real, con product cards clicables desde el chat (mini-RAG + validación de ids contra BD) (AIAS-01, AIAS-02)
   4. La API key del asistente vive solo en el backend (variable de entorno): no aparece en el código ni en el bundle del frontend, verificable con grep sobre el build (AIAS-03)
 
-**Plans**: 7/8 plans executed (5 executed + 3 rework) *(planeados 2026-09-30 — orden D-62: contrato 0.4.0 + ADRs 015-017 y docs 02/03 primero (D-15, en paralelo sin solape de archivos como la fase 3), luego panel admin completo (backend → SPA), después asistente IA (backend → burbuja), cierre con READMEs; sin spike — la pieza de riesgo (structured output) ya quedó firmada con evidencia en 04-RESEARCH.md contra el README del SDK @ v2.25.0. Rework 2026-10-01: D-63..D-68 reemplazan Gemini por Groq — planes 04-06..08 con ondas frescas R1-R3; los 04-01..05 son historia ejecutada y no se modifican)*
+**Plans**: 8/8 plans executed (5 executed + 3 rework) *(planeados 2026-09-30 — orden D-62: contrato 0.4.0 + ADRs 015-017 y docs 02/03 primero (D-15, en paralelo sin solape de archivos como la fase 3), luego panel admin completo (backend → SPA), después asistente IA (backend → burbuja), cierre con READMEs; sin spike — la pieza de riesgo (structured output) ya quedó firmada con evidencia en 04-RESEARCH.md contra el README del SDK @ v2.25.0. Rework 2026-10-01: D-63..D-68 reemplazan Gemini por Groq — planes 04-06..08 con ondas frescas R1-R3; los 04-01..05 son historia ejecutada y no se modifican)*
 **UI hint**: yes
 
 Plans:
@@ -155,7 +155,7 @@ Plans:
 **Rework Gemini→Groq (2026-10-01, D-63..D-68)** *(ondas frescas R1-R3 — el camino Gemini se cerró: Google exige billing para keys nuevas + 402 real; ver 04-CONTEXT.md/04-UAT test 2)*
 - [x] 04-06-PLAN.md — **Wave R1** — TRACER spec: ADR-018 (supersede ADR-017, cifras D-68 firmadas) + contrato 0.4.0 agnóstico (8 descripciones, versión NO sube, D-66) + docs 02/03/ADR-002/README arq sin Gemini (AIAS-02/03)
 - [x] 04-07-PLAN.md — **Wave R2** *(blocked on R1)* — guia-14 reescrita (SDK groq pin >=1.7,<2, json_schema strict, MODELO_ASISTENTE, blockquote D-65, cifras 30 RPM/1.000 RPD con fuente) + guia-15 ajustada (grep del build GROQ_API_KEY, 18 ADRs) (AIAS-01..03)
-- [ ] 04-08-PLAN.md — **Wave R3** *(blocked on R1+R2)* — Cierre del rework: barrido D-67 con gate cero-Gemini (one-liners guia-12/13 + READMEs, 18 ADRs/18 decisiones), anclas de planning (ROADMAP Goal/SC4, REQUIREMENTS AIAS-03, PROJECT/STACK) y taller maura-uat re-integrado + UAT test 2 re-verificado (ADMN-01..04, AIAS-01..03)
+- [x] 04-08-PLAN.md — **Wave R3** *(blocked on R1+R2)* — Cierre del rework: barrido D-67 con gate cero-Gemini (one-liners guia-12/13 + READMEs, 18 ADRs/18 decisiones), anclas de planning (ROADMAP Goal/SC4, REQUIREMENTS AIAS-03, PROJECT/STACK) y taller maura-uat re-integrado + UAT test 2 re-verificado (ADMN-01..04, AIAS-01..03)
 
 ### Phase 5: Despliegue y cierre de la guía
 
@@ -180,5 +180,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 1. Fundaciones de dos tiers y catálogo | 6/6 | Complete    | 2026-09-29 |
 | 2. Cuentas de cliente y carro persistente | 5/5 | Complete    | 2026-09-30 |
 | 3. Checkout Webpay y órdenes | 5/5 | Complete    | 2026-09-30 |
-| 4. Panel de administración y asistente IA | 7/8 | In Progress|  |
+| 4. Panel de administración y asistente IA | 8/8 | In Progress|  |
 | 5. Despliegue y cierre de la guía | 0/TBD | Not started | - |
