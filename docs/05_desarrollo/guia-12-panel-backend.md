@@ -28,7 +28,7 @@
 | **KPI** | Key Performance Indicator: el número que resume el negocio — ingresos, pedidos por estado, top 5, stock bajo (D-54) |
 | **Allow-list** | La lista CERRADA de campos que un cuerpo de entrada puede escribir: lo que el schema no tiene, el mass assignment no puede voltear |
 | **Transición de estado** | Mover un pedido de un estado a otro de la máquina — cada transición tiene dueño, y la dueña posee exactamente UNA: PENDING → CANCELLED (D-50, ADR-016) |
-| **Last-write-wins** | "La última escritura gana": dos admins editando el mismo producto a la vez no corrompen datos — cada escritura es un UPDATE completo por id en una transacción, y la última queda |
+| **Last-write-wins** | "La última escritura gana": dos admins editando el mismo producto a la vez no corrompen datos — cada escritura viaja en una transacción por id, sin locking optimista: cada CAMPO queda con el último valor que alguien le escribió (dos ediciones concurrentes en campos distintos pueden fusionarse) |
 
 ---
 
@@ -351,8 +351,11 @@ Y al final de la clase `ProductoRepository`, los cuatro métodos nuevos:
         La firma ES la allow-list (T-04-09): cada campo que el panel puede
         escribir aparece nombrado; `activo` e `id` no están porque no se
         editan acá. Dos admins a la vez no corrompen nada: cada llamada es
-        un UPDATE completo por id dentro de una transacción — la última
-        escritura gana (last-write-wins, sin locking optimista).
+        una transacción por id, sin locking optimista — la última escritura
+        gana POR CAMPO: el ORM solo re-escribe las columnas que esa sesión
+        cambió, así que dos ediciones concurrentes en campos DISTINTOS
+        pueden fusionarse (cada campo con el último valor que alguien le
+        escribió explícitamente — nunca un valor a medias).
         """
         producto = self.db.get(Producto, producto_id)
         if producto is None:

@@ -91,14 +91,39 @@ evidence: |
   MSYS (la guía lo ofrece como variante PowerShell; resuelto con Select-String); el
   hot-reload de fastapi dev se cuelga tras editar main.py (la guía pide reinicio).
   Cadenas <verify> de los planes re-ejecutadas tras cada fix: g12-ok, g13-ok, g14-ok.
+  BACKSTOP ADMN-01 (dos admins, concurrencia) OBSERVADO con matiz: dos PUT
+  concurrentes reales (threads) sobre el mismo producto con bodies que difieren en
+  precio/stock → ambos 200 y el estado final fusiona POR CAMPO (precio del admin A,
+  stock del admin B) — SIN corrupción ni writes a medias: el ORM solo re-escribe las
+  columnas que cada sesión cambió, así que cada campo queda con el último valor que
+  alguien le escribió explícitamente. La promesa "no corrompen datos" se sostiene;
+  la frase "UPDATE completo por id… la última queda" era imprecisa bajo interleave →
+  D-4-10: glosario (l.31) y docstring de actualizar() de guia-12 corregidos a
+  last-write-wins POR CAMPO + docstring del taller sincronizado; g12-ok re-verde.
   Estado final del taller: 15 productos (13 activos), pedidos 0 pending / 4 paid /
-  7 cancelled / 2 rejected, .env sin key real, servidores detenidos y puertos libres.
+  7 cancelled / 2 rejected, .env con la GEMINI_API_KEY del usuario (ver test 2),
+  servidores detenidos y puertos libres.
 
 ### 2. Happy path del asistente con llamada real a Gemini
 expected: Con la GEMINI_API_KEY del usuario (creada gratis en aistudio.google.com, D-60), la burbuja responde recomendaciones del catálogo real con product cards válidas (AIAS-01/02 runtime). Sin key, este ítem queda bloqueado — la degradación 503 sí se verifica sin key.
 result: blocked
 blocked_by: third-party
-reason: "Requiere la GEMINI_API_KEY del usuario (D-60, Open Question 1): en este entorno no hay key ni autorización para crearla. Lo verificable sin key quedó verde en el test 1: bienvenida local en vivo, topes 422, degradación 503 con copy exacto + Reintentar + burbuja en pie, y tienda 100% operativa. Con una key (crear gratis en aistudio.google.com, agregar GEMINI_API_KEY=... al .env del backend y reiniciar), este ítem se desbloquea y también la fila 8 de la Gran verificación."
+reason: "Key entregada por el usuario (2026-10-01) e instalada en el .env del taller: la llamada REAL al SDK se ejecutó y autenticó, pero el proyecto de Google de esa key tiene los créditos prepagados agotados — Google responde 402 'Your prepayment credits are depleted' (los proyectos free tier dan 429, no 402). Pendiente del usuario: una key con cuota disponible (proyecto nuevo de AI Studio, gratis y sin tarjeta) o recargar créditos. Con eso, este ítem y la fila 8 de la GV se cierran en minutos."
+verified_by: agent (user-delegated)
+evidence: |
+  Intento real 2026-10-01 con la key del usuario en backend/.env: POST /api/asistente
+  "algo cítrico para el día" → 503 amable. Sondeo directo del SDK (client.models.
+  generate_content con la key) → google.genai.errors.ClientError CODE 402 "Your
+  prepayment credits are depleted. Please go to AI Studio…". La key ES válida
+  (autentica); el proyecto está en modalidad prepagada sin saldo. Valor de la corrida
+  aun así: (a) la llamada REAL al SDK funciona punta a punta (el library imprimió su
+  warning AFC — generate_content efectivamente invocado); (b) el wrapper de guia-14
+  atrapó un error REAL de Google (402, familia "todo lo demás") y lo tradujo al 503
+  amable — CERO 500 crudos, exactamente el patrón IN-06/D-61; (c) backstop AIAS-03
+  observado: DOS llamadas en paralelo (threads) → ambas 503 con el copy amable,
+  ningún 500, la app viva tras la ráfaga (salud 200) — sin estado compartido entre
+  requests. El happy path con respuesta + cards queda a la espera de una key con
+  cuota (decisión del usuario en curso: key nueva free tier vs cambio de proveedor).
 
 ### 3. Ratificar las 5 flagged assumptions unclassified del edge probe (ADMN-02/03/04, AIAS-01/02)
 expected: Confirmar contra la corrida UAT que los supuestos marcados (edge probe unclassified) se comportan como los planes asumieron; ratificar o abrir gaps.
