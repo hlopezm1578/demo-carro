@@ -117,8 +117,9 @@ historial es stateless POR DECISIÓN (D-58):** un arreglo en estado del
 componente — sobrevive la navegación interna de la SPA (el Layout no se
 desmonta al cambiar de ruta) y parte de cero tras un full-page load; el
 backend no guarda conversaciones ni existe tabla de mensajes. La primera
-entrada es la bienvenida LOCAL: se renderiza sin llamar a Gemini, cero
-cuota — el panel jamás abre con la zona de mensajes en blanco. **La
+entrada es la bienvenida LOCAL: se renderiza sin llamar al servicio
+de IA, cero cuota — el panel jamás abre con la zona de mensajes en
+blanco. **La
 mutación (D-57):** `useMutation` por request, NO `useQuery` — respuesta
 única, sin caché ni refetch; en vuelo, el mensaje de la clienta aparece
 inmediato, una burbuja `animate-pulse` de la asesora hace la espera
@@ -207,8 +208,8 @@ export default function BurbujaAsesora() {
 
   // El historial vive en estado del COMPONENTE (D-58): sobrevive la
   // navegación interna (el Layout no se desmonta) y parte de cero tras
-  // un full-page load. La bienvenida es LOCAL: render sin llamada a
-  // Gemini — cero cuota, y el panel jamás abre en blanco.
+  // un full-page load. La bienvenida es LOCAL: render sin llamada al
+  // servicio de IA — cero cuota, y el panel jamás abre en blanco.
   const [mensajes, setMensajes] = useState<MensajeChat[]>([
     { rol: "asesora", texto: BIENVENIDA },
   ]);
@@ -490,7 +491,7 @@ sigue la conversación: el historial sigue en pantalla (el Layout no se
 desmontó) y viaja entero en cada envío.
 
 ✅ **Mini-verificación (la degradación amable, sin key):** comenta la
-línea `GEMINI_API_KEY` del `.env` del backend, reinicia la API y manda
+línea `GROQ_API_KEY` del `.env` del backend, reinicia la API y manda
 un mensaje: la burbuja de error roja con **"La asesora no está
 disponible en este momento. Inténtalo más tarde."** y el link
 **Reintentar** — la burbuja flotante SIGUE en su lugar (D-61: no se
@@ -510,7 +511,7 @@ layout (guía 13) y la asesora acompaña a la clienta, no a la dueña.
 La tabla de cierre del ciclo — como en las fases 1, 2 y 3, cada fila
 cita su origen y se marca solo si TÚ la comprobaste. Las credenciales
 son las de TU `.env` (las sembró la guía 5); para la fila 8 necesitas TU
-key de AI Studio (guía 14); las filas 9 y 10 no necesitan key:
+key de console.groq.com (guía 14); las filas 9 y 10 no necesitan key:
 
 | # | Verificación | Origen |
 |---|---|---|
@@ -521,12 +522,12 @@ key de AI Studio (guía 14); las filas 9 y 10 no necesitan key:
 | 5 | Soft delete con sus DOS caras: desactivar un aroma → DESAPARECE del catálogo público en la misma sesión (invalidación por prefijo) y tu pedido viejo de fase 3 conserva el snapshot de nombre y precio | RF-19, D-52, D-36, HU-12 |
 | 6 | La huérfana PENDING de fase 3: "Anular" en dos pasos → badge "Anulado" sin tocar stock; repetir la anulación en otra pestaña → 409 "Ese pedido ya no está en curso."; y la clienta la ve "Anulado" en SU historial — la guía 11 intacta mostrando una verdad que otra pantalla cambió | RF-21, RN-15, ADR-016, D-48/D-49 |
 | 7 | Métricas contra las órdenes REALES de tu fase 3: ingresos = la suma exacta de tus PAID, los 4 estados con sus conteos (la anulada ya suma), top 5 con los nombres DE ÉPOCA (snapshot) y el conteo de stock bajo | RF-22, D-54, D-36 |
-| 8 | La burbuja abre con la bienvenida LOCAL (cero requests en Network, cero cuota) y la asesora recomienda con la voz de Maura en UNA respuesta con 1-3 cards clicables que abren la ficha — la misma ProductCard del catálogo | RF-23, RF-24, HU-13, D-57/D-58/D-46, ADR-017 |
-| 9 | Los topes del chat validan en el borde: mensaje de 501 caracteres → 422; historial de 11 entradas → 422 — ANTES de tocar Gemini, sin gastar cuota | RN-16, D-59 |
-| 10 | Degradación sin key: comentar `GEMINI_API_KEY` del `.env`, reiniciar → POST 503 con "La asesora no está disponible…" y la burbuja avisando con Reintentar — mientras login, catálogo, carro, checkout y panel siguen 100% operativos | RNF-08, D-61, ADR-017 |
+| 8 | La burbuja abre con la bienvenida LOCAL (cero requests en Network, cero cuota) y la asesora recomienda con la voz de Maura en UNA respuesta con 1-3 cards clicables que abren la ficha — la misma ProductCard del catálogo | RF-23, RF-24, HU-13, D-57/D-58/D-46, ADR-017/ADR-018 |
+| 9 | Los topes del chat validan en el borde: mensaje de 501 caracteres → 422; historial de 11 entradas → 422 — ANTES de tocar el servicio de IA, sin gastar cuota | RN-16, D-59 |
+| 10 | Degradación sin key: comentar `GROQ_API_KEY` del `.env`, reiniciar → POST 503 con "La asesora no está disponible…" y la burbuja avisando con Reintentar — mientras login, catálogo, carro, checkout y panel siguen 100% operativos | RNF-08, D-61, ADR-017 |
 | 11 | La burbuja acompaña TODA la tienda — portada, catálogo, ficha, carro, checkout, pedidos, con y sin sesión (pública, D-59) — y NO existe dentro de /admin: dos ramas de layout, cero condicionales | RF-23, D-55, D-59 |
 | 12 | **Contrato ↔ `/docs`**: abre `http://localhost:8000/docs` y compara UNO A UNO contra `docs/04_arquitectura/contrato_api.yaml` **0.4.0**: los paths NUEVOS (los 7 de administración + `/api/asistente`), el **409/429/503 declarados** en las firmas (las HTTPException manuales, visibles — lección G-01-4), el endpoint público del asistente SIN candado (`security: []` a propósito, como el retorno de Webpay) — y el botón **Authorize** probado con la cuenta admin del seed AHORA contra el CRUD real: 200 en los paths donde la clienta vio el 403 | ADR-007, GUIDE-02, ADR-015, ADR-017 |
-| 13 | **El grep del build** (AIAS-03): `npm run build` y, DESPUÉS de que termine, busca `GEMINI_API_KEY` en el `dist/` regenerado — **CERO coincidencias**. Git Bash: `grep -r "GEMINI_API_KEY" dist/` (sin output es el éxito); PowerShell: `findstr /s /i "GEMINI_API_KEY" dist\*` (o `Select-String -Path dist\* -Pattern "GEMINI_API_KEY"`). La prueba mecánica de que la key vive solo en el backend: cualquier variable `VITE_*` termina en el bundle — la key, nunca | RNF-09, AIAS-03, D-60 |
+| 13 | **El grep del build** (AIAS-03): `npm run build` y, DESPUÉS de que termine, busca `GROQ_API_KEY` en el `dist/` regenerado — **CERO coincidencias** (control positivo: `grep -r "Pregúntale a Maura" dist/` SÍ encuentra — el grep funciona; lo ausente es la key). Git Bash: `grep -r "GROQ_API_KEY" dist/` (sin output es el éxito); PowerShell: `Select-String -Path dist\* -Pattern "GROQ_API_KEY"` (findstr invocado desde Git Bash corrompe sus switches — Pitfall 8). La prueba mecánica de que la key vive solo en el backend: cualquier variable `VITE_*` termina en el bundle — la key, nunca | RNF-09, AIAS-03, D-60 |
 
 La fila 12 es la evidencia formal del cierre, y esta fase le suma una
 pieza que se queda para siempre: la fila 13. **Cualquier diferencia entre
@@ -535,9 +536,10 @@ se versiona y se aprueba de nuevo; jamás cambia en silencio.** El
 contrato vive en el repositorio de la guía; el `/docs` y el `dist/` viven
 en tu máquina — compararlos y grepearlos es tu trabajo de cierre, y este
 mismo mecanismo se repite al final de cada fase del proyecto. (Nota
-honesta para la fila 8: el happy path del asistente — la llamada REAL a
-Gemini — requiere TU key: en el aula, cada quien con la suya, D-60. Las
-filas 9, 10 y 13 no dependen de ninguna key.)
+honesta para la fila 8: el happy path del asistente — la llamada REAL al
+servicio de IA — requiere TU key: en el aula, cada quien con la suya
+(console.groq.com, D-63). Las filas 9, 10 y 13 no dependen de ninguna
+key.)
 
 **Sugerencia de commit para cerrar la fase** (en TU proyecto):
 
@@ -546,7 +548,7 @@ git add -A
 git commit -m "Fase 4 completa: panel de administración y asesora IA según guías 12-15
 
 Cumple el contrato OpenAPI 0.4.0 (verificación /docs con Authorize, sin
-desvíos; el grep del build sin rastro de la API key) y respeta los 17
+desvíos; el grep del build sin rastro de la API key) y respeta los 18
 ADRs del proyecto."
 ```
 
@@ -667,7 +669,7 @@ Con ambos servidores corriendo, el seed corrido y TU key en el `.env`:
    mitad) no corrompen nada: ¿qué propiedad de la llamada del service
    lo garantiza — y a qué señal se traduce la interrupción para el
    cliente? (D-57, guía 14: stateless por request, IN-06.)
-5. El grep del build busca `GEMINI_API_KEY` en `dist/` y espera CERO
+5. El grep del build busca `GROQ_API_KEY` en `dist/` y espera CERO
    coincidencias: ¿por qué una variable `VITE_` SÍ aparecería — y por
    qué ese grep corre DESPUÉS de `npm run build` y no antes? (RNF-09,
    AIAS-03, Pitfall 8.)
@@ -697,11 +699,11 @@ Con ambos servidores corriendo, el seed corrido y TU key en el `.env`:
   (roles, CRUD, soft delete, la huérfana anulada, métricas contra tus
   órdenes reales), asistente completo, la fila contrato 0.4.0 ↔ `/docs`
   con Authorize admin contra el CRUD real — y la fila nueva FIJA que las
-  fases futuras heredan: el grep del build (`GEMINI_API_KEY` sin
+  fases futuras heredan: el grep del build (`GROQ_API_KEY` sin
   coincidencias en `dist/`, comando por shell, Pitfall 8)
 
 **Siguiente:** la fase 5 — el despliegue: la tienda y su API en internet
 con tier gratuito… y la que congela el `return_url` que Webpay exige
 (la URL pública de TU backend, definida al fin). La clave: TODO lo
-construido hasta hoy corriendo en vivo — con el contrato, los 17 ADRs y
+construido hasta hoy corriendo en vivo — con el contrato, los 18 ADRs y
 el grep del build como red de seguridad.
