@@ -135,7 +135,7 @@ Plans:
   3. Cliente usa la burbuja de chat de la tienda y el asistente recomienda solo productos existentes del catálogo real, con product cards clicables desde el chat (mini-RAG + validación de ids contra BD) (AIAS-01, AIAS-02)
   4. La API key de Gemini vive solo en el backend (variable de entorno): no aparece en el código ni en el bundle del frontend, verificable con grep sobre el build (AIAS-03)
 
-**Plans**: 8 plans (5 executed + 3 rework) *(planeados 2026-09-30 — orden D-62: contrato 0.4.0 + ADRs 015-017 y docs 02/03 primero (D-15, en paralelo sin solape de archivos como la fase 3), luego panel admin completo (backend → SPA), después asistente IA (backend → burbuja), cierre con READMEs; sin spike — la pieza de riesgo (structured output) ya quedó firmada con evidencia en 04-RESEARCH.md contra el README del SDK @ v2.25.0. Rework 2026-10-01: D-63..D-68 reemplazan Gemini por Groq — planes 04-06..08 con ondas frescas R1-R3; los 04-01..05 son historia ejecutada y no se modifican)*
+**Plans**: 5/8 plans executed (5 executed + 3 rework) *(planeados 2026-09-30 — orden D-62: contrato 0.4.0 + ADRs 015-017 y docs 02/03 primero (D-15, en paralelo sin solape de archivos como la fase 3), luego panel admin completo (backend → SPA), después asistente IA (backend → burbuja), cierre con READMEs; sin spike — la pieza de riesgo (structured output) ya quedó firmada con evidencia en 04-RESEARCH.md contra el README del SDK @ v2.25.0. Rework 2026-10-01: D-63..D-68 reemplazan Gemini por Groq — planes 04-06..08 con ondas frescas R1-R3; los 04-01..05 son historia ejecutada y no se modifican)*
 **UI hint**: yes
 
 Plans:
@@ -180,5 +180,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 1. Fundaciones de dos tiers y catálogo | 6/6 | Complete    | 2026-09-29 |
 | 2. Cuentas de cliente y carro persistente | 5/5 | Complete    | 2026-09-30 |
 | 3. Checkout Webpay y órdenes | 5/5 | Complete    | 2026-09-30 |
-| 4. Panel de administración y asistente IA | 5/8 | In Progress (rework Groq)|  |
+| 4. Panel de administración y asistente IA | 5/8 | In Progress|  |
 | 5. Despliegue y cierre de la guía | 0/TBD | Not started | - |

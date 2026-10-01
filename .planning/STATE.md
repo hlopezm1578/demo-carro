@@ -2,14 +2,14 @@
 gsd_state_version: "1.0"
 milestone: v2.25.0
 current_phase: 04
-current_phase_name: panel-de-administraci-n-y-asistente-ia
-current_plan: 5
+current_phase_name: Panel de administración y asistente IA
+current_plan: 2
 status: executing
-stopped_at: Phase 4 rework context (Gemini→Groq) gathered — ready for replan
-last_updated: "2026-10-01T14:24:39.227Z"
-last_activity: 2026-09-30
-last_activity_desc: Phase 4 execution started
-state_head: b8a1f50b0d0af5378c0b28bebbba24ecaa547718
+stopped_at: Completed 04-06-PLAN.md (rework spec layer Groq)
+last_updated: "2026-10-01T14:41:02.208Z"
+last_activity: 2026-10-01
+last_activity_desc: Phase 04 execution started
+state_head: d4f67d90e49eef399bece477f2cc497c032c7be2
 progress:
   total_phases: 5
   completed_phases: 3
@@ -24,15 +24,15 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-30)
 
 **Core value:** La guía documenta el ciclo de vida completo y, siguiéndola en orden, la aplicación queda construida y operativa: tienda con catálogo, carro, checkout Webpay sandbox, cuentas JWT, panel admin y asistente IA sobre el catálogo real.
-**Current focus:** Phase 4 — Panel de administración y asistente IA
+**Current focus:** Phase 04 — Panel de administración y asistente IA
 
 ## Current Position
 
-Phase: 04 (panel-de-administraci-n-y-asistente-ia) — READY TO EXECUTE
-Current Plan: 5
+Phase: 04 (Panel de administración y asistente IA) — EXECUTING
+Current Plan: 2
 Total Plans in Phase: 8
 Status: Ready to execute
-Last activity: 2026-09-30 — Phase 4 execution started
+Last activity: 2026-10-01 — Phase 04 execution started
 
 Progress: [██████░░░░] 60%
 
@@ -80,6 +80,7 @@ Progress: [██████░░░░] 60%
 | Phase 04 P02 | 9 min | 2 tasks | 2 files |
 | Phase 04 P03 | 18 min | 2 tasks | 3 files |
 | Phase 4 P05 | 2 min | 2 tasks | 3 files |
+| Phase 04 P06 | 10 min | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -169,6 +170,8 @@ Recent decisions affecting current work:
 - [Phase 4]: Cierre de fase 4 en los índices (D-13/D-18, cuarta corrida): guías 1-15 listas + 17 ADRs + 17 decisiones + panel y asesora Gemini como stack construido en el tono telegráfico de Webpay; fila 5 honesta en Parcial (fases 5+)
 - [Phase 4]: Mapa mental de 05_desarrollo suma la capa de IA como segundo servicio externo de tipo nuevo: request-response JSON desde el backend sin redirecciones (contraste explícito con Webpay), API key como env var del servidor
 - [Phase 4]: Gate documental de cierre de fase 4 en verde: 15 guia-*.md, 17 ADRs 001-017, cadena Siguiente 11→15 grep-verificada sin eslabones sueltos y repo guide-only (git ls-files backend/frontend vacío, D-17/ADR-008)
+- [Phase 04]: [04-06] ADR-018 firma el swap Gemini->Groq (D-63..D-68) con evidencia firmada (doc oficial + probe SDK 1.7.0 + 402/billing de 04-UAT test 2): pin >=1.7,<2, MODELO_ASISTENTE=openai/gpt-oss-120b, json_schema strict + ConfigDict(extra=forbid), GROQ_API_KEY via pydantic-settings con api_key explicita (IN-03), cifras 30 RPM / 1.000 RPD / 8K TPM / 200K TPD con fuente; muralla D-56 y degradacion D-61 preservadas; ADR-017 Superseded con cuerpo byte-intacto
+- [Phase 04]: [04-06] Contrato 0.4.0 agnostico del proveedor (D-66): las 8 descripciones reescritas con 'servicio de IA' / 'API key del asistente', el parentesis 'no son publicos sin login' muere (D-68), version NO sube y paths/schemas/copys locked intactos — cero churn para guia-12 y la fila contrato<->/docs
 
 ### Pending Todos
 
@@ -189,6 +192,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-01T13:01:15.012Z
-Stopped at: Phase 4 rework context (Gemini→Groq) gathered — ready for replan
-Resume file: .planning/phases/04-panel-de-administraci-n-y-asistente-ia/04-CONTEXT.md
+Last session: 2026-10-01T14:40:50.971Z
+Stopped at: Completed 04-06-PLAN.md (rework spec layer Groq)
+Resume file: None
