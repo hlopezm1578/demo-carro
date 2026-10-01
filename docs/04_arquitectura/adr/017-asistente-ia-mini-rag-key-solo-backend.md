@@ -1,6 +1,6 @@
 # ADR-017 — Asistente de venta con mini-RAG honesto, structured output y la API key solo en el backend
 
-- **Estado:** Aceptada
+- **Estado:** Superseded por [ADR-018](018-asistente-ia-groq-structured-outputs.md) (2026-10-01)
 - **Fecha:** 2026-09-30
 - **Resuelve:** cómo recomienda la asesora de aromas sin alucinar productos, y dónde vive la API key de Gemini (AIAS-01, AIAS-02, AIAS-03; decisiones D-56/D-59/D-60/D-61)
 
