@@ -1,15 +1,15 @@
 ---
-status: partial
+status: pass
 phase: 04-panel-de-administraci-n-y-asistente-ia
 source: [04-VERIFICATION.md]
 started: 2026-10-01T12:00:00.000Z
-updated: 2026-10-01T22:05:00.000Z
+updated: 2026-10-01T15:24:57.000Z
 verified_by: agent (user-delegated per AGENTS.md — taller D:/Repos/maura-uat)
 ---
 
 ## Current Test
 
-[testing paused — 1 item outstanding: test 2 (happy path del asistente) blocked a la espera del rework Groq decidido por el usuario; proveedor verificado punta a punta, rework por flujo GSD]
+[sin ítems pendientes — 5/5 pass; test 2 re-verificado tras el rework Groq (plan 04-08)]
 
 ## Tests
 
@@ -104,39 +104,70 @@ evidence: |
   7 cancelled / 2 rejected, .env con la GEMINI_API_KEY del usuario (ver test 2),
   servidores detenidos y puertos libres.
 
-### 2. Happy path del asistente con llamada real a Gemini
-expected: Con la GEMINI_API_KEY del usuario (creada gratis en aistudio.google.com, D-60), la burbuja responde recomendaciones del catálogo real con product cards válidas (AIAS-01/02 runtime). Sin key, este ítem queda bloqueado — la degradación 503 sí se verifica sin key.
-result: blocked
-blocked_by: third-party
-reason: "Cerrado el camino Gemini: (1) la primera key del usuario autenticó pero su proyecto tiene créditos prepagados agotados (402 real de Google); (2) el usuario reporta que Google le exige cuenta de facturación para crear API keys nuevas — el flujo del alumno D-60 ('key gratis sin tarjeta en aistudio.google.com') quedó roto para cuentas como la suya. DECISIÓN DEL USUARIO (2026-10-01): reemplazar Gemini por GROQ (key sin tarjeta en console.groq.com, free tier 30 RPM/14.400 RPD, Structured Outputs nativo json_schema, API OpenAI-compatible) — rework por flujo GSD (nuevo ADR que supersed ADR-017, reescritura de la mitad de integración de guia-14, COVERAGE.md, research). El happy path se re-verifica tras el cambio de proveedor."
+### 2. Happy path del asistente con llamada real al servicio de IA (Groq)
+expected: Con la GROQ_API_KEY del usuario (creada gratis en console.groq.com, D-63/D-60-supercedido), la burbuja responde recomendaciones del catálogo real con product cards válidas (AIAS-01/02 runtime); sin key, la degradación 503 amable con la tienda operativa (D-61). Re-verificado tras el rework Groq (planes 04-06..04-08, ADR-018).
+result: pass
 verified_by: agent (user-delegated)
 evidence: |
-  Intento real 2026-10-01 con la key del usuario en backend/.env: POST /api/asistente
-  "algo cítrico para el día" → 503 amable. Sondeo directo del SDK (client.models.
-  generate_content con la key) → google.genai.errors.ClientError CODE 402 "Your
-  prepayment credits are depleted. Please go to AI Studio…". La key ES válida
-  (autentica); el proyecto está en modalidad prepagada sin saldo. Valor de la corrida
-  aun así: (a) la llamada REAL al SDK funciona punta a punta (el library imprimió su
-  warning AFC — generate_content efectivamente invocado); (b) el wrapper de guia-14
-  atrapó un error REAL de Google (402, familia "todo lo demás") y lo tradujo al 503
-  amable — CERO 500 crudos, exactamente el patrón IN-06/D-61; (c) backstop AIAS-03
-  observado: DOS llamadas en paralelo (threads) → ambas 503 con el copy amable,
-  ningún 500, la app viva tras la ráfaga (salud 200) — sin estado compartido entre
-  requests. El happy path con respuesta + cards quedó a la espera de una key con
-  cuota.
-  ADDENDA (cambio de proveedor decidido): el usuario no pudo crear keys nuevas en
-  Google sin cuenta de facturación (D-60 roto para el aula) y DECIDIÓ reemplazar
-  Gemini por GROQ. La GROQ_API_KEY del usuario quedó verificada con llamada REAL
-  (2026-10-01): GET /models 200; POST /chat/completions con response_format
-  json_schema (shape Recomendacion {respuesta, productos}) → 200 con respuesta en
-  la voz de Maura e ids válidos del catálogo, en openai/gpt-oss-120b (543 tokens) y
-  qwen/qwen3.8-27b (195 tokens). Nota de entorno de ESTA máquina: api.groq.com
-  requiere TLS contra el almacén de Windows (middlebox bloquea revocación; el probe
-  usó truststore) — el taller deberá considerarlo al re-integrar; las máquinas de
-  los alumnos no tienen por qué. La key vive como GROQ_API_KEY en el .env del taller
-  (GEMINI removida). El rework de guia-14/ADR/COVERAGE va por flujo GSD; este test
-  queda blocked SOLO por ese rework pendiente — la viabilidad del proveedor está
-  probada punta a punta.
+  RE-VERIFICACIÓN Groq 2026-10-01 (plan 04-08 Task 3): taller D:/Repos/maura-uat
+  re-integrado siguiendo la guia-14 REESCRITA como lo haría un alumno (regla dos
+  lugares de AGENTS.md): (1) `uv add "groq>=1.7,<2"` → groq 1.7.0 instalado y
+  `uv remove google-genai` → 2.26.0 removido (pyproject con el pin, sin genai);
+  (2) services/asistente.py reescrito con los bloques del paso 5 de la guía
+  (`from groq import Groq, GroqError, RateLimitError`, MODELO_ASISTENTE =
+  "openai/gpt-oss-120b", client lazy construido DENTRO del try con
+  api_key=settings.groq_api_key, chat.completions.create con response_format
+  json_schema strict: true + Recomendacion.model_json_schema(),
+  RateLimitError → CuotaAgotada, GroqError → AsistenteNoDisponible, jamás 500);
+  Recomendacion del taller con model_config = ConfigDict(extra="forbid")
+  (mini-verificación del paso 4 en verde: "500 500 10 3 | False ['productos',
+  'respuesta']" — additionalProperties: false + required completos); Settings
+  con groq_api_key: str | None = None (mini-verificación paso 3: "None |
+  PydanticUndefined"); aislamiento grep "from groq" backend/app → SOLO
+  services/asistente.py; .env.example con GROQ_API_KEY= vacía; router solo con
+  las 2 descripciones agnósticas del contrato (D-66).
+  BATERÍA DEL PASO 8 (backend `uv run fastapi dev app/main.py`, forma D-4-9):
+  - HAPPY PATH 200 REAL: POST /api/asistente "algo cítrico para el día" → 200
+    con respuesta en la voz de Maura ("Si buscas algo cítrico, te recomiendo
+    Brisa de Naranja, una explosión de naranja...") e ids [1, 2] que EXISTEN en
+    el catálogo activo del taller (ids validos: True contra /api/productos,
+    cards: 2 — la muralla D-56 funcionó contra el modelo real).
+  - TOPES 422: mensaje 501 chars → 422 e historial de 11 entradas → 422 (antes
+    de tocar la red, RN-16).
+  - DEGRADACIÓN SIN KEY: GROQ_API_KEY comentada + reinicio → POST → 503 con el
+    copy exacto "La asesora no está disponible en este momento. Inténtalo más
+    tarde." | salud: 200 | catálogo vivo (14 activos) — D-61 runtime: la tienda
+    100% operativa sin key. Key restaurada y reinicio para volver al happy path.
+  - MODELS.LIST (D-64): 11 modelos, INCLUYE openai/gpt-oss-120b — el
+    MODELO_ASISTENTE existe hoy (calza con el probe del research).
+  - BACKSTOP AIAS-03 (concurrencia): DOS llamadas en PARALELO (threads) al
+    endpoint público → ambas 200 con respuestas en la voz de Maura, NINGUNA
+    500 ni excepción, GET /api/salud 200 tras la ráfaga — sin estado compartido
+    entre requests (junto al backstop del test 1 D-4-10, cierra la observación
+    de los 3 gaps de 04-VERIFICATION salvo ratificación de cierre).
+  - GREP DEL BUILD (fila 13, A6): npm run build verde (tsc -b && vite build,
+    375.54 kB JS) y grep -r "GROQ_API_KEY" dist/ → CERO coincidencias (exit 1)
+    con control positivo (grep "asesora" encuentra en el bundle) — AIAS-03: la
+    key jamás salió del backend.
+  NOTA taller-only (Pitfall 9, 04-RESEARCH — JAMÁS en la guía): el middlebox
+  local de ESTA máquina bloquea la revocación TLS hacia api.groq.com; el
+  service del taller inyecta truststore (import truststore +
+  truststore.inject_into_ssl() al arranque del módulo, truststore 0.10.4 en el
+  venv vía uv pip install — fuera de pyproject) y así corrió el happy path y
+  las paralelas 200. El comando models.list del paso 8 ejecutado EN FRIO (sin
+  importar el service) falla por TLS en esta máquina — variante taller-only
+  con truststore inyectado a mano corre 200; las máquinas de los alumnos no
+  tienen el middlebox. No es defecto de guía: la regla dos lugares NO aplica.
+  Sin sesión de navegador en esta corrida: la burbuja ya fue validada EN VIVO
+  en el test 1 (filas 8/11: bienvenida local, burbuja en pie en el 503) y el
+  frontend NO cambió con el rework (rebuild de las mismas fuentes); el happy
+  path se verificó a nivel de API (el contrato que la burbuja consume).
+  NOTA de cierre: la GROQ_API_KEY del taller ES la key del usuario (creada por
+  él en console.groq.com, sesión 04-UAT addenda) — el ítem humano end-of-phase
+  de 04-VERIFICATION (happy path con la key del usuario) queda CUBIERTO punta
+  a punta por esta corrida para su ratificación en el cierre de fase.
+  Estado final del taller: servidores detenidos, puertos 8000/5173 libres,
+  .env con GROQ_API_KEY activa.
 
 ### 3. Ratificar las 5 flagged assumptions unclassified del edge probe (ADMN-02/03/04, AIAS-01/02)
 expected: Confirmar contra la corrida UAT que los supuestos marcados (edge probe unclassified) se comportan como los planes asumieron; ratificar o abrir gaps.
@@ -187,8 +218,8 @@ decision: Cláusula aclaratoria — la cita del auto-pickup se conserva como evi
 ## Summary
 
 total: 5
-passed: 4
+passed: 5
 issues: 0
 pending: 0
 skipped: 0
-blocked: 1
+blocked: 0
