@@ -1,31 +1,34 @@
 # Phase 5: Despliegue y cierre de la guía - Research
 
 **Researched:** 2026-10-01
-**Domain:** Despliegue free tier de dos tiers (SPA estática + API FastAPI) con `return_url` de Webpay congelado, y cierre documental del ciclo (docs 06/07/08) — repo guide-only (D-17): la fase entrega DOCUMENTOS; el runtime se verifica delegado en `D:/Repos/maura-uat`
-**Confidence:** HIGH (integraciones del repo leídas directamente + docs oficiales de ambas plataformas y de Transbank citadas; los puntos que solo el runtime puede confirmar quedan explícitamente asignados al spike D-72)
+**Updated:** 2026-10-01 — reconciliación con D-73 (corrección de alcance del usuario): este research se escribió PRE-D-73 y lleva anotaciones **[Actualización D-73: ...]** / **[SUPERSEDED por D-73: ...]** donde su guía original instruía el spike runtime abolido. Propiedad vigente: la fase es SOLO ESCRITURA; el runtime del deploy lo corre el ALUMNO siguiendo las guías 16-18 en SUS cuentas; la verificación del proyecto es documental (greps/estructura).
+**Domain:** Despliegue free tier de dos tiers (SPA estática + API FastAPI) con `return_url` de Webpay congelado, y cierre documental del ciclo (docs 06/07/08) — repo guide-only (D-17): la fase entrega DOCUMENTOS; el runtime se verifica delegado en `D:/Repos/maura-uat` **[Actualización D-73: NO — maura-uat no aplica al deploy en esta fase; el runtime del deploy lo corre el ALUMNO siguiendo las guías 16-18 en sus cuentas free]**
+**Confidence:** HIGH (integraciones del repo leídas directamente + docs oficiales de ambas plataformas y de Transbank citadas; los puntos que solo el runtime puede confirmar quedan explícitamente asignados al spike D-72) **[Actualización D-73: sin spike (D-72 superseded) — esos puntos quedan como supuestos señalados (A1-A8, § Assumptions Log) cuya confirmación runtime es del alumno]**
 
 ## Summary
 
-La fase 5 tiene dos frentes que se alimentan mutuamente: el **spike de deploy runtime (D-72)** — que deploya el taller de maura-uat a los dos servicios reales ANTES de firmar nada — y el **cierre documental del ciclo (D-71)** — docs `06_pruebas.md`, `07_despliegue.md`, `08_mantenimiento.md` + ADRs 019/020 + guías 16+ + quinta corrida de tablas de estado. El research confirma que la candidata D-69 (Vercel frontend + Render API) es viable por diseño: ambas plataformas publican exactamente lo que la app ya es (SPA estática Vite + servicio web Python), ambas tienen tier gratuito sin tarjeta, y los tres "congelamientos" que el deploy exige ya existen como env vars en el código que las guías enseñan — no hay código nuevo que inventar, solo configuración que enseñar.
+La fase 5 tiene dos frentes que se alimentan mutuamente: el **spike de deploy runtime (D-72)** — que deploya el taller de maura-uat a los dos servicios reales ANTES de firmar nada — y el **cierre documental del ciclo (D-71)** — docs `06_pruebas.md`, `07_despliegue.md`, `08_mantenimiento.md` + ADRs 019/020 + guías 16+ + quinta corrida de tablas de estado. **[SUPERSEDED por D-73 (2026-10-01): el primer frente (spike runtime D-72) fue abolido — la fase es solo escritura. La corroboración de la candidata D-69 quedó DOCUMENTAL (docs oficiales citadas en § Sources, sin bloqueo encontrado); el deploy y su verificación los vive el alumno con las guías 16-18.]** El research confirma que la candidata D-69 (Vercel frontend + Render API) es viable por diseño: ambas plataformas publican exactamente lo que la app ya es (SPA estática Vite + servicio web Python), ambas tienen tier gratuito sin tarjeta, y los tres "congelamientos" que el deploy exige ya existen como env vars en el código que las guías enseñan — no hay código nuevo que inventar, solo configuración que enseñar.
 
-El hallazgo técnico más importante para el spike: **el taller maura-uat NO es un repositorio git** (verificado: `git rev-parse` falla con "fatal: not a git repository") y ambas plataformas deployan desde un repo Git — el spike necesita un paso 0 (git init + push a GitHub, con `.env` y `*.db` ya gitignoreados por guia-01/03). El segundo hallazgo: **Render hoy deja por defecto Python 3.14.3 en servicios nuevos** [CITED: render.com/docs/python-version], y el techo declarado del SDK de Transbank es 3.12 (STACK.md: classifiers 3.8–3.12) — la guía DEBE fijar `PYTHON_VERSION` (o `.python-version`), o el `uv sync` revienta contra un `requires-python = ">=3.12,<3.13"` que el propio taller trae. Tercero: **Render soporta uv nativamente** desde 2025-06-12 (basta incluir `uv.lock` en la raíz del servicio) [CITED: render.com/changelog/added-uv-to-the-python-native-runtime] — el taller ya tiene `backend/uv.lock`, así que no hay que generar `requirements.txt`. Y cuarto: **Vercel NO infiere que un proyecto es SPA** — el fallback a `index.html` exige un `vercel.json` con rewrite explícito, commiteado en la raíz [CITED: vercel.com/kb/guide/why-is-my-deployed-project-giving-404]; ese rewrite ES el DEPL-02 del refresh sin 404.
+El hallazgo técnico más importante para el spike: **el taller maura-uat NO es un repositorio git** (verificado: `git rev-parse` falla con "fatal: not a git repository") y ambas plataformas deployan desde un repo Git — el spike necesita un paso 0 (git init + push a GitHub, con `.env` y `*.db` ya gitignoreados por guia-01/03). **[Actualización D-73: el paso 0 vive hoy como Paso 0 de guia-16 — lo corre el ALUMNO sobre SU proyecto (misma protección `.env`/`*.db`); maura-uat no se deploya en esta fase.]** El segundo hallazgo: **Render hoy deja por defecto Python 3.14.3 en servicios nuevos** [CITED: render.com/docs/python-version], y el techo declarado del SDK de Transbank es 3.12 (STACK.md: classifiers 3.8–3.12) — la guía DEBE fijar `PYTHON_VERSION` (o `.python-version`), o el `uv sync` revienta contra un `requires-python = ">=3.12,<3.13"` que el propio taller trae. Tercero: **Render soporta uv nativamente** desde 2025-06-12 (basta incluir `uv.lock` en la raíz del servicio) [CITED: render.com/changelog/added-uv-to-the-python-native-runtime] — el taller ya tiene `backend/uv.lock`, así que no hay que generar `requirements.txt`. Y cuarto: **Vercel NO infiere que un proyecto es SPA** — el fallback a `index.html` exige un `vercel.json` con rewrite explícito, commiteado en la raíz [CITED: vercel.com/kb/guide/why-is-my-deployed-project-giving-404]; ese rewrite ES el DEPL-02 del refresh sin 404.
 
 Para el cierre documental, `D:/Repos/demo-cine/docs/` (leído completo) entrega el formato exacto de los tres docs: cabecera con "Fase del ciclo de vida / Qué construirás hoy / Al terminar tendrás", tabla de términos, pasos con 🧠, tabla de errores típicos, ✅ verificación con columna Origen, 📝 punto de control, "Lo que acabas de aprender" y enlace de cierre. La diferencia de contenido es la lección: demo-cine deployó con Postgres persistente (Render + Neon); demo-carro deploya **con SQLite efímero + seed idempotente como estrategia explícita (D-70)** — y las docs de Render nombran textualmente "local SQLite databases" como lo que se pierde [CITED: render.com/docs/free], citación perfecta para el ADR-020.
 
-**Primary recommendation:** Plan de la fase en este orden (D-72 manda): (0) spike en maura-uat — git init + push, deploy API a Render con `PYTHON_VERSION=3.12.x` + `uv.lock` + seed al build, deploy SPA a Vercel con `vercel.json` rewrite + `VITE_API_URL`, env triple congelada (`BACKEND_URL`/`CORS_ORIGINS` JSON/`VITE_API_URL`), 4 flujos Webpay contra el ambiente desplegado, cronómetro de spin-down; (1) ADRs 019/020 con la evidencia del spike; (2) docs 06/07/08 con formato demo-cine; (3) guías 16+ (deploy API → deploy frontend + fallback → verificación de flujos + cierre); (4) cierre de índices (REQUIREMENTS/ROADMAP/PROJECT/READMEs). El contrato 0.4.0 NO sube de versión (D-66: el deploy no cambia paths ni schemas).
+**Primary recommendation:** Plan de la fase en este orden (D-72 manda): (0) spike en maura-uat — git init + push, deploy API a Render con `PYTHON_VERSION=3.12.x` + `uv.lock` + seed al build, deploy SPA a Vercel con `vercel.json` rewrite + `VITE_API_URL`, env triple congelada (`BACKEND_URL`/`CORS_ORIGINS` JSON/`VITE_API_URL`), 4 flujos Webpay contra el ambiente desplegado, cronómetro de spin-down; (1) ADRs 019/020 con la evidencia del spike; (2) docs 06/07/08 con formato demo-cine; (3) guías 16+ (deploy API → deploy frontend + fallback → verificación de flujos + cierre); (4) cierre de índices (REQUIREMENTS/ROADMAP/PROJECT/READMEs). El contrato 0.4.0 NO sube de versión (D-66: el deploy no cambia paths ni schemas). **[SUPERSEDED por D-73 — orden vigente: NO hay paso (0) de spike. Los planes reales son (1) 05-01: ADRs 019/020 + doc 07 con evidencia documental; (2) 05-02: docs 06/08; (3) 05-03: guías 16/17 (deploy API → deploy frontend + fallback) enseñadas al alumno; (4) 05-04: guia-18 (4 flujos + Gran verificación final DEFINIDA para el alumno); (5) 05-05: cierre de tablas de los READMEs. La confirmación runtime que el paso (0) proveería es hoy del alumno (D-73).]**
 
 <user_constraints>
 ## User Constraints (from CONTEXT.md)
 
 ### Locked Decisions
 
-- **D-69:** **Una plataforma por tier, free y sin tarjeta, candidata Vercel (frontend estático) + Render (API), validada por spike runtime ANTES de firmar.** El criterio es pedagógico: un solo camino por tier (nada de menús de opciones que dupliquen la guía), tier gratuito sin tarjeta de crédito (misma vara que D-60/D-63 con la API key), soporte real para SPA Vite (fallback a index.html incluido o configurable) y para FastAPI/Python. La candidata sale del consenso ya investigado en `.planning/research/STACK.md` (static en Vercel/Netlify/Cloudflare Pages + Render free API con spin-down y disco efímero); **el spike de deploy (D-72) la corrobora con evidencia runtime y puede sustituirla con evidencia si encuentra bloqueo** (p. ej. regional o de cuota) — el ADR-019 registra la elección final con esa evidencia, misma disciplina que D-41 con el retorno de Webpay. El research valida además cómo cerró su ciclo el repo hermano `demo-cine` para consistencia de la serie — **Reversibility:** costly — doc 07, ADR-019 y las guías 16+ se estructuran alrededor de la plataforma elegida; cambiarla después reescribe la etapa de despliegue completa.
+- **D-69:** **Una plataforma por tier, free y sin tarjeta, candidata Vercel (frontend estático) + Render (API), validada por spike runtime ANTES de firmar.** El criterio es pedagógico: un solo camino por tier (nada de menús de opciones que dupliquen la guía), tier gratuito sin tarjeta de crédito (misma vara que D-60/D-63 con la API key), soporte real para SPA Vite (fallback a index.html incluido o configurable) y para FastAPI/Python. La candidata sale del consenso ya investigado en `.planning/research/STACK.md` (static en Vercel/Netlify/Cloudflare Pages + Render free API con spin-down y disco efímero); **el spike de deploy (D-72) la corrobora con evidencia runtime y puede sustituirla con evidencia si encuentra bloqueo** (p. ej. regional o de cuota) — el ADR-019 registra la elección final con esa evidencia, misma disciplina que D-41 con el retorno de Webpay. El research valida además cómo cerró su ciclo el repo hermano `demo-cine` para consistencia de la serie — **Reversibility:** costly — doc 07, ADR-019 y las guías 16+ se estructuran alrededor de la plataforma elegida; cambiarla después reescribe la etapa de despliegue completa. **[Actualización D-73: sin spike runtime, la corroboración quedó DOCUMENTAL — este research citó las docs oficiales de ambas plataformas (SPA fallback, FastAPI deploy, free tier) y no encontró bloqueo para la candidata; sustitución solo si apareciera evidencia documental en contra antes de firmar el ADR-019.]**
 
 - **D-70:** **SQLite + seed idempotente en producción, con el trade-off del disco efímero documentado honestamente; PostgreSQL (Neon free tier) queda como camino de crecimiento MENCIONADO, no implementado.** Render free reinicia/borra el disco en redeploys y spin-downs: la BD se pierde y el seed upsert (D-05/D-06/D-07, converge sin duplicar) la restaura — esa ES la lección: estado efímero + seed idempotente como estrategia explícita, no como bug. El sandbox de Webpay y la PYME ficticia hacen el trade-off aceptable para el aula (STACK.md ya lo declara así para la guía base). La migración futura es un cambio de `DATABASE_URL` + driver `psycopg` (STACK.md la documenta como variante) — la guía lo nombra como "cómo crecería esto" sin construirlo — **Reversibility:** reversible — el swap a PostgreSQL toca solo la URL de conexión y el driver; las guías no se reescriben, se extienden.
 
 - **D-71:** **La fase 5 escribe los TRES documentos que faltan: `06_pruebas.md`, `07_despliegue.md` y `08_mantenimiento.md`.** El SC3 de GUIDE-01 exige el ciclo completo palabra por palabra ("necesidad → requerimientos → diseño → arquitectura con ADRs → desarrollo guiado → pruebas → despliegue → mantenimiento") y esta es la última fase: dejar alguno pendiente dejaría GUIDE-01 abierto. Reparto natural: **06** sintetiza la estrategia de pruebas ya vivida (mini-verificaciones por guía, Gran verificación final por fase, UAT runtime contra servicios reales — lo que el alumno ya hizo, ahora nombrado como método); **07** es la decisión de despliegue (candidata D-69, ADR-019, el porqué de free tier y del orden final de la fase); **08** cierra prospectivamente (v2 con los diferidos de REQUIREMENTS, cómo se mantiene esto vivo). El contenido exacto de cada doc es discreción del planner con `demo-cine` como referencia de formato — **Reversibility:** costly — la estructura del cierre y las tablas de estado de TODOS los READMEs (quinta corrida de D-13/D-18) se montan sobre qué docs existen y qué dicen.
 
-- **D-72:** **El spike de deploy runtime es el PRIMER plan de la fase, antes de ADRs, doc 07 y guías** (patrón D-38/D-41 de la fase 3, replicado): en `D:/Repos/maura-uat`, deployar la app del taller (ya completa hasta guia-15) a los dos servicios reales, correr los 4 flujos Webpay contra el ambiente desplegado, cronometrar el spin-down y documentar los gotchas (return_url congelado, CORS, fallback SPA, disco efímero). Sus hallazgos alimentan ADR-019, doc 07 y las guías 16+ — la guía nace sin zonas oscuras y el UAT final no descubre nada nuevo. El código/notas del spike viven en `.planning/`, jamás en el repo (D-17) — **Reversibility:** one-way — el ADR-019 firma la elección de plataforma citando este spike como evidencia; re-hacerlo después significaría re-firmar el ADR y re-verificar docs ya cerradas.
+- **D-72:** **El spike de deploy runtime es el PRIMER plan de la fase, antes de ADRs, doc 07 y guías** (patrón D-38/D-41 de la fase 3, replicado): en `D:/Repos/maura-uat`, deployar la app del taller (ya completa hasta guia-15) a los dos servicios reales, correr los 4 flujos Webpay contra el ambiente desplegado, cronometrar el spin-down y documentar los gotchas (return_url congelado, CORS, fallback SPA, disco efímero). Sus hallazgos alimentan ADR-019, doc 07 y las guías 16+ — la guía nace sin zonas oscuras y el UAT final no descubre nada nuevo. El código/notas del spike viven en `.planning/`, jamás en el repo (D-17) — **Reversibility:** one-way — el ADR-019 firma la elección de plataforma citando este spike como evidencia; re-hacerlo después significaría re-firmar el ADR y re-verificar docs ya cerradas. **[SUPERSEDED por D-73 (corrección del usuario, 2026-10-01): la fase es solo escritura — no se ejecuta runtime, no hay spike ni UAT de despliegue. La evidencia del ADR-019 pasa a ser documental: fuentes oficiales citadas en este research.]**
+
+- **D-73:** **La fase 5 es SOLO ESCRITURA de las guías y documentos — el proyecto NO ejecuta ni prueba el deploy.** Decisión del usuario a mitad del pipeline ("esta fase solo es la escritura de las guías, no la probaremos"): sin spike runtime (D-72 superseded), sin deployar el taller maura-uat, sin verificación de los 4 flujos contra un ambiente desplegado por parte del proyecto. Las guías 16+ enseñan el deploy al alumno paso a paso con mini-verificaciones y una Gran verificación final QUE EL ALUMNO CORRE en sus propias cuentas free; la guía las define con exactitud (URLs de plataforma, tarjetas de prueba de la fase 3, pasos numerados), pero el proyecto no las ejecuta. La verificación de planes y de fase es documental (greps/estructura — la forma estándar de la serie guide-only). El ADR-019 firma la elección de plataforma con evidencia documental (docs oficiales de Vercel/Render citadas con URL en este research, misma vara de citación que D-68) — **Reversibility:** costly — estructura toda la fase: qué planes existen (sin plan de spike/UAT), qué verifica la Gran verificación final y cómo cierran los índices. *(Entrada añadida en la reconciliación post-D-73; el resto de esta sección se escribió pre-D-73 y lleva anotaciones donde corresponde.)*
 
 ### Claude's Discretion
 
@@ -38,6 +41,16 @@ Para el cierre documental, `D:/Repos/demo-cine/docs/` (leído completo) entrega 
 - Cómo la Gran verificación final de fase 5 verifica: refresh de rutas sin 404, los 4 flujos contra el ambiente desplegado, contrato ↔ `/docs` público, y grep del build (AIAS-03) en producción — la forma exacta de la tabla es libre.
 - Copys de las pantallas/estados nuevos que el deploy agregue (ninguno esperado — el deploy no cambia UI; solo si el spike descubre algo) y de los READMEs.
 - Cómo el taller maneja las cuentas de plataforma del UAT delegado (nota operativa del dominio) y qué hace si un servicio exige verificación humana.
+
+**[Resoluciones del planner (2026-10-01, post-D-73) — registradas aquí porque todos los executors leen este research vía `<context>`:]**
+- **Guías 16+ (tres; planes 05-03/05-04):** `guia-16-despliegue-api.md`, `guia-17-despliegue-frontend.md`, `guia-18-despliegue-cierre.md`.
+- **ADRs (plan 05-01):** `019-despliegue-free-tier-vercel-render.md` + `020-persistencia-efimera-seed-idempotente.md` — con evidencia DOCUMENTAL (D-73), no de spike.
+- **Nombres de env vars:** fijados por el código existente (Pattern 1, "Nota de nombres") — `BACKEND_URL`, `CORS_ORIGINS` (JSON array), `VITE_API_URL`, `PYTHON_VERSION` fully-qualified; inventar otros rompería contra lo construido.
+- **Contrato:** NO sube — queda **0.4.0** (D-66: sin churn no hay bump); los planes 05-01/05-04 lo fijan con gate negativo (0.5.0 vetado) y la fila contrato ↔ `/docs` de guia-18 sigue contra 0.4.0 en la URL pública.
+- **RNF de despliegue:** NO se crea — **doc 07 es el hogar del deploy** (P1 como ángulo narrativo; P1-P8 ya cubiertas; sin renumerar series).
+- **Gran verificación final:** DEFINIDA en guia-18 como tabla para el alumno (refresh sin 404, 4 flujos con resultado esperado, contrato 0.4.0 ↔ `/docs` público con Authorize, grep del build en producción, ciclo efímero, paridad cero drift) — el proyecto NO la corre (D-73).
+- **Copys/UI:** cero UI nueva (paridad dev ↔ producción).
+- **Cuentas de plataforma / UAT delegado (último bullet de arriba): SUPERSEDED por D-73** — no hay UAT delegado de deploy; las cuentas las crea el ALUMNO en guia-16/17, y si un flujo exigiera verificación humana, la guía lo declara y remite a la doc oficial.
 
 ### Deferred Ideas (OUT OF SCOPE)
 
@@ -89,12 +102,14 @@ No hay stack de librerías nueva: **la fase no instala dependencias** — ni el 
 | Vercel (frontend) | Netlify / Cloudflare Pages | Las tres sirven SPA estática con fallback; Vercel gana por el Framework Preset Vite y el flujo Git-connected más directo para el aula — STACK.md ya declaró el consenso |
 | Render (API) | Fly.io / Railway | Render es la que demo-cine ya usó (consistencia de serie), tiene free sin tarjeta y docs oficiales en español no, pero sí claras para FastAPI; Railway ya no tiene free real |
 | SQLite + seed (D-70) | Neon PostgreSQL | Diferido explícitamente: se MENCIONA como camino de crecimiento (cambio de `DATABASE_URL` + `psycopg`), no se implementa |
-| Deploy Git-connected | Vercel CLI / Render API | La alternativa CLI existe para el spike si Gitconnected falla, pero Git-connected ES el contenido pedagógico (CI/CD en chico, demo-cine Paso 4) |
+| Deploy Git-connected | Vercel CLI / Render API | La alternativa CLI existe para el spike si Gitconnected falla, pero Git-connected ES el contenido pedagógico (CI/CD en chico, demo-cine Paso 4) — [D-73: el fallback CLI, si alguien lo necesitara, es del alumno en guia-16/17] |
 
 ### Installation
 
 ```bash
-# Nada que instalar en el repo (guide-only). En el taller (spike):
+# Nada que instalar en el repo (guide-only). En el taller (spike) —
+# [Actualización D-73: estos comandos son hoy el Paso 0 de guia-16, corridos por el
+#  ALUMNO sobre SU proyecto; el proyecto no ejecuta spike]:
 # paso 0 obligatorio — maura-uat NO es repo git hoy:
 cd D:/Repos/maura-uat && git init && git add . && git commit -m "taller completo hasta guia-15"
 # crear repo GitHub (web, sin gh CLI disponible) y push
@@ -164,7 +179,7 @@ docs/
 ├── 08_mantenimiento.md                # NUEVO — cierre prospectivo (v2, PostgreSQL, guía viva)
 ├── README.md                          # EDIT — filas 5 (→ Lista) y 6-8 (→ Listo)
 ├── 04_arquitectura/adr/
-│   ├── 019-*.md                       # NUEVO — despliegue free tier (evidencia del spike)
+│   ├── 019-*.md                       # NUEVO — despliegue free tier (evidencia del spike → [D-73: evidencia DOCUMENTAL, § Sources])
 │   └── 020-*.md                       # NUEVO — persistencia efímera + seed como estrategia
 └── 05_desarrollo/
     ├── README.md                      # EDIT — guías 16+, mapa mental completo
@@ -174,7 +189,7 @@ docs/
                                         #         final de la serie (nombres a discreción
                                         #         del planner bajo D-16)
 README.md                              # EDIT — tabla del ciclo completa + stack telegráfico
-.planning/...                          # hallazgos del spike (jamás en docs/, D-72)
+.planning/...                          # hallazgos del spike (jamás en docs/, D-72) — [D-73: sin spike; esta línea no aplica]
 ```
 
 ### Pattern 1: El triple de env vars congeladas (la configuración ES el deploy)
@@ -230,7 +245,7 @@ README.md                              # EDIT — tabla del ciclo completa + sta
 
 **What:** El taller ya es un proyecto uv (`backend/pyproject.toml` con `requires-python = ">=3.12,<3.13"` + `backend/uv.lock` [VERIFIED: leídos directo]). Render lo soporta nativo: incluir `uv.lock` habilita uv "in place of pip for your service's build command and other scripts" [CITED: render.com/changelog/added-uv-to-the-python-native-runtime]. Configuración del Web Service:
 
-| Campo | Valor (candidato — el spike lo firma) |
+| Campo | Valor (candidato — el spike lo firma → [D-73: firmado documentalmente en ADR-019/guia-16]) |
 |---|---|
 | Root Directory | `backend` (el taller es monorepo) |
 | Environment | Python 3 (`PYTHON_VERSION=3.12.x` fully-qualified) |
@@ -239,13 +254,13 @@ README.md                              # EDIT — tabla del ciclo completa + sta
 
 El comando del seed es el canónico de la serie [VERIFIED: guia-03:263/509 `uv run python -m app.seed`]. guia-01:332 ya prometió esta pieza: el equivalente de producción "`fastapi run`, sin recarga) llegará en la fase de..." — la guía de deploy la cumple (con uvicorn directo, que es lo que Render necesita por `$PORT`).
 
-**When to use:** guía de deploy del API + doc 07. El exacto comportamiento del build uv (si `uv sync` solo basta, si exige `--locked`) es pregunta del spike — el changelog no literaliza el comando.
+**When to use:** guía de deploy del API + doc 07. El exacto comportamiento del build uv (si `uv sync` solo basta, si exige `--locked`) es pregunta del spike — el changelog no literaliza el comando. **[Actualización D-73: sin spike — la variante candidata de la tabla (Build `uv sync --locked && uv run python -m app.seed` / Start `uv run uvicorn app.main:app --host 0.0.0.0 --port $PORT`) se enseña como CANÓNICA en guia-16 citando las fuentes oficiales; A3 queda supuesto señalado y la confirmación runtime es del alumno.]**
 
-### Pattern 4: Spike-first con evidencia (D-72 replica D-38/D-41)
+### Pattern 4: Spike-first con evidencia (D-72 replica D-38/D-41) — **[SUPERSEDED por D-73: ver nota en "When to use"]**
 
 **What:** El spike de la fase 3 (`03-SPIKE-RETORNO.md`, leído) fijó el molde: frontmatter con `status/phase/verified_by`, sección "Cómo se corrió (para reproducir)", tests con `expected` (según docs) / `result` (pass con correcciones materiales si las hay) / `evidence` (evidencia textual), hallazgos que las docs no dicen. El spike de deploy replica esa disciplina con: deploy de ambos tiers, 4 flujos contra el ambiente desplegado, cronómetro de spin-down (15 min según doc [CITED: render.com/docs/free]; wake ~1 min), qué queda en `maura.db` tras un wake, y gotchas de cuentas/verificación humana.
 
-**When to use:** PRIMER plan de la fase (D-72); sus hallazgos citan ADR-019 y doc 07.
+**When to use:** PRIMER plan de la fase (D-72); sus hallazgos citan ADR-019 y doc 07. **[SUPERSEDED por D-73: NO existe plan de spike — la fase abre con los ADRs 019/020 + doc 07 a evidencia documental (plan 05-01). El molde de `03-SPIKE-RETORNO.md` se conserva solo como referencia de formato de hallazgos; el cronometraje y los 4 flujos contra el ambiente desplegado los corre el alumno (guia-18).]**
 
 ### Pattern 5: Cierre documental con formato demo-cine (D-71)
 
@@ -284,7 +299,7 @@ El comando del seed es el canónico de la serie [VERIFIED: guia-03:263/509 `uv r
 ### Pitfall 2: maura-uat no es repositorio git (bloqueador del spike)
 **What goes wrong:** Ambas plataformas deployan desde un repo Git (GitHub/GitLab/Bitbucket); `D:/Repos/maura-uat` hoy NO es repo (verificado: "fatal: not a git repository") y `gh` CLI no está instalado (verificado).
 **Why it happens:** El taller se construyó copiando bloques de las guías, sin git init.
-**How to avoid:** Paso 0 del spike: `git init` + commit + crear repo GitHub (vía web — sin gh) + push. Los `.gitignore` del taller ya protegen `.env` y `*.db` [VERIFIED: maura-uat/backend/.gitignore]. La nota operativa del CONTEXT aplica: si crear el repo/pushear exige credenciales, el usuario participa en ese paso.
+**How to avoid:** Paso 0 del spike: `git init` + commit + crear repo GitHub (vía web — sin gh) + push. Los `.gitignore` del taller ya protegen `.env` y `*.db` [VERIFIED: maura-uat/backend/.gitignore]. La nota operativa del CONTEXT aplica: si crear el repo/pushear exige credenciales, el usuario participa en ese paso. **[Actualización D-73: el "paso 0 del spike" es hoy el Paso 0 de guia-16 — lo corre el ALUMNO sobre su propio proyecto; maura-uat no se deploya en esta fase.]**
 **Warning signs:** El import de repo en Vercel/Render no encuentra el proyecto.
 
 ### Pitfall 3: `VITE_API_URL` se hornea al build (y el doble slash)
@@ -302,13 +317,13 @@ El comando del seed es el canónico de la serie [VERIFIED: guia-03:263/509 `uv r
 ### Pitfall 5: El disco efímero borra lo runtime, no lo del build (la lección D-70 — hay que contarla bien)
 **What goes wrong:** Malentender QUÉ se pierde: los cambios al filesystem (datos creados en runtime — pedidos, cuentas nuevas) "are lost" en redeploy/restart/spin-down, y las docs nombran textualmente "local SQLite databases" [CITED: render.com/docs/free]. La imagen del build (con el seed ya corrido) es la que revive en cada wake — el catálogo SEMPRE vuelve; el historial de pedidos de la clienta NO.
 **Why it happens:** La tentación es decir "la BD se pierde" sin distinguir build-time vs runtime — y el alumno no entiende por qué el catálogo sigue ahí tras un spin-down pero su pedido desapareció.
-**How to avoid:** Doc 07/ADR-020 y la guía lo explican en dos capas (build-time siembrebra → runtime vive hasta el próximo ciclo). El spike lo CORROBORA con evidencia: crear un pedido, forzar spin-down (esperar 15 min o redeploy), despertar, observar catálogo restaurado + pedido ido. Es la "lección del disco efímero" de demo-cine, ahora en el dato y no en la carátula.
+**How to avoid:** Doc 07/ADR-020 y la guía lo explican en dos capas (build-time siembrebra → runtime vive hasta el próximo ciclo). El spike lo CORROBORA con evidencia: crear un pedido, forzar spin-down (esperar 15 min o redeploy), despertar, observar catálogo restaurado + pedido ido. Es la "lección del disco efímero" de demo-cine, ahora en el dato y no en la carátula. **[Actualización D-73: esa corroboración la corre el ALUMNO (Paso 6 de guia-18, fila "ciclo efímero" de la Gran verificación final); A5 queda supuesto señalado — ADR-020/doc 07 firman la lección con la cita documental de render.com/docs/free.]**
 **Warning signs:** Alguien promete persistencia "porque el seed corre en cada deploy".
 
 ### Pitfall 6: El flujo timeout (10 min) contra el spin-down (15 min) y el cold start
 **What goes wrong:** Dos relojes de Webpay: el token vive 5 minutos desde el create [CITED: transbankdevelopers.cl/documentacion/webpay-plus] y el timeout del form es "de 10 minutos en integración" (4 en producción). El spin-down de Render llega a los 15 min sin tráfico — el create "resetea" la ventana, así que el retorno del timeout (t+10) llega dentro de la ventana despierta. PERO la primera visita de la mañana (SPA fría) espera el wake de ~1 min con página de carga [CITED: render.com/docs/free], y si algo duerme en el camino, el retorno puede pegar contra un servicio despertando (~1 min de latencia extra).
 **Why it happens:** Interacción de tres relojes que ninguna doc única describe.
-**How to avoid:** La guía lo nombra honestamente (el specifics del CONTEXT ya lo pide: "la primera request tras el sueño arranca fría"). El spike mide: primera request tras spin-down (cuánto), y un retorno contra servicio despierto.
+**How to avoid:** La guía lo nombra honestamente (el specifics del CONTEXT ya lo pide: "la primera request tras el sueño arranca fría"). El spike mide: primera request tras spin-down (cuánto), y un retorno contra servicio despierto. **[Actualización D-73: sin cronometraje del proyecto — las cifras se citan "a la fecha" de render.com/docs/free (A8 supuesto señalado); el alumno puede cronometrarlo al correr guia-18.]**
 **Warning signs:** Retorno de Webpay "lento" pero funcional — no es bug, es el tier gratis.
 
 ### Pitfall 7: `vercel.json` que no aplica (ubicación y preset)
@@ -320,7 +335,7 @@ El comando del seed es el canónico de la serie [VERIFIED: guia-03:263/509 `uv r
 ### Pitfall 8: Las docs de Transbank dicen POST (integración) pero el runtime habló GET
 **What goes wrong:** La doc oficial dice que el flujo abortado en integración llega por POST — el spike de la fase 3 lo observó por GET (corrección material ya canónica en ADR-012, endpoint GET+POST inmune por diseño).
 **Why it happens:** Divergencia doc/comportamiento ya documentada en la serie; en el ambiente desplegado puede repetirse en cualquier flujo.
-**How to avoid:** El endpoint GET+POST con discriminador por presencia de params ya está construido (ADR-012); el spike de deploy solo re-verifica los 4 flujos contra las URLs públicas SIN cambiar el código.
+**How to avoid:** El endpoint GET+POST con discriminador por presencia de params ya está construido (ADR-012); el spike de deploy solo re-verifica los 4 flujos contra las URLs públicas SIN cambiar el código. **[Actualización D-73: esa re-verificación la define guia-18 y la corre el alumno contra SU ambiente desplegado; cualquier sorpresa se registra como hallazgo con la regla de fix en ambos lugares.]**
 **Warning signs:** Cualquier sorpresa de método/params en el retorno desplegado → se registra como hallazgo, no se improvisa fix.
 
 ### Pitfall 9: `SECRET_KEY` de producción "heredada" del `.env` de dev
@@ -341,7 +356,7 @@ El comando del seed es el canónico de la serie [VERIFIED: guia-03:263/509 `uv r
 }
 ```
 
-### Configuración del Web Service en Render (candidato — el spike la firma)
+### Configuración del Web Service en Render (candidato — el spike la firma → [D-73: canónica documental, enseñada en guia-16])
 ```text
 Fuente: render.com/docs/deploy-fastapi (build/start oficiales) + render.com/changelog/added-uv-to-the-python-native-runtime (uv nativo)
 + taller maura-uat (estructura real, leída)
@@ -408,6 +423,8 @@ demo-carro 07 ancla "Decisión de fondo: ADR-019 (Vercel + Render)" y su tabla d
 
 ## Assumptions Log
 
+> **[Actualización D-73:** el spike D-72 — mecanismo de confirmación citado en las filas A1/A2/A3/A5/A7/A8 — fue superseded: la confirmación runtime de estos supuestos es del ALUMNO al seguir las guías 16-18. Los supuestos quedan señalados (flagged) en los planes donde corresponde (05-04/05-05).**]
+
 | # | Claim | Section | Risk if Wrong |
 |---|-------|---------|---------------|
 | A1 | Vercel Hobby se registra y deploya sin tarjeta (docs: free, tarjeta solo al subir a Pro; flujo de signup no corrido) | Standard Stack | El spike lo detecta en minutos; nota operativa del CONTEXT cubre la participación del usuario |
@@ -419,25 +436,32 @@ demo-carro 07 ancla "Decisión de fondo: ADR-019 (Vercel + Render)" y su tabla d
 | A7 | El repo GitHub del taller se crea vía web (gh CLI ausente, verificado) y el push funciona con las credenciales git del usuario; el usuario participa si hay fricción de cuentas | Pitfall 2 / Environment | Paso bloqueante del spike — detectado temprano por diseño (D-72) |
 | A8 | Los 15 min de spin-down y ~1 min de wake aplican al taller tal cual (cifras de docs oficiales, no cronometradas en este entorno) | Pitfall 6 | El spike cronometra y firma las cifras que las guías citan (misma vara que D-68) |
 
-## Open Questions
+## Open Questions (RESOLVED)
+
+> **[Nota de resolución (2026-10-01):** las cinco preguntas quedan RESUELTAS bajo D-73 (la fase es solo escritura — sin spike runtime) y las decisiones del planner ya tomadas en los planes 05-01..05-05. La disposición de cada una sigue a su "Recommendation" original. Ninguna queda abierta.]**
 
 1. **¿Cuál es el build/start command uv exacto que Render ejecuta bien para ESTE taller?**
    - What we know: uv nativo habilitado por `uv.lock` [CITED: changelog]; start oficial `uvicorn ... --port $PORT` [CITED: deploy-fastapi]; el taller es `app.main:app` con uv.
    - What's unclear: si `uv sync` solo basta, si `--locked`/`--frozen` van mejor, y si `uv run uvicorn` hereda bien `$PORT`.
    - Recommendation: el spike prueba la variante candidata (Pattern 3) y documenta el delta; las guías citan LO QUE CORRIÓ.
+   - **[RESOLVED (D-73): esa recomendación quedó inejecutable y NO se aplicó — sin spike, las guías NO citan "lo que corrió". Disposición: la variante candidata del Pattern 3 (Build `uv sync --locked && uv run python -m app.seed` / Start `uv run uvicorn app.main:app --host 0.0.0.0 --port $PORT`) se enseña como CANÓNICA en guia-16 (plan 05-03) citando las fuentes oficiales (render.com/docs/deploy-fastapi + changelog uv); la confirmación runtime es del alumno (A3 queda supuesto señalado).]**
 2. **¿Qué contiene exactamente `maura.db` tras un spin-down + wake?**
    - What we know: filesystem changes lost en redeploy/restart/spin-down [CITED: render.com/docs/free]; el seed corre al build.
    - What's unclear: si el wake monta la imagen del build tal cual (A5).
    - Recommendation: test explícito del spike (crear pedido → forzar ciclo → observar); alimenta ADR-020 y la "lección del disco efímero" de la guía.
+   - **[RESOLVED (D-73): el test lo corre el ALUMNO como Paso 6 de guia-18 (fila "ciclo efímero" de la Gran verificación final); mientras tanto queda como supuesto A5 señalado — ADR-020 y doc 07 firman la lección con la cita documental de render.com/docs/free.]**
 3. **¿Exige alguna plataforma verificación humana/tarjeta en el flujo de registro 2026?**
    - What we know: docs dicen free sin tarjeta (con los matices A1/A2).
    - What's unclear: el flujo de signup real para cuentas nuevas del taller.
    - Recommendation: nota operativa del CONTEXT ya lo contempla — el usuario participa en ese paso puntual si aparece.
+   - **[RESOLVED (D-73): sin runtime del proyecto — queda en los supuestos A1/A2 señalados; guia-16/17 enseñan el registro sin tarjeta citando las docs oficiales, y si el flujo del ALUMNO exigiera verificación humana, la guía lo declara y remite a la doc oficial.]**
 4. **¿Fila RNF de despliegue en docs/02 o solo doc 07?**
    - What we know: discreción anotada del CONTEXT; P1 "que se abra desde cualquier dispositivo" es el ángulo narrativo; P1-P8 cubiertas.
    - Recommendation: doc 07 como hogar natural (DEPL es infraestructura del ciclo); si el planner añade RNF, que sea UNA (URL pública HTTPS) trazada a P1 — no renumerar series.
+   - **[RESOLVED (planner): doc 07 como hogar del deploy — SIN RNF nueva en docs/02 (P1-P8 ya cubiertas; P1 queda como ángulo narrativo del doc 07); ninguna serie se renumera.]**
 5. **¿Sube el contrato a 0.5.0?**
    - Recommendation del research: NO (D-66 — el deploy no toca paths/schemas/copys; la fila contrato ↔ `/docs` de la Gran verificación final sigue contra 0.4.0 en la URL pública). El planner confirma.
+   - **[RESOLVED (planner, confirmado): NO sube — el contrato queda 0.4.0 (D-66); los planes 05-01/05-04 lo fijan con gate negativo (0.5.0 vetado) y la fila contrato ↔ `/docs` de guia-18 sigue contra 0.4.0 en la URL pública.]**
 
 ## Environment Availability
 
@@ -446,18 +470,18 @@ demo-carro 07 ancla "Decisión de fondo: ADR-019 (Vercel + Render)" y su tabla d
 | Node.js (taller frontend) | build de la SPA en Vercel | ✓ (remoto) / ✓ local | v24.21.0 en taller [VERIFIED: vite --version local]; Vercel build usa su runtime | — |
 | uv | backend del taller + build Render | ✓ local / ✓ Render nativo | 0.9.3 (spike fase 3) / nativo vía uv.lock [CITED] | pip + requirements.txt exportado (`uv export`) |
 | Python 3.12 | API | ✓ (Render pinneable) | `PYTHON_VERSION=3.12.x` [CITED] | — (3.13/3.14 vetados por Transbank) |
-| Git repo del taller + remote GitHub | deploy Git-connected de AMBAS plataformas | ✗ — maura-uat NO es repo git (verificado); gh CLI ausente | — | `git init` + repo vía web + push (paso 0 del spike); alternativa CLI (vercel) solo como plan B |
-| Cuenta Vercel (Hobby) | hosting frontend | ✗ (se crea en el spike) | — | Netlify/CF Pages si el spike encuentra bloqueo (D-69 permite sustituir con evidencia) |
-| Cuenta Render (Free) | hosting API | ✗ (se crea en el spike) | — | Fly.io/Railway ídem |
+| Git repo del taller + remote GitHub | deploy Git-connected de AMBAS plataformas | ✗ — maura-uat NO es repo git (verificado); gh CLI ausente | — | `git init` + repo vía web + push (paso 0 del spike → [D-73: hoy Paso 0 de guia-16, corrido por el ALUMNO sobre su proyecto]); alternativa CLI (vercel) solo como plan B |
+| Cuenta Vercel (Hobby) | hosting frontend | ✗ (se crea en el spike → [D-73: la crea el ALUMNO en guia-17]) | — | Netlify/CF Pages si apareciera evidencia documental en contra (D-69/D-73) |
+| Cuenta Render (Free) | hosting API | ✗ (se crea en el spike → [D-73: la crea el ALUMNO en guia-16]) | — | Fly.io/Railway ídem |
 | Webpay integración | 4 flujos en producción | ✓ (público, sin registro) | comercio 597055555532 (STACK.md/spike fase 3) | — |
 | Groq API key | asistente en producción | ✓ (.env del taller) | key existente | Opcional por diseño (D-61: tienda degrada sin key) |
 
-**Missing dependencies with no fallback:** ninguna bloqueante — el gap git/GitHub del taller es un paso 0 conocido del spike (Pitfall 2), no un bloqueador de planning.
-**Missing dependencies with fallback:** cuentas de plataforma (se crean; sustituibles con evidencia según D-69).
+**Missing dependencies with no fallback:** ninguna bloqueante — el gap git/GitHub del taller es un paso 0 conocido del spike (Pitfall 2), no un bloqueador de planning. **[Actualización D-73: hoy es el Paso 0 de guia-16, corrido por el alumno sobre su proyecto.]**
+**Missing dependencies with fallback:** cuentas de plataforma (se crean — por el ALUMNO, guia-16/17; sustituibles con evidencia según D-69/D-73).
 
 ## Security Domain
 
-`security_enforcement: true`, `security_asvs_level: 1` (config.json leído). Fase documental + spike runtime; no hay código de aplicación nuevo.
+`security_enforcement: true`, `security_asvs_level: 1` (config.json leído). Fase documental + spike runtime; no hay código de aplicación nuevo. **[Actualización D-73: sin spike runtime — fase solo documental; el runtime del deploy es del alumno.]**
 
 ### Applicable ASVS Categories
 
@@ -510,21 +534,21 @@ demo-carro 07 ancla "Decisión de fondo: ADR-019 (Vercel + Render)" y su tabla d
 - [transbankdevelopers.cl/documentacion/webpay-plus](https://www.transbankdevelopers.cl/documentacion/webpay-plus) — 4 flujos con params, token 5 min de vida, response_code 0 + AUTHORIZED, timeout 4/10 min; requisito return_url SSL ≤ 255 chars (corroborado por búsqueda del mismo sitio + ya verificado en guia-09:488)
 - [pydantic.dev/docs/validation/latest/concepts/pydantic_settings](https://pydantic.dev/docs/validation/latest/concepts/pydantic_settings/) — tipos complejos desde env como JSON; no-JSON → SettingsError
 
-### Tertiary (LOW — search-only, para validación del spike)
+### Tertiary (LOW — search-only, para validación del spike) — [D-73: la validación runtime es del alumno; estas fuentes quedan como señal complementaria]
 - Vercel "no credit card required" (vía vercel.com/pricing resumido por search, no leído directo)
-- Medium/Reddit sobre uv+Render (solo como señal de que el patrón es común; el spike manda)
+- Medium/Reddit sobre uv+Render (solo como señal de que el patrón es común; el spike manda → [D-73: manda la confirmación del alumno])
 
 ## Metadata
 
-**Validation Architecture:** OMITIDA — `workflow.nyquist_validation: false` explícito en `.planning/config.json` (leído). La verificación de planes es documental (greps/estructura) y el UAT runtime es delegado en maura-uat (AGENTS.md).
+**Validation Architecture:** OMITIDA — `workflow.nyquist_validation: false` explícito en `.planning/config.json` (leído). La verificación de planes es documental (greps/estructura) y el UAT runtime es delegado en maura-uat (AGENTS.md). **[Actualización D-73: el UAT runtime delegado en maura-uat NO aplica al deploy en esta fase — no hay UAT de despliegue; la verificación de la fase es documental y el runtime del deploy es del alumno (las reglas de fix en ambos lugares siguen vigentes solo ante bugs de guía).]**
 
-**Runtime State Inventory:** OMITIDA — fase greenfield documental + spike; no es rename/refactor/migración.
+**Runtime State Inventory:** OMITIDA — fase greenfield documental + spike; no es rename/refactor/migración. **[D-73: solo documental — sin spike]**
 
 **Confidence breakdown:**
 - Integraciones del repo (env vars, cadenas, comandos): HIGH — archivos fuente leídos directo con citas byte-exactas
-- Plataformas (Vercel/Render): MEDIUM-HIGH — docs oficiales citadas; los comandos exactos uv quedan para el spike (A3)
+- Plataformas (Vercel/Render): MEDIUM-HIGH — docs oficiales citadas; los comandos exactos uv quedan para el spike (A3) **[D-73: enseñados como canónicos en guia-16; confirmación runtime del alumno]**
 - Cierre documental (formato demo-cine): HIGH — docs hermano leídos completos + tablas de estado actuales leídas
-- Cifras free tier / comportamiento runtime (spin-down, wake, A5/A8): MEDIUM — docs citadas, cronometraje es del spike
+- Cifras free tier / comportamiento runtime (spin-down, wake, A5/A8): MEDIUM — docs citadas, cronometraje es del spike **[D-73: cronometraje opcional del alumno en guia-18]**
 
 **Research date:** 2026-10-01
 **Valid until:** 2026-10-15 (cifras de free tier y defaults de plataforma se mueven; ADR-019 debe citar "a la fecha" con URL — misma vara que D-68)
