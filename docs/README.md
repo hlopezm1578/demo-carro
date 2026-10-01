@@ -15,11 +15,11 @@
 | 1 | Necesidad del cliente | `01_necesidad_del_cliente.md` | ✅ Listo |
 | 2 | Análisis de requerimientos | `02_requerimientos.md` | ✅ Listo |
 | 3 | Diseño (modelo de datos, procesos, pantallas) | `03_diseno.md` | ✅ Listo |
-| 4 | Arquitectura y decisiones (ADRs) + contrato API-first | `04_arquitectura/` (documento + 18 ADRs + `contrato_api.yaml`) | ✅ Listo |
-| 5 | Desarrollo | `05_desarrollo/` (guías paso a paso con razonamiento y código) | 🚧 Parcial (guías 1-15 listas; continúa en fases 5+) |
-| 6 | Pruebas | `06_pruebas.md` | ⏳ Pendiente |
-| 7 | Despliegue | `07_despliegue.md` | ⏳ Pendiente |
-| 8 | Mantenimiento | `08_mantenimiento.md` | ⏳ Pendiente |
+| 4 | Arquitectura y decisiones (ADRs) + contrato API-first | `04_arquitectura/` (documento + 20 ADRs + `contrato_api.yaml`) | ✅ Listo |
+| 5 | Desarrollo | `05_desarrollo/` (guías paso a paso con razonamiento y código) | ✅ Listo (guías 1-18) |
+| 6 | Pruebas | [`06_pruebas.md`](06_pruebas.md) | ✅ Listo |
+| 7 | Despliegue | [`07_despliegue.md`](07_despliegue.md) | ✅ Listo |
+| 8 | Mantenimiento | [`08_mantenimiento.md`](08_mantenimiento.md) | ✅ Listo |
 
 **Regla del proyecto:** ninguna fase se escribe sin aprobar la anterior. Así se
 vive el ciclo: la necesidad aprueba la clienta, los requerimientos los firma el

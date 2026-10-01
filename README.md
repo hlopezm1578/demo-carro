@@ -38,11 +38,11 @@ sin aprobar la anterior.
 | 1 | Necesidad del cliente | [`docs/01_necesidad_del_cliente.md`](docs/01_necesidad_del_cliente.md) | ✅ Listo |
 | 2 | Análisis de requerimientos | [`docs/02_requerimientos.md`](docs/02_requerimientos.md) | ✅ Listo |
 | 3 | Diseño (datos, procesos, pantallas) | [`docs/03_diseno.md`](docs/03_diseno.md) | ✅ Listo |
-| 4 | Arquitectura + 18 ADRs + contrato OpenAPI | [`docs/04_arquitectura/`](docs/04_arquitectura) | ✅ Listo |
-| 5 | Desarrollo (guías 1–15 paso a paso) | [`05_desarrollo/`](docs/05_desarrollo) | 🚧 Parcial (guías 1-15 listas; continúa en fases 5+) |
-| 6 | Pruebas | `06_pruebas.md` | ⏳ Pendiente |
-| 7 | Despliegue | `07_despliegue.md` | ⏳ Pendiente |
-| 8 | Mantenimiento | `08_mantenimiento.md` | ⏳ Pendiente |
+| 4 | Arquitectura + 20 ADRs + contrato OpenAPI | [`docs/04_arquitectura/`](docs/04_arquitectura) | ✅ Listo |
+| 5 | Desarrollo (guías 1–18 paso a paso) | [`05_desarrollo/`](docs/05_desarrollo) | ✅ Listo |
+| 6 | Pruebas | [`docs/06_pruebas.md`](docs/06_pruebas.md) | ✅ Listo |
+| 7 | Despliegue | [`docs/07_despliegue.md`](docs/07_despliegue.md) | ✅ Listo |
+| 8 | Mantenimiento | [`docs/08_mantenimiento.md`](docs/08_mantenimiento.md) | ✅ Listo |
 
 A diferencia de demo-cine, aquí los documentos se escriben **por fase de
 construcción**: el estado de la tabla avanza a medida que la aplicación se
@@ -51,7 +51,7 @@ construye de verdad, fase por fase. El índice detallado del ciclo vive en
 
 ## Qué hace especial a este material
 
-- **ADRs con consecuencias honestas**: las 18 decisiones de arquitectura
+- **ADRs con consecuencias honestas**: las 20 decisiones de arquitectura
   (`docs/04_arquitectura/adr/`) registran contexto, opciones descartadas,
   ventajas **y desventajas**, más preguntas para discutir en clase.
 - **API-first de verdad**: el contrato OpenAPI
@@ -73,7 +73,10 @@ React 19 + TypeScript + Vite 8 + Tailwind CSS 4 (SPA) · FastAPI + SQLAlchemy
 Plus en ambiente de integración: pago sandbox operativo, órdenes con snapshot
 y stock transaccional · panel de administración: la dueña gestiona productos,
 stock, pedidos y métricas tras su guard por rol · Groq: la asesora
-de aromas recomienda del catálogo real, con la API key solo en el backend.
+de aromas recomienda del catálogo real, con la API key solo en el backend ·
+Despliegue: Vercel (SPA estática con fallback) + Render (API) en free tier
+sin tarjeta · URLs públicas HTTPS con CORS de producción · SQLite efímero +
+seed idempotente en cada deploy (ADRs 019-020).
 
 El código completo del proyecto vive **narrado en las guías**: este repositorio
 contiene solo la guía. Siguiendo las guías de [`docs/05_desarrollo/`](docs/05_desarrollo)
