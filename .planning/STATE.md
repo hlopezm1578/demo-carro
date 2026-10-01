@@ -3,18 +3,18 @@ gsd_state_version: "1.0"
 milestone: v2.25.0
 current_phase: 04
 current_phase_name: Panel de administración y asistente IA
-current_plan: 2
+current_plan: 3
 status: executing
-stopped_at: Completed 04-06-PLAN.md (rework spec layer Groq)
-last_updated: "2026-10-01T14:41:02.208Z"
+stopped_at: Completed 04-07-PLAN.md
+last_updated: "2026-10-01T15:02:41.670Z"
 last_activity: 2026-10-01
 last_activity_desc: Phase 04 execution started
-state_head: d4f67d90e49eef399bece477f2cc497c032c7be2
+state_head: 61aff278563b1803c7f2c9357d8c1dd01f1533c1
 progress:
   total_phases: 5
   completed_phases: 3
   total_plans: 24
-  completed_plans: 21
+  completed_plans: 23
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-09-30)
 ## Current Position
 
 Phase: 04 (Panel de administración y asistente IA) — EXECUTING
-Current Plan: 2
+Current Plan: 3
 Total Plans in Phase: 8
 Status: Ready to execute
 Last activity: 2026-10-01 — Phase 04 execution started
@@ -81,6 +81,7 @@ Progress: [██████░░░░] 60%
 | Phase 04 P03 | 18 min | 2 tasks | 3 files |
 | Phase 4 P05 | 2 min | 2 tasks | 3 files |
 | Phase 04 P06 | 10 min | 3 tasks | 7 files |
+| Phase 04 P07 | 16 min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -172,6 +173,8 @@ Recent decisions affecting current work:
 - [Phase 4]: Gate documental de cierre de fase 4 en verde: 15 guia-*.md, 17 ADRs 001-017, cadena Siguiente 11→15 grep-verificada sin eslabones sueltos y repo guide-only (git ls-files backend/frontend vacío, D-17/ADR-008)
 - [Phase 04]: [04-06] ADR-018 firma el swap Gemini->Groq (D-63..D-68) con evidencia firmada (doc oficial + probe SDK 1.7.0 + 402/billing de 04-UAT test 2): pin >=1.7,<2, MODELO_ASISTENTE=openai/gpt-oss-120b, json_schema strict + ConfigDict(extra=forbid), GROQ_API_KEY via pydantic-settings con api_key explicita (IN-03), cifras 30 RPM / 1.000 RPD / 8K TPM / 200K TPD con fuente; muralla D-56 y degradacion D-61 preservadas; ADR-017 Superseded con cuerpo byte-intacto
 - [Phase 04]: [04-06] Contrato 0.4.0 agnostico del proveedor (D-66): las 8 descripciones reescritas con 'servicio de IA' / 'API key del asistente', el parentesis 'no son publicos sin login' muere (D-68), version NO sube y paths/schemas/copys locked intactos — cero churn para guia-12 y la fila contrato<->/docs
+- [Phase 04]: [04-07] guia-14 reescrita como si Groq siempre hubiera sido (D-65): blockquote del swap cita ADR-018 y confina TODA menciona a Gemini/google-genai (gates awk de region); SDK groq >=1.7,<2 piso/techo, key del alumno en console.groq.com (D-63), json_schema strict con ConfigDict(extra=forbid) doble duty (Pitfall 2), MODELO_ASISTENTE=openai/gpt-oss-120b + models.list (D-64), cifras 30 RPM/1.000 RPD con URL y 'a la fecha' (D-68)
+- [Phase 04]: [04-07] guia-15 ajustada sin tocar esqueleto: grep del build con GROQ_API_KEY (CERO coincidencias + control positivo + Select-String, Pitfall 8), filas 8-10/13, nota honesta console.groq.com/D-63 y conteo 18 ADRs; router/copys locked de guia-14 byte-intactos salvo 2 descripciones al wording agnostico del contrato (D-66 verificado con diff de precision)
 
 ### Pending Todos
 
@@ -192,6 +195,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-01T14:40:50.971Z
-Stopped at: Completed 04-06-PLAN.md (rework spec layer Groq)
+Last session: 2026-10-01T15:02:24.908Z
+Stopped at: Completed 04-07-PLAN.md
 Resume file: None
