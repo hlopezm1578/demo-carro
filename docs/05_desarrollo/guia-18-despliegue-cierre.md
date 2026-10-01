@@ -275,6 +275,54 @@ aparece degradada — el mecanismo de fase 2 sobrevivió al ciclo.
 
 ---
 
+## ✅ Gran verificación final de la fase 5 — y de la serie
+
+La última tabla del ciclo — y la primera de un tipo nuevo en toda la
+serie: **esta tabla la corres TÚ, en tus cuentas free.** El proyecto que
+escribió esta guía la DEFINE — resultado esperado fila por fila,
+molde de las fases 1 a 4 — y no la ejecuta (D-73): las URLs, los
+dashboards y las corridas son tuyas, como toda la serie. Cada fila se
+marca solo si TÚ la comprobaste, y las filas que ya corriste en los
+pasos de hoy solo se repiten para dejar la tabla completa — la
+verificación de cierre, de punta a punta:
+
+| # | Verificación | Origen |
+|---|---|---|
+| 1 | **El refresh y los deep-links**: F5 y entrada fría a `/pago/resultado`, `/admin/pedidos` y una ficha (`/productos/1`) en tu URL pública → `200` con la SPA, jamás el 404 de Vercel | DEPL-02, guía 17, [ADR-019](../04_arquitectura/adr/019-despliegue-free-tier-vercel-render.md) |
+| 2 | **Flujo aprobado contra producción**: la tarjeta de la fase 3 → "¡Gracias por tu compra!" con el voucher `MAURA-00000X` badge Pagado, el carro en 0 y el stock descontado en la ficha | PAY-03, [ADR-012](../04_arquitectura/adr/012-retorno-de-webpay.md)/[013](../04_arquitectura/adr/013-orden-nace-al-pagar-stock-al-aprobar.md) |
+| 3 | **Flujo anulado y rechazado**: "Anular compra y volver" → la orden cancelled con el carro restituido; Rechazar (TSN) en el banco → REJECTED con su voucher y badge Rechazado, stock intacto | PAY-04, ADR-012 |
+| 4 | **Flujo timeout**: pestaña activa ~10 min → la vuelta sin `token_ws`, la orden cancelada con su cara "Se agotó el tiempo" — o la huérfana "en curso" honesta si la pestaña durmió | PAY-02, RN-11, ADR-012 |
+| 5 | **Flujo error de formulario**: clave 3DS errada → el error del banco sin cargo ni commit, y el regreso posterior sin commit (cara de timeout) | PAY-02, ADR-012 |
+| 6 | **Contrato ↔ `/docs` público**: abre `https://<tu-servicio>.onrender.com/docs` y compara UNO A UNO contra `docs/04_arquitectura/contrato_api.yaml` **0.4.0** — la MISMA versión de la fase 4: el deploy no cambió paths ni schemas, así que no hubo bump (D-66) — con el botón **Authorize** probado con las cuentas del seed: la clienta obtiene 200 en sus paths y el 403 "Requiere rol admin" en los del panel; el admin, 200 en los suyos | ADR-007, GUIDE-02, D-66 |
+| 7 | **El grep del build, contra el bundle de producción** (AIAS-03): `VITE_API_URL=… npm run build` y, DESPUÉS de que termine, busca en el `dist/` regenerado la URL pública — **SÍ está** (control positivo: el reemplazo estático funcionó) — y `GROQ_API_KEY` → **CERO coincidencias**. Git Bash: `grep -r "GROQ_API_KEY" dist/` (sin output es el éxito); PowerShell: `Select-String -Path dist\* -Pattern "GROQ_API_KEY"` (findstr invocado desde Git Bash corrompe sus switches — Pitfall 8) | RNF-09, AIAS-03, D-60 |
+| 8 | **El ciclo efímero observado** (Paso 6): pedido creado → redeploy o spin-down → despertar → el catálogo restaurado por el seed y el pedido de runtime ausente — las dos capas de ADR-020 en tu propio dato | D-70, [ADR-020](../04_arquitectura/adr/020-persistencia-efimera-seed-idempotente.md) |
+| 9 | **Paridad cero drift**: las pantallas de tu URL pública son **idénticas** a lo construido en dev — el criterio es "es idéntico", no "se ve bien"; `localhost` o `//api` en Network (o la fuente por defecto del sistema) = defecto de build/entorno, no de diseño | DEPL-01, DEPL-02, ADR-019 |
+
+Las filas 6 y 7 son las fijas que la serie hereda desde la fase 1 —
+hoy contra la URL pública y con la versión quieta en **0.4.0**. **Cualquier
+diferencia entre la tienda desplegada y el contrato es un desvío — o el
+código corrige, o el contrato se versiona y se aprueba de nuevo; jamás
+cambia en silencio.** Y si alguna fila se comporta distinto en TU
+ambiente desplegado de lo que esta tabla declara (un método que no
+calza, un retorno inesperado — la serie ya vivió una corrección de
+esas en la fase 3): es un hallazgo, no un fracaso — se registra y se
+corrige donde corresponde; la tabla se define con resultados esperados
+precisamente para que las diferencias SE VEAN.
+
+**Sugerencia de commit para cerrar la fase** (en TU proyecto):
+
+```
+git add -A
+git commit -m "Fase 5 completa: la tienda desplegada en Vercel + Render y la serie cerrada (guias 16-18)
+
+Deploy free tier segun ADR-019/020, con la Gran verificacion final de la
+serie en verde contra el ambiente desplegado: refresh sin 404, los 4 flujos
+de Webpay, contrato 0.4.0 <-> /docs publico con Authorize, grep del build
+limpio y el ciclo efimero observado. Las 18 guias y los 20 ADRs completos."
+```
+
+---
+
 ## ❌ El error que este archivo evita
 
 **1. Confiar el resultado al query param del 302.**
@@ -409,3 +457,23 @@ URL pública:
 - La idempotencia en su lugar exacto: el commit de Webpay la tiene, tu
   backend la exige OUR-side, y el navegador puede repetir el retorno —
   el estado solo cambia con un commit real
+- Y la serie completa, vivida como ciclo: de la necesidad de Maura en
+  `docs/01_necesidad_del_cliente.md` a una tienda pública en internet —
+  18 guías que recorrieron requerimientos (`docs/02`), diseño
+  (`docs/03`), arquitectura con 20 ADRs y un contrato que mandó antes
+  que el código (`docs/04`), desarrollo guiado paso a paso, el método
+  de pruebas de `docs/06_pruebas.md`, la decisión de despliegue de
+  `docs/07_despliegue.md` — y que ahora deja la posta en
+  `docs/08_mantenimiento.md`
+
+**Siguiente:** no hay guía 19 — la serie termina aquí, y el testigo
+pasa al ciclo documental que la acompañó desde el primer día: abre
+[`06_pruebas.md`](../06_pruebas.md) — el método que acabas de usar,
+ahora nombrado; [`07_despliegue.md`](../07_despliegue.md) — la decisión
+que ejecutaste ([ADR-019](../04_arquitectura/adr/019-despliegue-free-tier-vercel-render.md)/[020](../04_arquitectura/adr/020-persistencia-efimera-seed-idempotente.md));
+y [`08_mantenimiento.md`](../08_mantenimiento.md) — cómo sigue vivo
+esto. El ciclo se cierra (y se reabre): las 18 guías y los 20 ADRs
+cuentan el ciclo completo — necesidad → requerimientos → diseño →
+arquitectura → desarrollo → pruebas → despliegue → mantenimiento — y el
+índice de [`docs/README.md`](../README.md) queda con las 8 filas en
+verde.
