@@ -50,8 +50,8 @@ info:
     | 404 | Recurso inexistente | En uso (fase 1) |
     | 409 | Conflicto (email ya registrado; transición ilegal de pedido) | En uso (fases 2 y 4) |
     | 422 | Datos mal formados (validación de esquema) | En uso (fase 1) |
-    | 429 | Cuota del free tier de Gemini consumida — el asistente la traduce a mensaje amable, sin cifras de límites | En uso (fase 4) |
-    | 503 | Servicio externo del asistente no disponible (sin API key o Gemini caído — degradación D-61) | En uso (fase 4) |
+    | 429 | Cuota del free tier del servicio de IA consumida — el asistente la traduce a mensaje amable, sin cifras de límites | En uso (fase 4) |
+    | 503 | Servicio externo del asistente no disponible (sin API key o servicio caído — degradación D-61) | En uso (fase 4) |
 
 servers:
   - url: http://localhost:8000
@@ -71,7 +71,7 @@ tags:
   - name: Administración
     description: Panel de la dueña — CRUD de productos con soft delete, gestión de pedidos con transición validada y métricas, todo protegido por rol admin (ADMN-01, ADMN-02, ADMN-03, ADMN-04)
   - name: Asistente
-    description: La asesora de venta con IA — recomienda aromas del catálogo real vía Gemini; endpoint público con topes de entrada y degradación amable (AIAS-01, AIAS-02, AIAS-03)
+    description: La asesora de venta con IA — recomienda aromas del catálogo real vía el servicio de IA; endpoint público con topes de entrada y degradación amable (AIAS-01, AIAS-02, AIAS-03)
   - name: Operación
     description: Chequeo del servicio
 
@@ -543,7 +543,7 @@ components:
         el backend NO guarda conversaciones (cero tablas para el
         asistente). Los topes (mensaje de hasta 500 caracteres, historial
         de hasta 10 mensajes con su texto al mismo tope de 500) protegen
-        el free tier de Gemini y validan aquí, en el borde, como 422
+        el free tier del servicio de IA y validan aquí, en el borde, como 422
         declarativo.
       properties:
         mensaje:
@@ -1433,12 +1433,11 @@ paths:
         asesora atiende a quien navega la tienda, con o sin cuenta (D-59)
         — nadie necesita sesión para que le recomienden un aroma. El
         backend arma el prompt con el catálogo ACTIVO (mini-RAG, D-56),
-        Gemini responde JSON estructurado y el backend valida cada id
-        contra la BD antes de responder. Sin `GEMINI_API_KEY` en el .env
+        el servicio de IA responde JSON estructurado y el backend valida cada id
+        contra la BD antes de responder. Sin la API key del asistente en el .env
         del backend el endpoint degrada a 503 amable — la tienda sigue
         100% operativa (D-61); si la cuota del free tier se agota, 429
-        también amable y SIN cifras de límites (no hay fuente pública sin
-        login). Los topes de entrada (mensaje y texto del historial 500,
+        también amable y SIN cifras de límites. Los topes de entrada (mensaje y texto del historial 500,
         historial 10) validan en el borde → 422.
       security: []
       requestBody:
@@ -1461,7 +1460,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
         '429':
-          description: Cuota del free tier de Gemini consumida — traducida a mensaje amable, sin cifras de límites (no son públicos sin login)
+          description: Cuota del free tier del servicio de IA consumida — traducida a mensaje amable
           content:
             application/json:
               schema:
@@ -1469,7 +1468,7 @@ paths:
               example:
                 detail: La asesora está recibiendo muchas consultas. Espera unos segundos y reintenta.
         '503':
-          description: El servicio externo no está disponible (sin API key en el .env del backend o Gemini caído) — degradación deliberada, jamás un 500 crudo (D-61)
+          description: El servicio externo no está disponible (sin API key del asistente en el .env o servicio caído) — degradación deliberada, jamás un 500 crudo (D-61)
           content:
             application/json:
               schema:
