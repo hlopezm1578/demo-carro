@@ -565,9 +565,12 @@ mapeadas:
 uv run python -c "from app.routers.asistente import router; print(len(router.routes), router.routes[0].responses.keys())"
 ```
 
-Debe imprimir `1 dict_keys([200, 422, 429, 503])` — una sola operación y
-las CUATRO responses que el contrato declara, incluidas las tres que se
-lanzan a mano (sin `responses`, ni siquiera aparecerían en `/docs`).
+Debe imprimir `1 dict_keys([422, 429, 503])` — una sola operación y las
+TRES responses que se lanzan a mano (sin `responses`, ni siquiera
+aparecerían en `/docs`). ¿Y el 200? No vive en el atributo: FastAPI
+guarda `route.responses` tal cual se lo pasaste y agrega el 200 recién
+al GENERAR el OpenAPI — el paso 7 lo cobra en `/docs`, donde la
+operación desplegada lista las CUATRO del contrato, 200 incluido.
 
 ---
 
