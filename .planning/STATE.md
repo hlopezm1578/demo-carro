@@ -3,18 +3,18 @@ gsd_state_version: "1.0"
 milestone: v2.25.0
 current_phase: 5
 current_phase_name: Despliegue y cierre de la guía
-current_plan: 4
+current_plan: 5
 status: executing
-stopped_at: Completed 05-03-PLAN.md
-last_updated: "2026-10-01T18:30:29.699Z"
+stopped_at: Completed 05-04-PLAN.md
+last_updated: "2026-10-01T18:43:29.729Z"
 last_activity: 2026-10-01
 last_activity_desc: Phase 5 execution started
-state_head: 65ad0475c0f3abe6b69e6c1802362ac79c55062d
+state_head: a521e4a031ee71bfed9ab7e25dad528166d7e12b
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 29
-  completed_plans: 27
+  completed_plans: 28
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-09-30)
 ## Current Position
 
 Phase: 5 (Despliegue y cierre de la guía) — EXECUTING
-Current Plan: 4
+Current Plan: 5
 Total Plans in Phase: 5
 Status: Ready to execute
 Last activity: 2026-10-01 — Phase 5 execution started
@@ -87,6 +87,7 @@ Progress: [████████░░] 80%
 | Phase 05 P01 | 8 min | 2 tasks | 4 files |
 | Phase 05 P02 | 9 min | 2 tasks | 2 files |
 | Phase 05 P03 | 11 min | 2 tasks | 3 files |
+| Phase 05 P04 | 8 min | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -191,6 +192,8 @@ Recent decisions affecting current work:
 - [Phase 05]: [Phase 05 P03] El grep del build en produccion (guia-17) se ensena como rebuild local con la MISMA env var de Vercel (Vite hace el mismo reemplazo estatico) con control positivo (URL publica en dist/) y negativo (GROQ_API_KEY -> cero), por shell como guia-15:530
 - [Phase 05]: [Phase 05 P03] La promesa de guia-01 se cobra con la vuelta de tuerca honesta: el arranque de produccion es uv run uvicorn con $PORT (forma oficial de Render para FastAPI, citada), no fastapi run — narrado en el piensa del Paso 1
 - [Phase 05]: [Phase 05 P03] guia-17 cita verbatim los bloques de guia-04:760-763 y guia-09 _hacia_spa como anclas (las cita, no las reescribe): cero delta UI del UI-SPEC — todo cambio de comportamiento es configuracion
+- [Phase 05]: [Phase 05 P04] guia-18 resuelve el 'anulado con Rechazar' fiel a la evidencia del spike/ADR-012: Paso 3 cubre los DOS caminos (Anular compra y volver -> cancelled sin commit; Rechazar/TSN -> rejected por commit -1) con resultado esperado por estado — la fila 3 de la Gran verificacion hereda esa precision (PAY-04)
+- [Phase 05]: [Phase 05 P04] La Gran verificacion final de la SERIE queda DEFINIDA en guia-18 como tabla de 9 filas con nota D-73 en la introduccion ('la corres TU'): filas fijas heredadas de guia-15:529-530 con URL publica y version QUIETA en 0.4.0 (D-66) — y el Siguiente cierra la serie hacia 06_pruebas/07_despliegue/08_mantenimiento sin guia-19 (molde 'El ciclo se cierra (y se reabre)', 18 guias + 20 ADRs)
 
 ### Pending Todos
 
@@ -211,6 +214,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-01T18:30:29.538Z
-Stopped at: Completed 05-03-PLAN.md
+Last session: 2026-10-01T18:43:29.555Z
+Stopped at: Completed 05-04-PLAN.md
 Resume file: None
