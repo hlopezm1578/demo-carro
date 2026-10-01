@@ -226,8 +226,8 @@ grep -r "GROQ_API_KEY" dist/          # CERO coincidencias — sin output es el 
 ```powershell
 # PowerShell
 $env:VITE_API_URL="https://<tu-servicio>.onrender.com"; npm run build
-Select-String -Path dist\* -Pattern "onrender.com"    # control positivo: SÍ encuentra
-Select-String -Path dist\* -Pattern "GROQ_API_KEY"    # cero resultados — el éxito
+Get-ChildItem -Recurse -File dist | Select-String -Pattern "onrender.com"    # control positivo: SÍ encuentra
+Get-ChildItem -Recurse -File dist | Select-String -Pattern "GROQ_API_KEY"    # cero resultados — el éxito
 ```
 
 ✅ **Mini-verificación:** el primer grep ENCUENTRA la URL pública (la que
