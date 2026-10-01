@@ -1040,7 +1040,22 @@ uv run python -c "import httpx; r = httpx.request('OPTIONS', 'http://localhost:8
 ```
 
 Debe imprimir `200` — el preflight que el panel de la guía 13 mandará
-antes de cada PATCH ya tiene luz verde.
+antes de cada PATCH ya tiene luz verde. Pero ojo con lo que este golpe
+NO prueba: el middleware CORS responde el preflight ANTES del routing —
+da `200` para CUALQUIER path, exista o no la ruta (si al decorador se le
+olvidara su segmento `/productos`, este mismo comando daría `200`
+igual). El golpe que SÍ prueba que la ruta quedó montada es un GET sin
+token:
+
+```
+uv run python -c "import httpx; r = httpx.get('http://localhost:8000/api/admin/productos'); print(r.status_code)"
+```
+
+Debe imprimir `401` — sin token no pasas ni el guard (ADR-015). Un
+`404` en su lugar delataría un path no montado: el prefijo del
+`include_router` de la guía 5 (`/api/admin`) más el segmento del
+decorador (`/productos`) tienen que sumar EXACTAMENTE el path del
+contrato.
 
 ---
 
