@@ -3,18 +3,18 @@ gsd_state_version: "1.0"
 milestone: v2.25.0
 current_phase: 5
 current_phase_name: Despliegue y cierre de la guía
-current_plan: Not started
+current_plan: 2
 status: executing
-stopped_at: Phase 5 context gathered
-last_updated: "2026-10-01T17:50:52.939Z"
+stopped_at: Completed 05-01-PLAN.md
+last_updated: "2026-10-01T18:04:01.983Z"
 last_activity: 2026-10-01
-last_activity_desc: Phase 04 complete, transitioned to Phase 5
-state_head: f6485b55bff49bfcb53acc55a9bbc565eadcd45e
+last_activity_desc: Phase 5 execution started
+state_head: 82611094de0f183f5d771a3bccac8b03cc48c7fb
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 29
-  completed_plans: 24
+  completed_plans: 25
 ---
 
 # Project State
@@ -24,15 +24,15 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-30)
 
 **Core value:** La guía documenta el ciclo de vida completo y, siguiéndola en orden, la aplicación queda construida y operativa: tienda con catálogo, carro, checkout Webpay sandbox, cuentas JWT, panel admin y asistente IA sobre el catálogo real.
-**Current focus:** Phase 04 — Panel de administración y asistente IA
+**Current focus:** Phase 5 — Despliegue y cierre de la guía
 
 ## Current Position
 
-Phase: 5 (Despliegue y cierre de la guía) — READY TO EXECUTE
-Current Plan: Not started
+Phase: 5 (Despliegue y cierre de la guía) — EXECUTING
+Current Plan: 2
 Total Plans in Phase: 5
 Status: Ready to execute
-Last activity: 2026-10-01 — Phase 04 complete, transitioned to Phase 5
+Last activity: 2026-10-01 — Phase 5 execution started
 
 Progress: [████████░░] 80%
 
@@ -84,6 +84,7 @@ Progress: [████████░░] 80%
 | Phase 04 P06 | 10 min | 3 tasks | 7 files |
 | Phase 04 P07 | 16 min | 2 tasks | 2 files |
 | Phase 04 P08 | 21 min | 3 tasks | 10 files |
+| Phase 05 P01 | 8 min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -180,6 +181,8 @@ Recent decisions affecting current work:
 - [Phase 04]: Barrido D-67 cerrado con gate replicable: corpus docs/+README CERO Gemini vivo; las unicas menciones supervivientes son historia sancionada (ADR-017 superseded byte-intacto, ADR-018 registro del swap D-65, blockquote de guia-14); conteos 18 ADRs/18 decisiones sin marcar desarrollo completo
 - [Phase 04]: Anclas de planning sin proveedor muerto: ROADMAP frases vivas corregidas con anotaciones de planes intactas, REQUIREMENTS AIAS-03 agnostico (Groq), PROJECT/STACK declarando Groq con nota fechada ADR-018 y concern RPM/RPD cerrado por D-68 — la fase 5 no parte leyendo Gemini
 - [Phase 04]: Taller maura-uat re-integrado con la guia-14 reescrita como alumno (regla dos lugares): happy path 200 REAL con ids existentes, 503 amable sin key, paralelas sin 500, grep dist/ cero — UAT 5/5 pass; truststore como nota taller-only (Pitfall 9)
+- [Phase 05]: [Phase 05 P01] ADR-019 firma D-69 con evidencia DOCUMENTAL (D-73, D-72 superseded): una plataforma por tier (Vercel Hobby + Render Free, free sin tarjeta — misma vara que D-63), PYTHON_VERSION=3.12.x fully-qualified, triple BACKEND_URL/CORS_ORIGINS/VITE_API_URL congelado por el codigo existente, SECRET_KEY nueva por entorno, TLS de plataforma; negativas honestas (hibernacion ~15 min/wake ~1 min, /docs publico como trade-off, free tier no es produccion seria)
+- [Phase 05]: [Phase 05 P01] ADR-020 firma D-70 con las DOS capas del Pitfall 5 en bullets separados: build-time SIEMPRE revive (seed al Build Command, upsert D-05/D-06/D-07 — re-ejecutar el deploy es seguro) / runtime se pierde (el historial de pedidos NO sobrevive un ciclo); PostgreSQL (Neon + cambio de DATABASE_URL) mencionado como camino de crecimiento, no implementado
 
 ### Pending Todos
 
@@ -200,6 +203,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-01T16:38:23.008Z
-Stopped at: Phase 5 context gathered
-Resume file: .planning/phases/05-despliegue-y-cierre-de-la-gu-a/05-CONTEXT.md
+Last session: 2026-10-01T18:04:01.813Z
+Stopped at: Completed 05-01-PLAN.md
+Resume file: None
