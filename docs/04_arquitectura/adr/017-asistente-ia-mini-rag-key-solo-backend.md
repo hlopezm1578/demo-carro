@@ -111,7 +111,11 @@ Patterns 1-3 de
 `response_json_schema` + `model_json_schema()` (el nombre
 `response_schema` NO aparece en ese README — el que sobrevive en blogs es
 de otra generación del SDK), `errors.APIError` con `.code`/`.message`, y
-la env var `GEMINI_API_KEY` tomada automáticamente por el `genai.Client`.
+la env var `GEMINI_API_KEY` tomada automáticamente por el `genai.Client`
+(capacidad del SDK, citada como evidencia firmada; el proyecto NO confía
+en ese auto-pickup: pydantic-settings lee el `.env` hacia el objeto
+`Settings`, no hacia el entorno del proceso, por lo que la guía 14 pasa
+`api_key=settings.gemini_api_key` explícita — ver su gotcha del `.env`).
 El research también dejó registrado el drift como lección (Pitfall 1):
 las docs actuales de ai.google.dev enseñan la Interactions API
 (`client.interactions.create` + `response_format`), ausente del README

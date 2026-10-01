@@ -503,7 +503,15 @@ sabe si esa key estuvo en pantalla). ¿Y un producto INACTIVO? La
 ficha pública no lo muestra (se oculta entero, D-52): su editor parte
 con descripción y notas VACÍAS y la dueña las re-escribe — la alternativa
 sería un endpoint admin de detalle, que el contrato 0.4.0 no declara: se
-anota el deseo, no se improvisa el desvío. **El toggle no pide
+anota el deseo, no se improvisa el desvío. Y el borde honesto del espejo:
+el backend también exige `descripcion` e `imagen` no vacías
+(`min_length=1`, guía 12), pero el `validar()` del editor solo cubre los
+CINCO campos con copy del UI-SPEC — si la dueña guarda un inactivo con
+la descripción aún vacía, ese 422 cae en el banner genérico "No pudimos
+guardar el producto. Revisa los datos e inténtalo de nuevo.": sin copy
+de campo, pero con el error visible y el form sin perder nada. El espejo
+es parcial POR DISEÑO y la API sigue siendo la autoridad — ese banner es
+el respaldo trabajando, no un hueco escondido. **El toggle no pide
 confirmación**: "Desactivar"/"Reactivar" escribe directo porque es
 reversible POR DISEÑO — el botón de vuelta está en la misma fila — y el
 feedback es el badge cambiando en el lugar, sin toast. El contraste con
