@@ -1101,14 +1101,18 @@ mismo 403. Tres endpoints, un solo guard, cero excepciones.
 bajo):**
 
 ```
-uv run python -c "import httpx; from app.config import settings; t = httpx.post('http://localhost:8000/api/auth/login', data={'username': settings.admin_email, 'password': settings.admin_password}).json()['access_token']; r = httpx.post('http://localhost:8000/api/admin/productos', headers={'Authorization': f'Bearer {t}'}, json={'nombre': 'Brisa de Prueba', 'descripcion': 'Un aroma de prueba para el panel.', 'familia': 'citricas', 'precio': 6990, 'stock': 4, 'notas': ['naranja', 'azahar'], 'imagen': '/products/citricas-01.jpg'}); print(r.status_code, r.json()['sku'], r.json()['activo'])"
+uv run python -c "import httpx; from app.config import settings; t = httpx.post('http://localhost:8000/api/auth/login', data={'username': settings.admin_email, 'password': settings.admin_password}).json()['access_token']; r = httpx.post('http://localhost:8000/api/admin/productos', headers={'Authorization': f'Bearer {t}'}, json={'nombre': 'Brisa de Prueba', 'descripcion': 'Un aroma de prueba para el panel.', 'familia': 'citricas', 'precio': 6990, 'stock': 4, 'notas': ['naranja', 'azahar'], 'imagen': '/products/citricas-01.jpg'}); print(r.status_code, r.json()['id'], r.json()['activo'])"
 ```
 
-Debe imprimir `201`, un sku `panel-XXXXXXXX` (generado — el panel no hace
-upsert) y `True`: nació activo sin que nadie lo pidiera (el default del
-modelo, D-52). Y con stock 4 ≤ 5, ya es un producto "stock bajo" (RN-14) —
-lo verás en las métricas al final. (Guarda el `id` que devuelve: los dos
-golpes siguientes lo usan — si perdiste el output, re-ejecuta este y usa
+Debe imprimir `201`, un `id` nuevo y `True`: nació activo sin que nadie
+lo pidiera (el default del modelo, D-52) — y ni el `id` ni el sku vienen
+del body. El sku `panel-XXXXXXXX` se GENERA solo en la fila de la BD (el
+panel no hace upsert, D-05) y ahí se queda: el contrato NO lo expone —
+`ProductoAdmin` no lo declara, así que jamás cruza el cable; es de la
+trastienda, como el `id` en las pantallas de tienda. Y con stock 4 ≤ 5,
+ya es un producto "stock bajo" (RN-14) — lo verás en las métricas al
+final. (Guarda el `id` que devuelve: los dos golpes siguientes lo usan —
+si perdiste el output, re-ejecuta este y usa
 el id nuevo.)
 
 ✅ **Mini-verificación (la edición es idempotente por estado — ADMN-01):**
@@ -1287,8 +1291,10 @@ Desde `backend/`, con la API encendida y el seed corrido:
 2. Cada path admin responde **200** con el token del admin y **403
    "Requiere rol admin"** con el de la clienta — el guard en CADA
    endpoint, sin excepciones (ADR-015).
-3. `POST /api/admin/productos` → **201** con sku `panel-…` y `activo:
-   true` (nace activo, D-52); el `id` y el `sku` jamás vienen del body.
+3. `POST /api/admin/productos` → **201** con un `id` nuevo y `activo:
+   true` (nace activo, D-52); ni el `id` ni el `sku` vienen del body — y
+   el sku generado (`panel-…`) vive solo en la BD: el contrato no lo
+   expone en `ProductoAdmin`, jamás cruza el cable.
 4. Dos PUT con el mismo body → `200` ambos y el MISMO estado final
    (idempotencia de estado, ADMN-01); un `"activo": false` inyectado en el
    body se ignora — la allow-list no lo tiene.
