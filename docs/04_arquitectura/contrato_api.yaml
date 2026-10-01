@@ -542,8 +542,9 @@ components:
         Multi-turno stateless: el historial visible viaja en cada request —
         el backend NO guarda conversaciones (cero tablas para el
         asistente). Los topes (mensaje de hasta 500 caracteres, historial
-        de hasta 10 mensajes) protegen el free tier de Gemini y validan
-        aquí, en el borde, como 422 declarativo.
+        de hasta 10 mensajes con su texto al mismo tope de 500) protegen
+        el free tier de Gemini y validan aquí, en el borde, como 422
+        declarativo.
       properties:
         mensaje:
           type: string
@@ -564,7 +565,8 @@ components:
                 example: clienta
               texto:
                 type: string
-                description: El contenido del mensaje
+                maxLength: 500
+                description: El contenido del mensaje — máximo 500 caracteres (el mismo tope del mensaje nuevo, RN-16)
                 example: Busco un regalo para mi mamá
             required: [rol, texto]
       required: [mensaje]
@@ -1436,8 +1438,8 @@ paths:
         del backend el endpoint degrada a 503 amable — la tienda sigue
         100% operativa (D-61); si la cuota del free tier se agota, 429
         también amable y SIN cifras de límites (no hay fuente pública sin
-        login). Los topes de entrada (mensaje 500, historial 10) validan
-        en el borde → 422.
+        login). Los topes de entrada (mensaje y texto del historial 500,
+        historial 10) validan en el borde → 422.
       security: []
       requestBody:
         required: true
@@ -1453,7 +1455,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ChatRespuesta'
         '422':
-          description: Topes violados (mensaje sobre 500 caracteres, historial sobre 10 mensajes) — validación declarativa (Pydantic)
+          description: Topes violados (mensaje o texto del historial sobre 500 caracteres, historial sobre 10 mensajes) — validación declarativa (Pydantic)
           content:
             application/json:
               schema:

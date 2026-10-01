@@ -172,7 +172,9 @@ Nadie escribió un `if` para lograrlo: el default ES la estrategia.
 🧠 **El desarrollador piensa:** *tres modelos, tres trabajos distintos —
 y confundirlos es confundir el contrato. **`ChatMensaje`** es lo que
 ENTRA: espejo del contrato 0.4.0 con los topes de RN-16 (`mensaje` máximo
-500 caracteres, `historial` máximo 10 entradas) — Pydantic los valida en
+500 caracteres, `historial` máximo 10 entradas — y cada `texto` del
+historial con el MISMO tope de 500: en un endpoint público, TODO el texto
+que viaja al modelo lo controla el cliente) — Pydantic los valida en
 el borde, y un payload pasado de la raya recibe 422 sin que nadie escriba
 un `if`: la validación declarativa de siempre, ahora protegiendo el free
 tier de TU key (D-59). El historial es stateless por diseño (D-58): el
@@ -209,7 +211,9 @@ class MensajeHistorial(BaseModel):
     """Una entrada del historial visible que mantiene el navegador (D-58)."""
 
     rol: Literal["clienta", "asesora"]
-    texto: str
+    # El MISMO tope del mensaje nuevo (RN-16): el texto del historial
+    # también lo controla el cliente — y también viaja entero al modelo.
+    texto: str = Field(max_length=500)
 
 
 class ChatMensaje(BaseModel):
@@ -255,11 +259,13 @@ class ChatRespuesta(BaseModel):
 ✅ **Mini-verificación:** desde `backend/`, ejecuta:
 
 ```
-uv run python -c "from app.schemas.asistente import ChatMensaje, ChatRespuesta; s = ChatMensaje.model_json_schema(); print(s['properties']['mensaje'].get('maxLength'), s['properties']['historial'].get('maxItems'), ChatRespuesta.model_json_schema()['properties']['productos'].get('maxItems'))"
+uv run python -c "from app.schemas.asistente import ChatMensaje, ChatRespuesta; s = ChatMensaje.model_json_schema(); print(s['properties']['mensaje'].get('maxLength'), s['properties']['historial']['items']['properties']['texto'].get('maxLength'), s['properties']['historial'].get('maxItems'), ChatRespuesta.model_json_schema()['properties']['productos'].get('maxItems'))"
 ```
 
-Debe imprimir `500 10 3` — los tres topes de RN-16 nacieron declarativos
-en el schema: el del mensaje, el del historial y el de las cards. El 422
+Debe imprimir `500 500 10 3` — los topes de RN-16 nacieron declarativos
+en el schema: el del mensaje, el del `texto` de cada entrada del
+historial (el MISMO 500 — el contenido que el cliente controla también
+viaja al modelo), el del historial y el de las cards. El 422
 que los hace cumplir lo verás golpear en el paso 8; lo que generan ya
 está en el contrato (`ChatMensaje`/`ChatRespuesta` en
 `contrato_api.yaml` — ábrelo y compara: deben calzar campo a campo).
@@ -526,7 +532,7 @@ router = APIRouter(tags=["Asistente"])
     response_model=ChatRespuesta,
     responses={
         422: {
-            "description": "Topes violados (mensaje sobre 500 caracteres, historial sobre 10 mensajes) — validación declarativa (RN-16)",
+            "description": "Topes violados (mensaje o texto del historial sobre 500 caracteres, historial sobre 10 mensajes) — validación declarativa (RN-16)",
             "model": Error,
         },
         429: {
