@@ -38,12 +38,16 @@
 | 13 | `guia-13-panel-spa.md` | La SPA del panel: `/admin` con guard por rol y las tres pantallas de la dueña | ✅ Listo |
 | 14 | `guia-14-asistente-backend.md` | El backend de la asesora de aromas: Groq con respuesta JSON validada contra el catálogo | ✅ Listo |
 | 15 | `guia-15-asistente-cierre.md` | La burbuja de la asesora en la tienda y la Gran verificación final de la fase 4 | ✅ Listo |
+| 16 | `guia-16-despliegue-api.md` | El backend en internet: Render free, Python 3.12 fijado, env vars del triple congelado y el seed que renace en cada deploy | ✅ Listo |
+| 17 | `guia-17-despliegue-frontend.md` | La SPA en internet: Vercel con el rewrite que evita el 404 y la URL de la API horneada al build | ✅ Listo |
+| 18 | `guia-18-despliegue-cierre.md` | Los 4 flujos de Webpay contra el ambiente desplegado y la Gran verificación final de la serie | ✅ Listo |
 
-> La fase 4 del proyecto completa sus cuatro guías (12-15: panel de
-> administración y asistente IA). La guía siguiente llega con la fase 5
-> (despliegue) — cada una asumiendo que estas están construidas y
-> verificadas en tu máquina, igual que el índice de `docs/README.md`
-> avanza por fase.
+> La fase 5 cierra la serie: las **18 guías** quedan completas y el
+> desarrollo del ciclo termina aquí — cada una asumió que las anteriores
+> estaban construidas y verificadas en tu máquina, igual que el índice de
+> `docs/README.md` avanzó por fase. La guía no continúa: el ciclo sigue
+> en `06_pruebas.md`, `07_despliegue.md` y `08_mantenimiento.md` — las
+> 8 filas del ciclo de `docs/README.md`, ahora todas en verde.
 
 **Mapa mental de la serie:** el orden es **de adentro hacia afuera**. Primero
 construimos cada tier por separado (guías 1 y 2: el backend que responde JSON y
@@ -67,6 +71,13 @@ del proyecto — y de un tipo nuevo: Webpay era una redirección del
 navegador que se iba de la tienda y volvía; la asesora es un
 request-response JSON **desde el backend**, sin redirecciones ni
 navegación, con la API key como variable de entorno del servidor que
-jamás cruza al frontend. Las guías siguientes llegan con la fase 5
-(despliegue) — cada una asumiendo que las anteriores están construidas
-y verificadas en tu máquina.
+jamás cruza al frontend. La fase 5 es la **última vuelta hacia afuera**:
+lo construido sale a internet (guías 16-18) — la API en Render y la SPA
+en Vercel, cada una con su URL pública HTTPS, el `return_url` de Webpay
+congelado a la URL real del backend y el CORS de producción cerrando el
+círculo del 302 hacia la tienda. El disco efímero del free tier se asume
+como estrategia firmada: el seed idempotente revive el catálogo en cada
+deploy y lo que vivió solo en runtime se pierde (ADR-020). Con la serie
+completa — 18 guías y 20 ADRs — el desarrollo termina y el ciclo
+documental continúa en `06_pruebas.md`, `07_despliegue.md` y
+`08_mantenimiento.md`.
