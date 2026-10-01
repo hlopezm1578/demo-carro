@@ -15,7 +15,7 @@
 | 1 | Necesidad del cliente | `01_necesidad_del_cliente.md` | ✅ Listo |
 | 2 | Análisis de requerimientos | `02_requerimientos.md` | ✅ Listo |
 | 3 | Diseño (modelo de datos, procesos, pantallas) | `03_diseno.md` | ✅ Listo |
-| 4 | Arquitectura y decisiones (ADRs) + contrato API-first | `04_arquitectura/` (documento + 17 ADRs + `contrato_api.yaml`) | ✅ Listo |
+| 4 | Arquitectura y decisiones (ADRs) + contrato API-first | `04_arquitectura/` (documento + 18 ADRs + `contrato_api.yaml`) | ✅ Listo |
 | 5 | Desarrollo | `05_desarrollo/` (guías paso a paso con razonamiento y código) | 🚧 Parcial (guías 1-15 listas; continúa en fases 5+) |
 | 6 | Pruebas | `06_pruebas.md` | ⏳ Pendiente |
 | 7 | Despliegue | `07_despliegue.md` | ⏳ Pendiente |

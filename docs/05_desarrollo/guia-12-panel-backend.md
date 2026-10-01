@@ -13,7 +13,7 @@
 > de Webpay funcionando (contrato 0.3.0 vivo en `/docs`), el seed corrido y,
 > a mano, `docs/04_arquitectura/contrato_api.yaml` 0.4.0 y los ADRs 015-016:
 > hoy son la vara que mide cada paso. No se instala NADA: todo el stack ya
-> está — el único paquete nuevo de la fase (el SDK de Gemini) llega con la
+> está — el único paquete nuevo de la fase (el SDK de Groq) llega con la
 > guía 14.
 
 ---

@@ -1670,6 +1670,6 @@ la guía 15.)
   RF-22)
 
 **Siguiente:** guia-14-asistente-backend.md — la asesora de aromas
-(backend): el primer endpoint de IA del proyecto con `google-genai`, el
+(backend): el primer endpoint de IA del proyecto con el SDK `groq`, el
 mini-RAG honesto con el catálogo en el prompt, el JSON estructurado que
 el backend valida id por id — y la degradación amable cuando no hay key.

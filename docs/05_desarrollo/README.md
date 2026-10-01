@@ -36,7 +36,7 @@
 | 11 | `guia-11-pedidos-cierre.md` | El historial de pedidos y la Gran verificación final de la fase 3 | ✅ Listo |
 | 12 | `guia-12-panel-backend.md` | El backend del panel: CRUD de productos con soft delete, la anulación del pedido con su 409 y las métricas | ✅ Listo |
 | 13 | `guia-13-panel-spa.md` | La SPA del panel: `/admin` con guard por rol y las tres pantallas de la dueña | ✅ Listo |
-| 14 | `guia-14-asistente-backend.md` | El backend de la asesora de aromas: Gemini con respuesta JSON validada contra el catálogo | ✅ Listo |
+| 14 | `guia-14-asistente-backend.md` | El backend de la asesora de aromas: Groq con respuesta JSON validada contra el catálogo | ✅ Listo |
 | 15 | `guia-15-asistente-cierre.md` | La burbuja de la asesora en la tienda y la Gran verificación final de la fase 4 | ✅ Listo |
 
 > La fase 4 del proyecto completa sus cuatro guías (12-15: panel de
@@ -62,10 +62,11 @@ y el historial honesto que cierra la fase (guía 11). La fase 4 agrega dos
 piezas sobre esa base: la **trastienda de la dueña** (guías 12-13: el panel
 de administración con su guard por rol en la SPA y su `get_current_admin`
 en cada endpoint del backend) y la **capa de IA** (guías 14-15: la asesora
-de aromas). Gemini es el **segundo servicio externo** del proyecto — y de
-un tipo nuevo: Webpay era una redirección del navegador que se iba de la
-tienda y volvía; la asesora es un request-response JSON **desde el
-backend**, sin redirecciones ni navegación, con la API key como variable
-de entorno del servidor que jamás cruza al frontend. Las guías siguientes
-llegan con la fase 5 (despliegue) — cada una asumiendo que las anteriores
-están construidas y verificadas en tu máquina.
+de aromas). El servicio de IA de Groq es el **segundo servicio externo**
+del proyecto — y de un tipo nuevo: Webpay era una redirección del
+navegador que se iba de la tienda y volvía; la asesora es un
+request-response JSON **desde el backend**, sin redirecciones ni
+navegación, con la API key como variable de entorno del servidor que
+jamás cruza al frontend. Las guías siguientes llegan con la fase 5
+(despliegue) — cada una asumiendo que las anteriores están construidas
+y verificadas en tu máquina.
