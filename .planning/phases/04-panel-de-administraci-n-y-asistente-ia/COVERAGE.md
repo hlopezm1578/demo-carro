@@ -14,10 +14,10 @@
 | capability | decision | reason |
 |---|---|---|
 | `client.models.generate_content` (texto) | INTEGRATE | el corazón del asistente: la recomendación de la asesora (AIAS-01) |
-| structured output (`response_mime_type='application/json'` + `response_json_schema`) | INTEGRATE | la respuesta `{respuesta, productos}` conforme al schema Pydantic `Recomendacion` — D-56 exige exactamente la forma documentada en el README v2.25.0 (no `response_schema`, Pitfall 2) |
+| structured output (`response_json_schema`) | INTEGRATE | la respuesta `{respuesta, productos}` conforme al schema Pydantic `Recomendacion`, vía `response_mime_type='application/json'` + `response_json_schema` — D-56 exige exactamente la forma documentada en el README v2.25.0 (no `response_schema`, Pitfall 2) |
 | API key por env var (`GEMINI_API_KEY` auto-pickup del Client) | INTEGRATE | D-60/AIAS-03: key en el `.env` del backend vía pydantic-settings; el Client la levanta solo |
 | manejo de errores tipados (`errors.APIError` con `.code`/`.message`) | INTEGRATE | wrapper que traduce 429 (cuota) y resto (red/timeout/servicio) a respuestas amables — jamás un 500 crudo (D-61, patrón IN-06) |
-| retries nativos del SDK (transitorios 4x, ~1s→60s) | INTEGRATE (pasivo) | se documentan como comportamiento del SDK; el wrapper NO duplica el retry (anti-pattern: doble-retry presiona el free tier) |
+| retries nativos del SDK (transitorios 4x, ~1s→60s) | INTEGRATE | de forma pasiva: se documentan como comportamiento del SDK; el wrapper NO duplica el retry (anti-pattern: doble-retry presiona el free tier) |
 | streaming (`generate_content_stream` / SSE) | OPT-OUT | D-57: respuesta única request-response — el streaming es una idea diferida explícita de CONTEXT |
 | sesiones/historial server-side (módulo chats) | OPT-OUT | D-58: multi-turno stateless — el historial vive en el frontend y viaja en cada request; cero tablas nuevas |
 | embeddings / vector store | OPT-OUT | mini-RAG honesto por system prompt con el catálogo activo completo (D-56); "motor ML de recomendación propio" figura en Out of Scope de REQUIREMENTS.md |
