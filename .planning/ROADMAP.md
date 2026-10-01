@@ -27,7 +27,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Fundaciones de dos tiers y catálogo** - Esqueleto SPA React + API FastAPI en capas con guía paso a paso, ADRs fundacionales, contrato de API, landing, catálogo filtrable y páginas de producto con seed demo. (completed 2026-09-29)
 - [x] **Phase 2: Cuentas de cliente y carro persistente** - Registro/login JWT con roles desde el primer token, carro en localStorage que sobrevive full-page loads y checkout protegido por sesión. (completed 2026-09-30)
 - [x] **Phase 3: Checkout Webpay y órdenes** - Spike de retorno, form POST a Webpay Plus sandbox, 4 flujos de retorno, voucher propio, idempotencia, stock atómico e historial de pedidos. (completed 2026-09-30)
-- [ ] **Phase 4: Panel de administración y asistente IA** - CRUD de productos, stock con alertas, pedidos con máquina de estados y métricas para la dueña; asistente IA (Groq) con mini-RAG y API key solo en backend.
+- [x] **Phase 4: Panel de administración y asistente IA** - CRUD de productos, stock con alertas, pedidos con máquina de estados y métricas para la dueña; asistente IA (Groq) con mini-RAG y API key solo en backend. (completed 2026-10-01)
 - [ ] **Phase 5: Despliegue y cierre de la guía** - Frontend estático + API en free tier con CORS de producción, verificación de los 4 flujos Webpay en el ambiente desplegado y cierre del ciclo de vida documentado.
 
 ## Phase Details
@@ -135,7 +135,7 @@ Plans:
   3. Cliente usa la burbuja de chat de la tienda y el asistente recomienda solo productos existentes del catálogo real, con product cards clicables desde el chat (mini-RAG + validación de ids contra BD) (AIAS-01, AIAS-02)
   4. La API key del asistente vive solo en el backend (variable de entorno): no aparece en el código ni en el bundle del frontend, verificable con grep sobre el build (AIAS-03)
 
-**Plans**: 8/8 plans executed (5 executed + 3 rework) *(planeados 2026-09-30 — orden D-62: contrato 0.4.0 + ADRs 015-017 y docs 02/03 primero (D-15, en paralelo sin solape de archivos como la fase 3), luego panel admin completo (backend → SPA), después asistente IA (backend → burbuja), cierre con READMEs; sin spike — la pieza de riesgo (structured output) ya quedó firmada con evidencia en 04-RESEARCH.md contra el README del SDK @ v2.25.0. Rework 2026-10-01: D-63..D-68 reemplazan Gemini por Groq — planes 04-06..08 con ondas frescas R1-R3; los 04-01..05 son historia ejecutada y no se modifican)*
+**Plans**: 8/8 plans complete (5 executed + 3 rework) *(planeados 2026-09-30 — orden D-62: contrato 0.4.0 + ADRs 015-017 y docs 02/03 primero (D-15, en paralelo sin solape de archivos como la fase 3), luego panel admin completo (backend → SPA), después asistente IA (backend → burbuja), cierre con READMEs; sin spike — la pieza de riesgo (structured output) ya quedó firmada con evidencia en 04-RESEARCH.md contra el README del SDK @ v2.25.0. Rework 2026-10-01: D-63..D-68 reemplazan Gemini por Groq — planes 04-06..08 con ondas frescas R1-R3; los 04-01..05 son historia ejecutada y no se modifican)*
 **UI hint**: yes
 
 Plans:
@@ -180,5 +180,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 1. Fundaciones de dos tiers y catálogo | 6/6 | Complete    | 2026-09-29 |
 | 2. Cuentas de cliente y carro persistente | 5/5 | Complete    | 2026-09-30 |
 | 3. Checkout Webpay y órdenes | 5/5 | Complete    | 2026-09-30 |
-| 4. Panel de administración y asistente IA | 8/8 | In Progress|  |
+| 4. Panel de administración y asistente IA | 8/8 | Complete    | 2026-10-01 |
 | 5. Despliegue y cierre de la guía | 0/TBD | Not started | - |
