@@ -445,7 +445,7 @@ export default function Layout() {
 ```
 
 ✅ **Mini-verificación:** con ambos servidores corriendo (`uv run
-fastapi dev app/main` en `backend/`, `npm run dev` en `frontend/`),
+fastapi dev app/main.py` en `backend/`, `npm run dev` en `frontend/`),
 abre **http://localhost:5173**: el botón **"Pregúntale a Maura"** flota
 abajo a la derecha en la portada, en el catálogo y en la ficha.
 Navega entre ellas: la burbuja NO parpadea — el Layout no se desmonta.

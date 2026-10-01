@@ -1447,7 +1447,7 @@ la 12 la hizo transicionable, la 13 la transiciona. Nadie editó la guía
 11: el historial siempre mostró el estado REAL, y hoy el estado real
 cambió.*
 
-Con ambos servidores corriendo (`uv run fastapi dev app/main` en
+Con ambos servidores corriendo (`uv run fastapi dev app/main.py` en
 `backend/`, `npm run dev` en `frontend/`):
 
 ✅ **Mini-verificación (la clienta rechazada, sin expulsión):** entra con
