@@ -64,7 +64,7 @@ Y si ya tienes Python, `pip install uv` también sirve. Tras instalar, cierra
 y reabre la terminal para que el comando nuevo quede en el PATH.
 
 ✅ **Mini-verificación:** tu terminal, parada en la carpeta nueva, responde a
-`uv --version` con algo como `uv 0.9.x`.
+`uv --version` con algo como `uv 0.12.x`.
 
 ---
 
@@ -76,12 +76,18 @@ repositorio git **anidado** en `backend/`, y el repositorio raíz deja de tracke
 sus archivos — un problema silencioso que se descubre tarde, el día que revisas
 el historial y no encuentra nada. La bandera `--vcs none` lo evita (ADR-006).
 Y `--app` pide el layout de aplicación, que es el nuestro: código que se
-ejecuta, no una librería que se importa.*
+ejecuta, no una librería que se importa. Falta una tercera bandera: las
+versiones recientes de uv crean por defecto un proyecto **empaquetado** —
+una carpeta `src/backend/` con su `__init__.py`, más la maquinaria para
+construir e instalar el proyecto como si fuera una librería distribuible.
+Nuestra API no se distribuye: se ejecuta. Con `--no-package` el template
+queda plano y el código vive donde decidimos nosotros, no donde el template
+decide.*
 
 Desde la raíz de tu monorepo, ejecuta:
 
 ```
-uv init backend --vcs none --app
+uv init backend --vcs none --app --no-package
 ```
 
 El comando genera `backend/` con un `pyproject.toml`, un `.python-version`,
@@ -430,7 +436,8 @@ de "el servicio está roto".
 
 ## 📝 Punto de control (respóndelas sin mirar la guía)
 
-1. ¿Para qué sirve la bandera `--vcs none` en `uv init`, y qué rompería sin ella?
+1. ¿Para qué sirven las banderas `--vcs none` y `--no-package` en `uv init`, y
+   qué rompería (o sobraría) sin cada una?
 2. ¿Por qué la configuración vive en `Settings` (pydantic-settings) y no en
    constantes pegadas en `main.py`? ¿Dónde terminarían los secretos de las
    fases de pago e IA si usaras constantes?
