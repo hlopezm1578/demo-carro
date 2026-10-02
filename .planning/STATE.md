@@ -2,44 +2,44 @@
 gsd_state_version: "1.0"
 milestone: v2.25.0
 current_phase: 5
-current_phase_name: Despliegue y cierre de la guía
-current_plan: 5
-status: executing
-stopped_at: Phase 5 executed, human verification pending (2 items, D-73)
-last_updated: "2026-10-01T19:15:20.245Z"
-last_activity: 2026-10-01
-last_activity_desc: Phase 5 execution started
-state_head: cf97a04f424da5d395a4b48dc7f9332eb1bfd412
+current_plan: Not started
+status: completed
+stopped_at: Phase 5 complete — all phases complete
+last_updated: "2026-10-02T10:59:07.405Z"
+last_activity: 2026-10-02
+last_activity_desc: Phase 5 complete
+state_head: 9ee45dd8e6fbc3f3dc5e4f56b65641f2a49a3245
 progress:
   total_phases: 5
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 29
   completed_plans: 29
+  percent: 100
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-09-30)
+See: .planning/PROJECT.md (updated 2026-10-02)
 
 **Core value:** La guía documenta el ciclo de vida completo y, siguiéndola en orden, la aplicación queda construida y operativa: tienda con catálogo, carro, checkout Webpay sandbox, cuentas JWT, panel admin y asistente IA sobre el catálogo real.
-**Current focus:** Phase 5 — Despliegue y cierre de la guía
+**Current focus:** Milestone v2.25.0 completo (5/5 fases) — próximo paso: /gsd-complete-milestone v2.25.0
 
 ## Current Position
 
-Phase: 5 (Despliegue y cierre de la guía) — EXECUTING
-Current Plan: 5
+Phase: 5
+Current Plan: Not started
 Total Plans in Phase: 5
-Status: Ready to execute
-Last activity: 2026-10-01 — Phase 5 execution started
+Status: All phases complete
+Last activity: 2026-10-02 — Phase 5 complete
 
-Progress: [████████░░] 80%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 24
+- Total plans completed: 29
 - Average duration: -
 - Total execution time: -
 
@@ -51,6 +51,7 @@ Progress: [████████░░] 80%
 | 02 | 5 | - | - |
 | 03 | 5 | - | - |
 | 04 | 8 | - | - |
+| 5 | 5 | - | - |
 
 **Recent Trend:**
 - Last 5 plans: -
@@ -198,6 +199,8 @@ Recent decisions affecting current work:
 - [Phase 05]: Cierre de SERIE en 05_desarrollo/README: la nota reemplaza la de fase (18 guias completas, el desarrollo termina, el ciclo sigue en docs 06/07/08) y el mapa mental gana la capa de despliegue como ultima vuelta hacia afuera — la frase puente se reescribio segun el precedente de la fase 4 (bdd9408), capas 1-4 byte-intactas
 - [Phase 05]: Quinta corrida D-13/D-18: las 8 filas de los tres READMEs en Listo con links relativos en 6-8 y conteos sincronizados (20 ADRs, 20 decisiones, guias 1-18); el stack del README raiz gana su linea de despliegue (Vercel + Render free tier · URLs publicas HTTPS · SQLite efimero + seed idempotente, ADRs 019-020)
 - [Phase 05]: Gate documental de cierre de fase replicado y en verde (cierre-fase5-ok): 18 guias, 20 ADRs, docs 06/07/08, cadena Siguiente 15->16->17->18->docs y repo guide-only — las tablas se cantan completas solo contra corpus verificado ANTES del commit de estado
+- [Phase 05 cierre]: UAT de fase resuelto por el usuario (05-UAT.md 2/2 pass): Test 1 opción (a) — cierre documental D-73 con override del backstop registrado en 05-VERIFICATION.md (accepted_by hanslopez, 2026-10-02T10:36:08Z); Test 2 — supuesto A4 (return_url *.onrender.com vs Transbank) aceptado como supuesto señalado, confirmable solo en la corrida del alumno (fila 2 de guia-18)
+- [Phase 05 cierre]: Seguridad 05-SECURITY.md 21/21 amenazas cerradas (threats_open 0, ASVS 1, register plan-time; 1 riesgo aceptado documentado: /docs público, ADR-019) — verificación re-ejecutada por gsd-verifier con digest fresco y canonizada a passed tras el UAT (34/35 documental + override)
 
 ### Pending Todos
 
@@ -205,8 +208,7 @@ None yet.
 
 ### Blockers/Concerns
 
-- Phase 4: confirmar límites RPM/RPD del free tier de Gemini logueado en aistudio.google.com/rate-limit antes de fijar material
-- Phase 5: elegir plataforma de despliegue free tier (pendiente en PROJECT.md); el deploy congela `return_url`
+- [Phase 05] 7 findings del code review abiertos por disposition deliberado (4 warnings + 3 infos, 05-REVIEW-DISPOSITION.md); WR-02 y WR-04 tocan bloques que el alumno copia — merecen un fix menor en una próxima pasada de contenido (candidatos a deferred items del milestone)
 
 ## Deferred Items
 
@@ -218,6 +220,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-01T19:15:20.060Z
-Stopped at: Phase 5 executed, human verification pending (2 items, D-73)
-Resume file: .planning/phases/05-despliegue-y-cierre-de-la-gu-a/05-UAT.md
+Last session: 2026-10-02
+Stopped at: Phase 5 complete (UAT 2/2, verification passed, SECURITY threats_open 0) — milestone v2.25.0 al 100%, listo para /gsd-complete-milestone v2.25.0
+Resume file: None

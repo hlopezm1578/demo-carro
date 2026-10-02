@@ -25,12 +25,14 @@ catálogo real.
 - ✓ Aplicación de dos tiers separados: SPA React que consume API FastAPI (sin renderizado de plantillas en el servidor), backend organizado en capas — Phases 01-03 (verificado runtime en maura-uat)
 - ✓ Recorrido de tienda completo: landing, catálogo, carro de compras, checkout con Webpay en ambiente de integración, órdenes y cuentas de cliente (JWT) con historial — Phase 03 (UAT delegado 3/3, Gran verificación final 12/12 runtime)
 - ✓ Pago operativo en ambiente de integración de Transbank con credenciales públicas sin registro, incluyendo la vuelta de la redirección de Webpay a la SPA React — Phase 03 (4 flujos runtime reales: aprobado/anulado/timeout/F5)
+- ✓ Panel de administración para la dueña de la PYME: productos, stock y pedidos — Phase 04 (8/8 planes; máquina de estados de pedidos con cancelación admin, ADRs 015-017)
+- ✓ Asistente de venta (burbuja de chat) que recomienda productos del catálogo real usando Groq vía el SDK oficial `groq` (ADR-018), con la API key solo en el backend — Phase 04 (UAT 5/5: happy path 200 real, 503 sin key, grep del build limpio)
+- ✓ Guía educativa completa estilo demo-cine: fases documentadas con ADRs, contrato de API y guías de desarrollo paso a paso, con trazabilidad entre fases — Phase 05 (ciclo cerrado: 18 guías, 20 ADRs, docs 06/07/08, cadena Siguiente completa; GUIDE-01 Complete)
+- ✓ Despliegue free tier enseñado de punta a punta: Vercel Hobby + Render Free con triple congelado de URLs/CORS y seed idempotente contra disco efímero — Phase 05 (ADRs 019/020, guías 16-18; cierre documental D-73 aceptado por el usuario)
 
 ### Active
 
-- [ ] Guía educativa completa estilo demo-cine: fases documentadas con ADRs, contrato de API y guías de desarrollo paso a paso, con trazabilidad entre fases
-- [ ] Panel de administración para la dueña de la PYME: productos, stock y pedidos
-- [ ] Asistente de venta (burbuja de chat) que recomienda productos del catálogo real usando Groq vía el SDK oficial `groq` (ADR-018), con la API key solo en el backend (variable de entorno)
+*(none — milestone v2.25.0 completo; los ítems v2/v2+ viven diferidos en REQUIREMENTS.md y docs/08)*
 
 ### Out of Scope
 
@@ -61,8 +63,10 @@ catálogo real.
   - Límites RPM/RPD del free tier del proveedor de IA — CERRADO (D-68): Groq los
     publica — 30 RPM / 1.000 RPD para `openai/gpt-oss-120b`
     (console.groq.com/docs/rate-limits, a la fecha).
-  - Nombre del cliente ficticio de la PYME y plataforma de despliegue gratuita para los
-    dos tiers (frontend estático + API).
+  - Nombre del cliente ficticio de la PYME (MAURA) y plataforma de despliegue gratuita
+    para los dos tiers — CERRADO: ADR-019 fija Vercel Hobby + Render Free (D-69) con el
+    triple BACKEND_URL/CORS_ORIGINS/VITE_API_URL congelado; las guías 16-18 enseñan el
+    deploy y la Gran verificación final en las cuentas del alumno (D-73).
 
 ## Constraints
 
@@ -80,8 +84,9 @@ catálogo real.
 | Frontend React (SPA), backend FastAPI (Python) | Decisión de la exploración 2026-09-28 | — Phase 01 shipped (scaffold + API verificados en maura-uat) — Phase 02 shipped (JWT/Argon2 + Zustand persist verificados runtime en maura-uat) |
 | Repositorio guide-only (D-17): el código vive dentro de las guías, no en el repo | Corrección de alcance del usuario a mitad de la fase 1: el producto es la guía documental | — Phase 01 shipped (ADR-008; UAT delegado al agente en maura-uat) — Phase 02 cerró igual (UAT delegado construyó las guías 5-08 en el taller y las verificó 12/12) |
 | Pago: Transbank Webpay Plus en sandbox | Pasarela real chilena con credenciales públicas sin registro; Stripe no opera en Chile | — Phase 03 shipped (spike del retorno con evidencia runtime, contrato 0.3.0, ADRs 012-014, guías 09-11; UAT delegado 3/3 con Gran verificación 12/12 runtime contra Webpay integración) |
-| IA: asistente de venta en chat (recomendador sobre catálogo, mini-RAG) con Groq (rework ADR-018, 2026-10-01) | Integración de servicio externo con contratos y manejo de errores; API key solo backend | — Pending |
-| Alcance funcional completo con panel admin | La PYME ficticia necesita gestionar productos, stock y pedidos | — Pending |
+| IA: asistente de venta en chat (recomendador sobre catálogo, mini-RAG) con Groq (rework ADR-018, 2026-10-01) | Integración de servicio externo con contratos y manejo de errores; API key solo backend | — Phase 04 shipped (guías 14-15, UAT 5/5 con 200 real y 503 degradado; contrato 0.4.0 agnóstico del proveedor D-66) |
+| Alcance funcional completo con panel admin | La PYME ficticia necesita gestionar productos, stock y pedidos | — Phase 04 shipped (guías 12-13 + cierre; ADMN-01..04 Complete) |
+| Despliegue: Vercel Hobby (SPA) + Render Free (API), una plataforma por tier (D-69, ADR-019) | Free sin tarjeta con URLs HTTPS públicas; PYTHON_VERSION 3.12 fijo; SQLite efímero + seed idempotente (ADR-020) como trade-off declarado | — Phase 05 shipped (guías 16-18 + Gran verificación final de la serie; D-73 writing-only: la corrida runtime es del alumno, cierre documental aceptado 2026-10-02) |
 
 ## Evolution
 
@@ -101,4 +106,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-09-30 after Phase 03*
+*Last updated: 2026-10-02 after Phase 05 (milestone v2.25.0 completo)*

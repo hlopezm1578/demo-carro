@@ -134,6 +134,14 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AIAS-03 | Phase 4 | Complete |
 | DEPL-01 | Phase 5 | Complete |
 | DEPL-02 | Phase 5 | Complete |
+| PAY-05 | v2 (doc 08 diferidos) | Deferred |
+| STORE-05 | v2 (doc 08 diferidos) | Deferred |
+| ORDR-03 | v2 (doc 08 diferidos) | Deferred |
+| ADMN-05 | v2 (doc 08 diferidos) | Deferred |
+| STAKE-01 | v2+ (doc 08 diferidos) | Deferred |
+| STAKE-02 | v2+ (doc 08 diferidos) | Deferred |
+| STAKE-03 | v2+ (doc 08 diferidos) | Deferred |
+| STAKE-04 | v2+ (doc 08 diferidos) | Deferred |
 
 **Coverage:**
 - v1 requirements: 29 total

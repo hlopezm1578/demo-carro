@@ -28,7 +28,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: Cuentas de cliente y carro persistente** - Registro/login JWT con roles desde el primer token, carro en localStorage que sobrevive full-page loads y checkout protegido por sesión. (completed 2026-09-30)
 - [x] **Phase 3: Checkout Webpay y órdenes** - Spike de retorno, form POST a Webpay Plus sandbox, 4 flujos de retorno, voucher propio, idempotencia, stock atómico e historial de pedidos. (completed 2026-09-30)
 - [x] **Phase 4: Panel de administración y asistente IA** - CRUD de productos, stock con alertas, pedidos con máquina de estados y métricas para la dueña; asistente IA (Groq) con mini-RAG y API key solo en backend. (completed 2026-10-01)
-- [ ] **Phase 5: Despliegue y cierre de la guía** - Frontend estático + API en free tier con CORS de producción, verificación de los 4 flujos Webpay en el ambiente desplegado y cierre del ciclo de vida documentado.
+- [x] **Phase 5: Despliegue y cierre de la guía** - Frontend estático + API en free tier con CORS de producción, verificación de los 4 flujos Webpay en el ambiente desplegado y cierre del ciclo de vida documentado. (completed 2026-10-02)
 
 ## Phase Details
 
@@ -168,7 +168,7 @@ Plans:
   2. El refresh de rutas de la SPA no da 404 (fallback a index.html) y los 4 flujos de retorno de Webpay se verifican contra el ambiente desplegado (DEPL-02)
   3. La guía documenta el ciclo de vida completo (necesidad → requerimientos → diseño → arquitectura con ADRs → desarrollo guiado → pruebas → despliegue → mantenimiento) con trazabilidad entre fases: un alumno que la sigue en orden termina con la aplicación construida, desplegada y operativa (GUIDE-01)
 
-**Plans**: 5/5 plans executed *(planeados 2026-10-01 — D-73 gobierna toda la fase: SOLO escritura, sin spike runtime (D-72 superseded), sin deploy del taller y sin UAT de despliegue; la evidencia de ADR-019 es documental (docs oficiales citadas en 05-RESEARCH.md). Orden D-15: ADRs + doc 07 primero, docs del ciclo y guías en paralelo por archivos disjuntos, guía de cierre y índices al final)*
+**Plans**: 5/5 plans complete *(planeados 2026-10-01 — D-73 gobierna toda la fase: SOLO escritura, sin spike runtime (D-72 superseded), sin deploy del taller y sin UAT de despliegue; la evidencia de ADR-019 es documental (docs oficiales citadas en 05-RESEARCH.md). Orden D-15: ADRs + doc 07 primero, docs del ciclo y guías en paralelo por archivos disjuntos, guía de cierre y índices al final)*
 
 Plans:
 **Wave 1** *(spec primero — D-15)*
@@ -195,4 +195,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 2. Cuentas de cliente y carro persistente | 5/5 | Complete    | 2026-09-30 |
 | 3. Checkout Webpay y órdenes | 5/5 | Complete    | 2026-09-30 |
 | 4. Panel de administración y asistente IA | 8/8 | Complete    | 2026-10-01 |
-| 5. Despliegue y cierre de la guía | 5/5 | In Progress|  |
+| 5. Despliegue y cierre de la guía | 5/5 | Complete    | 2026-10-02 |
