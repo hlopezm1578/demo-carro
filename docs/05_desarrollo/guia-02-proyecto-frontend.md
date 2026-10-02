@@ -278,6 +278,16 @@ createRoot(document.getElementById("root")!).render(
 );
 ```
 
+⚠ **Van a aparecer errores — y son los esperados.** Al guardar este
+`main.tsx`, tu editor marca en rojo las cinco líneas de import de
+componentes (algo como *Cannot find module './components/Layout'*), y si
+dejaste `npm run dev` corriendo, el navegador muestra el error de Vite
+encima de la página. Nada se rompió: esos imports apuntan a **archivos que
+todavía no existen**. El resto de este paso los crea, uno por uno; cuando
+guardes el último, todos los errores se apagan solos. (El orden es
+deliberado: primero el mapa —las rutas—, después los territorios —los
+componentes que las habitan.)
+
 Fíjate en el `import "./index.css"`: es la línea que mantiene vivos los
 estilos del paso 5. El template la traía y un reemplazo descuidado la
 pierde — y su ausencia **no da ningún error**: la app compila, corre y se
@@ -290,28 +300,78 @@ página 404. El `<Route element={<Layout />}>` sin `path` es una **ruta
 layout**: envuelve a las otras y les presta la Navbar y el Footer (lo
 construimos en el paso 9).
 
+### Los cinco stubs, uno por uno
+
 Los componentes importados aún no existen: créalos **como stubs mínimos**
 para que el proyecto compile — el mismo truco de la guía 1 con el paquete
-`app/`: primero la estructura, luego el contenido. Crea estos cinco archivos
-con esta forma (cambiando el nombre del componente en cada uno):
+`app/`: primero la estructura, luego el contenido. Un stub es un componente
+válido pero de mentira: función con nombre, un `return`, cero lógica.
 
-```
-src/components/Layout.tsx             → export default function Layout()
-src/features/landing/Landing.tsx      → export default function Landing()
-src/features/catalogo/Catalogo.tsx    → export default function Catalogo()
-src/features/catalogo/FichaProducto.tsx → export default function FichaProducto()
-src/features/catalogo/NoEncontrado.tsx  → export default function NoEncontrado()
-```
+Son **cinco archivos nuevos, cada uno en su carpeta** — y fíjate que dos de
+esas carpetas tampoco existen todavía (`components/` y `features/`): se
+crean junto con el primer archivo que guardes en ellas (tu editor ofrece
+crear la ruta completa al guardar; si no, crea las carpetas a mano).
+Créalos en este orden, con este contenido exacto:
+
+**1. `src/components/Layout.tsx`** — el molde que envuelve todas las
+páginas; lo construimos de verdad en el paso 9:
 
 ```tsx
-export default function Landing() {
-  return <main className="p-6">Landing — la construimos en el paso 10</main>;
+export default function Layout() {
+  return <main className="p-6">Layout — en construcción</main>;
 }
 ```
 
+**2. `src/features/landing/Landing.tsx`** — la portada de la tienda;
+paso 10:
+
+```tsx
+export default function Landing() {
+  return <main className="p-6">Landing — en construcción</main>;
+}
+```
+
+**3. `src/features/catalogo/Catalogo.tsx`** — el listado de productos;
+guía 4:
+
+```tsx
+export default function Catalogo() {
+  return <main className="p-6">Catálogo — en construcción</main>;
+}
+```
+
+**4. `src/features/catalogo/FichaProducto.tsx`** — el detalle de un
+producto; guía 4:
+
+```tsx
+export default function FichaProducto() {
+  return <main className="p-6">Ficha — en construcción</main>;
+}
+```
+
+**5. `src/features/catalogo/NoEncontrado.tsx`** — la página 404; paso 11:
+
+```tsx
+export default function NoEncontrado() {
+  return <main className="p-6">404 — en construcción</main>;
+}
+```
+
+Los cinco tienen la misma forma de tres líneas: solo cambian el nombre de
+la función y el texto que muestra. En cuanto guardes el quinto, los errores
+rojos del comienzo del paso desaparecen: cada import de `main.tsx` ya tiene
+a quién llamar.
+
 Y ahora sí: **borra** `src/App.tsx`, `src/App.css` y `src/react.svg` —
 demostraciones del template que ya nadie importa (fíjate que el nuevo
-`main.tsx` no las menciona).
+`main.tsx` no las menciona). Si `npm run dev` quedó corriendo, la ventana
+del navegador ya se recuperó sola al guardar el último stub: Vite detecta
+cada archivo nuevo y recarga. Al abrir `http://localhost:5173` verás
+"Layout — en construcción" — y solo eso, en cualquier ruta que pruebes.
+¿Por qué no aparece la Landing en `/` ni el 404 en `/xyz`? Porque el stub
+de `Layout` todavía no tiene `<Outlet />` — el marcador donde las rutas
+hijas se dibujan dentro de un layout. Llega con el Layout real, en el
+paso 9.
 
 ✅ **Mini-verificación:** desde `frontend/`, ejecuta:
 
