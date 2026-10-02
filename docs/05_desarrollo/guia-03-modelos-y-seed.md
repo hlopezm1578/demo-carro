@@ -166,14 +166,34 @@ lleva `unique=True, index=True`: es la llave natural estable del catálogo
 (§2.3.6 del diseño) y la siembra del paso 5 depende de ella para decidir
 "¿creo o actualizo?".*
 
-Continúa **`app/models/producto.py`** (agrega los imports de SQLAlchemy y la
-clase, después del enum):
+El **`app/models/producto.py`** del paso 2 sigue creciendo: mismo archivo,
+ahora con el modelo. Para que no haya duda de dónde va cada pieza,
+**reemplázalo completo** por esta versión final:
 
 ```python
+"""Modelo Producto y enum FamiliaAromatica (tabla `productos`)."""
+
+import enum
+
 from sqlalchemy import JSON, Boolean, Enum, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
+
+
+class FamiliaAromatica(str, enum.Enum):
+    """Familia aromática del catálogo: Cítricas, Florales, Frutales, Dulces.
+
+    SQLAlchemy persiste los NOMBRES de los miembros, no los valores, por eso
+    cada miembro se declara con nombre == valor: la BD guarda "citricas" y la
+    API devuelve ese mismo slug ASCII sin acentos (RN-01). La SPA mapea el
+    slug a la etiqueta con acento ("Cítricas").
+    """
+
+    citricas = "citricas"
+    florales = "florales"
+    frutales = "frutales"
+    dulces = "dulces"
 
 
 class Producto(Base):
@@ -195,6 +215,12 @@ class Producto(Base):
     def __repr__(self) -> str:
         return f"<Producto {self.sku} {self.nombre!r}>"
 ```
+
+Respecto de lo que escribiste en el paso 2, solo cambiaron dos cosas: los
+imports de SQLAlchemy y de `Base` se agregaron **arriba**, agrupados con
+`import enum` (la convención de Python: imports juntos al inicio del
+archivo, no intercalados), y la clase `Producto` va al final, después del
+enum. El docstring y el enum son literal los que ya tenías.
 
 La tabla contra el diccionario de §2.2, campo a campo: `id` (clave primaria) ·
 `sku` (único, 20) · `nombre` (120) · `descripcion` (texto largo) · `precio`
