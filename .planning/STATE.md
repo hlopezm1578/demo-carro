@@ -1,20 +1,18 @@
 ---
 gsd_state_version: "1.0"
 milestone: v2.25.0
-current_phase: 5
-current_plan: Not started
-status: completed
+status: Awaiting next milestone
 stopped_at: Phase 5 complete — all phases complete
-last_updated: "2026-10-02T10:59:07.405Z"
+last_updated: "2026-10-02T11:09:57.190Z"
 last_activity: 2026-10-02
-last_activity_desc: Phase 5 complete
-state_head: 9ee45dd8e6fbc3f3dc5e4f56b65641f2a49a3245
+last_activity_desc: Milestone v2.25.0 completed and archived
+state_head: 88bb91c5bcb4a25ff33b3773136a247bb85b4f15
 progress:
   total_phases: 5
   completed_phases: 5
   total_plans: 29
   completed_plans: 29
-  percent: 100
+current_phase: 5
 ---
 
 # Project State
@@ -28,13 +26,10 @@ See: .planning/PROJECT.md (updated 2026-10-02)
 
 ## Current Position
 
-Phase: 5
-Current Plan: Not started
-Total Plans in Phase: 5
-Status: All phases complete
-Last activity: 2026-10-02 — Phase 5 complete
-
-Progress: [██████████] 100%
+Phase: Milestone v2.25.0 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-10-02 — Milestone v2.25.0 completed and archived
 
 ## Performance Metrics
 
@@ -223,3 +218,7 @@ Items acknowledged and deferred at milestone close, most recent first:
 Last session: 2026-10-02
 Stopped at: Phase 5 complete (UAT 2/2, verification passed, SECURITY threats_open 0) — milestone v2.25.0 al 100%, listo para /gsd-complete-milestone v2.25.0
 Resume file: None
+
+## Operator Next Steps
+
+- Start the next milestone with /gsd-new-milestone

@@ -32,7 +32,7 @@ catálogo real.
 
 ### Active
 
-*(none — milestone v2.25.0 completo; los ítems v2/v2+ viven diferidos en REQUIREMENTS.md y docs/08)*
+*(none — v2.25.0 shipped 2026-10-02; los ítems v2/v2+ quedaron diferidos en el archivo del milestone y en docs/08_mantenimiento.md; el próximo milestone parte con /gsd:new-milestone)*
 
 ### Out of Scope
 
@@ -43,6 +43,15 @@ catálogo real.
 - Renderizado de plantillas en el servidor (MVC clásico) — el objetivo pedagógico exige SPA + API separadas
 
 ## Context
+
+**Estado tras v2.25.0 (2026-10-02):** guía completa y cerrada — 18 guías de desarrollo,
+20 ADRs, contrato API 0.4.0, docs del ciclo 01-08 con las 8 filas del recorrido en ✅ Listo;
+5 fases GSD ejecutadas en 5 días (284 commits, ~21.900 LOC en `docs/`). El repositorio es
+guide-only (D-17/ADR-008): la aplicación vive en las guías; el taller de verificación delegada
+existe en `D:/Repos/maura-uat` (hermanado a las guías, con servers y fixes espejados).
+Deuda conocida: 7 findings del code review de la fase 5 con disposition deliberado
+(4 warnings + 3 infos, `05-REVIEW-DISPOSITION.md`); WR-02 y WR-04 tocan bloques que el
+alumno copia y merecen un fix menor en una próxima pasada de contenido.
 
 - Proyecto hermano de `demo-cine` (primera guía del ciclo); replica su formato: fases
   documentadas con ADRs, contrato de API y guías de desarrollo paso a paso.
@@ -106,4 +115,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-10-02 after Phase 05 (milestone v2.25.0 completo)*
+*Last updated: 2026-10-02 after v2.25.0 milestone*
