@@ -1191,15 +1191,44 @@ siempre. La regla 5 de las dependencias gana su primera excepción
 narrada: todo el HTTP del frontend sale de `lib/api.ts`… excepto esta
 navegación, que no es HTTP de la SPA sino del navegador mismo.*
 
-En **`backend/app/main.py`**, extiende el import de routers:
+En **`backend/app/main.py`** son tres frentes: el import de routers gana
+tres nombres (`checkout`, `retorno`, `pedidos`), tres registros nuevos van
+al final del archivo, y la versión sube a `0.3.0`. El CORS NO se toca —
+ninguna línea. El archivo completo queda así:
 
 ```python
+"""Composición de la aplicación FastAPI.
+
+Solo este archivo arma la app (regla de la arquitectura en capas, ADR-001):
+crea la instancia, agrega middlewares y registra los routers con sus
+prefijos /api. No contiene lógica de negocio.
+"""
+
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+from app.config import settings
 from app.routers import admin, auth, checkout, pedidos, productos, retorno, salud
-```
 
-…los registros junto a los existentes, al final del archivo:
+app = FastAPI(
+    title="Maura API",
+    version="0.3.0",  # la del contrato que implementas (ADR-007)
+    description=(
+        "API del catálogo de la tienda Maura · Body Splash. Tier servidor de "
+        "los dos tiers: solo JSON bajo /api, jamás plantillas HTML."
+    ),
+)
 
-```python
+# CORS con orígenes y métodos EXPLÍCITOS desde settings (ADR-002). La fase
+# 1 solo leía (GET); la etapa 2 trae los primeros POST (registro y login):
+# CORS crece con la API, siempre lista explícita — jamás comodín.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.cors_origins,
+    allow_methods=["GET", "POST"],
+    allow_headers=["*"],  # incluye Authorization: Bearer ...
+)
+
 app.include_router(salud.router, prefix="/api/salud")
 app.include_router(productos.router, prefix="/api/productos")
 app.include_router(auth.router, prefix="/api/auth")
@@ -1207,12 +1236,6 @@ app.include_router(admin.router, prefix="/api/admin")
 app.include_router(checkout.router, prefix="/api/checkout")
 app.include_router(retorno.router, prefix="/api/pago")
 app.include_router(pedidos.router, prefix="/api/pedidos")
-```
-
-…y en el `FastAPI(...)`, sube la versión que la app declara de sí misma:
-
-```python
-version="0.3.0"  # la del contrato que implementas (ADR-007: panel y contrato dicen lo mismo)
 ```
 
 ✅ **Mini-verificación:** enciende la API (`uv run fastapi dev app/main.py`

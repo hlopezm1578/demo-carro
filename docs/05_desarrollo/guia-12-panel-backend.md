@@ -1013,15 +1013,35 @@ error CORS que no tiene nada que ver con tu código. La cura es la misma
 línea de la guía 5: los verbos nuevos entran a la lista EXPLÍCITA — jamás
 el comodín `["*"]` de métodos.*
 
-En **`backend/app/main.py`**, sube la versión en el `FastAPI(...)`:
+En **`backend/app/main.py`** son dos líneas en dos lugares: la versión del
+`FastAPI(...)` sube a `0.4.0` y el middleware CORS gana los dos verbos
+nuevos. El import y los registros no se tocan — el router `admin` existe
+desde la guía 5; hoy cambió su CONTENIDO, no su registro. El archivo
+completo queda así:
 
 ```python
-version="0.4.0"  # la del contrato que implementas (ADR-007: panel y contrato dicen lo mismo)
-```
+"""Composición de la aplicación FastAPI.
 
-Y en el middleware CORS, agrega los dos verbos nuevos a la lista explícita:
+Solo este archivo arma la app (regla de la arquitectura en capas, ADR-001):
+crea la instancia, agrega middlewares y registra los routers con sus
+prefijos /api. No contiene lógica de negocio.
+"""
 
-```python
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+from app.config import settings
+from app.routers import admin, auth, checkout, pedidos, productos, retorno, salud
+
+app = FastAPI(
+    title="Maura API",
+    version="0.4.0",  # la del contrato que implementas (ADR-007)
+    description=(
+        "API del catálogo de la tienda Maura · Body Splash. Tier servidor de "
+        "los dos tiers: solo JSON bajo /api, jamás plantillas HTML."
+    ),
+)
+
 # CORS con orígenes y métodos EXPLÍCITOS (ADR-002). Crece con la API: la
 # etapa 4 trae los primeros PUT (editor) y PATCH (toggle, transición) —
 # siempre lista explícita, jamás comodín.
@@ -1031,6 +1051,14 @@ app.add_middleware(
     allow_methods=["GET", "POST", "PUT", "PATCH"],
     allow_headers=["*"],  # incluye Authorization: Bearer ...
 )
+
+app.include_router(salud.router, prefix="/api/salud")
+app.include_router(productos.router, prefix="/api/productos")
+app.include_router(auth.router, prefix="/api/auth")
+app.include_router(admin.router, prefix="/api/admin")
+app.include_router(checkout.router, prefix="/api/checkout")
+app.include_router(retorno.router, prefix="/api/pago")
+app.include_router(pedidos.router, prefix="/api/pedidos")
 ```
 
 ✅ **Mini-verificación:** con la API re-encendida, el título de

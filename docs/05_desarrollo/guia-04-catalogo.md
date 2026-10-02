@@ -301,16 +301,44 @@ string) y deja la regla visible donde el framework y el lector la buscan. Es la
 contracara del 422 automático: ese lo produce la validación de la firma; el 404
 lo produce tu código — y por eso hay que declararlo tú también en la firma.
 
-Y registra el router en **`backend/app/main.py`** — dos líneas, composición
-no lógica (ADR-001): el import junto al de `salud`…
+Y registra el router en **`backend/app/main.py`**. Son dos cambios: en el
+import de routers, `productos` se suma a `salud` —misma línea, ahora con dos
+nombres—, y al final del archivo va una línea nueva de registro. Composición,
+no lógica (ADR-001). El archivo completo queda así — todo lo que no toca
+`productos` está tal cual lo dejaste en la guía 1:
 
 ```python
+"""Composición de la aplicación FastAPI.
+
+Solo este archivo arma la app (regla de la arquitectura en capas, ADR-001):
+crea la instancia, agrega middlewares y registra los routers con sus
+prefijos /api. No contiene lógica de negocio.
+"""
+
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+from app.config import settings
 from app.routers import productos, salud
-```
 
-…y el registro junto al existente, al final del archivo:
+app = FastAPI(
+    title="Maura API",
+    version="0.1.0",
+    description=(
+        "API del catálogo de la tienda Maura · Body Splash. Tier servidor de "
+        "los dos tiers: solo JSON bajo /api, jamás plantillas HTML."
+    ),
+)
 
-```python
+# CORS con orígenes EXPLÍCITOS desde settings (ADR-002): lista de
+# desarrollo, nunca una lista comodín.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.cors_origins,
+    allow_methods=["GET"],
+    allow_headers=["*"],
+)
+
 app.include_router(salud.router, prefix="/api/salud")
 app.include_router(productos.router, prefix="/api/productos")
 ```

@@ -748,29 +748,54 @@ def estado(
     }
 ```
 
-Registra ambos en **`backend/app/main.py`** — el import junto a los
-existentes:
+Registra ambos en **`backend/app/main.py`** — y de paso, un detalle de
+coherencia que la Gran verificación final de la guía 8 va a medir: el
+título de `/docs` muestra la versión que la app declara de sí misma, y hoy
+implementas el contrato **0.2.0** — el panel debe decir lo mismo que él
+(ADR-007: una app que implementa 0.2.0 presentándose como 0.1.0 es un
+desvío que la comparación de cierre detectaría). En total, tres cambios:
+`admin` y `auth` se suman al import de routers, sus dos registros van al
+final del archivo, y la versión sube de `"0.1.0"` a `"0.2.0"`. El archivo
+completo queda así — todo lo que no toca esos tres puntos está tal cual lo
+dejaste en la guía 4 (el CORS todavía no cambia: es el paso siguiente):
 
 ```python
+"""Composición de la aplicación FastAPI.
+
+Solo este archivo arma la app (regla de la arquitectura en capas, ADR-001):
+crea la instancia, agrega middlewares y registra los routers con sus
+prefijos /api. No contiene lógica de negocio.
+"""
+
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+from app.config import settings
 from app.routers import admin, auth, productos, salud
-```
 
-…y los registros junto al de productos, al final del archivo:
+app = FastAPI(
+    title="Maura API",
+    version="0.2.0",  # la del contrato que implementas (ADR-007)
+    description=(
+        "API del catálogo de la tienda Maura · Body Splash. Tier servidor de "
+        "los dos tiers: solo JSON bajo /api, jamás plantillas HTML."
+    ),
+)
 
-```python
+# CORS con orígenes EXPLÍCITOS desde settings (ADR-002): lista de
+# desarrollo, nunca una lista comodín.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.cors_origins,
+    allow_methods=["GET"],
+    allow_headers=["*"],
+)
+
 app.include_router(salud.router, prefix="/api/salud")
 app.include_router(productos.router, prefix="/api/productos")
 app.include_router(auth.router, prefix="/api/auth")
 app.include_router(admin.router, prefix="/api/admin")
 ```
-
-Y un detalle de coherencia que la Gran verificación final de la guía 8 va a
-medir: el título de `/docs` muestra la versión que la app declara de sí
-misma — y hoy implementas el contrato **0.2.0**. En el `FastAPI(...)` de
-`main.py`, sube `version="0.1.0"` a `version="0.2.0"`: el contrato es la
-fuente de la verdad (ADR-007) y el panel debe decir lo mismo que él — una
-app que implementa 0.2.0 presentándose como 0.1.0 es un desvío que la
-comparación de cierre detectaría.
 
 ✅ **Mini-verificación:** enciende la API (`uv run fastapi dev app/main.py`
 desde `backend/`) y abre **http://localhost:8000/docs**:
@@ -805,9 +830,33 @@ de orígenes de ADR-002). `allow_headers=["*"]` ya cubre `Authorization`,
 que el Bearer del paso 11 necesita. Narrarlo así: **el CORS crece con la
 API** — cada verbo nuevo que la SPA necesite cruzar origen, se declara.*
 
-En **`backend/app/main.py`**, actualiza el middleware:
+En **`backend/app/main.py`**, actualiza el middleware. El archivo completo
+queda así — lo único que cambia respecto del paso anterior es el bloque
+CORS (dos líneas de comentario y `"POST"` en la lista):
 
 ```python
+"""Composición de la aplicación FastAPI.
+
+Solo este archivo arma la app (regla de la arquitectura en capas, ADR-001):
+crea la instancia, agrega middlewares y registra los routers con sus
+prefijos /api. No contiene lógica de negocio.
+"""
+
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+from app.config import settings
+from app.routers import admin, auth, productos, salud
+
+app = FastAPI(
+    title="Maura API",
+    version="0.2.0",  # la del contrato que implementas (ADR-007)
+    description=(
+        "API del catálogo de la tienda Maura · Body Splash. Tier servidor de "
+        "los dos tiers: solo JSON bajo /api, jamás plantillas HTML."
+    ),
+)
+
 # CORS con orígenes y métodos EXPLÍCITOS desde settings (ADR-002). La fase
 # 1 solo leía (GET); la etapa 2 trae los primeros POST (registro y login):
 # CORS crece con la API, siempre lista explícita — jamás comodín.
@@ -817,6 +866,11 @@ app.add_middleware(
     allow_methods=["GET", "POST"],
     allow_headers=["*"],  # incluye Authorization: Bearer ...
 )
+
+app.include_router(salud.router, prefix="/api/salud")
+app.include_router(productos.router, prefix="/api/productos")
+app.include_router(auth.router, prefix="/api/auth")
+app.include_router(admin.router, prefix="/api/admin")
 ```
 
 ✅ **Mini-verificación (el preflight, provocado a propósito):** con la API

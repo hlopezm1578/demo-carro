@@ -700,24 +700,67 @@ existiera una sola línea de esta guía), nada de CORS (el endpoint es un
 POST JSON más entre los que ya cruzan; en desarrollo el proxy de Vite
 los hace same-origin, como todos desde la guía 2), nada de dependencias
 globales (el endpoint es público: no hay candado que declarar). Solo el
-`include_router` con su prefijo — el mismo molde de las nueve inclusiones
+`include_router` con su prefijo — el mismo molde de las siete inclusiones
 que ya viven en `main.py`. Cuando el paso final de una integración es
 una línea, las capas hicieron su trabajo.*
 
-En **`backend/app/main.py`**, agrega el import junto a los de los demás
-routers:
+En **`backend/app/main.py`** son dos líneas que ya conoces: `asistente`
+entra al import de routers —la línea crece a ocho nombres— y su registro
+va al final. Nada más cambia. El archivo completo queda así:
 
 ```python
-from app.routers import asistente
-```
+"""Composición de la aplicación FastAPI.
 
-Y al final de la lista de inclusiones:
+Solo este archivo arma la app (regla de la arquitectura en capas, ADR-001):
+crea la instancia, agrega middlewares y registra los routers con sus
+prefijos /api. No contiene lógica de negocio.
+"""
 
-```python
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+from app.config import settings
+from app.routers import (
+    admin,
+    asistente,
+    auth,
+    checkout,
+    pedidos,
+    productos,
+    retorno,
+    salud,
+)
+
+app = FastAPI(
+    title="Maura API",
+    version="0.4.0",  # la del contrato que implementas (ADR-007)
+    description=(
+        "API del catálogo de la tienda Maura · Body Splash. Tier servidor de "
+        "los dos tiers: solo JSON bajo /api, jamás plantillas HTML."
+    ),
+)
+
+# CORS con orígenes y métodos EXPLÍCITOS (ADR-002). Crece con la API: la
+# etapa 4 trae los primeros PUT (editor) y PATCH (toggle, transición) —
+# siempre lista explícita, jamás comodín.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.cors_origins,
+    allow_methods=["GET", "POST", "PUT", "PATCH"],
+    allow_headers=["*"],  # incluye Authorization: Bearer ...
+)
+
+app.include_router(salud.router, prefix="/api/salud")
+app.include_router(productos.router, prefix="/api/productos")
+app.include_router(auth.router, prefix="/api/auth")
+app.include_router(admin.router, prefix="/api/admin")
+app.include_router(checkout.router, prefix="/api/checkout")
+app.include_router(retorno.router, prefix="/api/pago")
+app.include_router(pedidos.router, prefix="/api/pedidos")
 app.include_router(asistente.router, prefix="/api/asistente")
 ```
 
-✅ **Mini-verificación:** enciende la API (`uv run fastapi dev app/main`
+✅ **Mini-verificación:** enciende la API (`uv run fastapi dev app/main.py`
 desde `backend/`) y abre **http://localhost:8000/docs**:
 
 1. El título sigue diciendo **Maura API 0.4.0** — la versión no se toca:
