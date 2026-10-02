@@ -45,9 +45,26 @@ maura/
 └── (por ahora, vacío)
 ```
 
+Antes del primer comando, comprueba que uv está instalado: `uv --version`.
+Si la terminal no reconoce el comando, instálalo desde
+[docs.astral.sh/uv](https://docs.astral.sh/uv/getting-started/installation/).
+En Windows, ejecuta el instalador oficial en PowerShell:
+
+```
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+```
+
+En macOS o Linux:
+
+```
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+Y si ya tienes Python, `pip install uv` también sirve. Tras instalar, cierra
+y reabre la terminal para que el comando nuevo quede en el PATH.
+
 ✅ **Mini-verificación:** tu terminal, parada en la carpeta nueva, responde a
-`uv --version` con algo como `uv 0.9.x`. Si no reconoce el comando, instala uv
-primero y vuelve.
+`uv --version` con algo como `uv 0.9.x`.
 
 ---
 
