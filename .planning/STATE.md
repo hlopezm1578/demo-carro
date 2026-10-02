@@ -22,7 +22,7 @@ current_phase: 5
 See: .planning/PROJECT.md (updated 2026-10-02)
 
 **Core value:** La guía documenta el ciclo de vida completo y, siguiéndola en orden, la aplicación queda construida y operativa: tienda con catálogo, carro, checkout Webpay sandbox, cuentas JWT, panel admin y asistente IA sobre el catálogo real.
-**Current focus:** Milestone v2.25.0 completo (5/5 fases) — próximo paso: /gsd-complete-milestone v2.25.0
+**Current focus:** v2.25.0 Guía Completa shipped y archivado (2026-10-02, closeout override documentado en MILESTONES.md) — próximo paso: /gsd-new-milestone
 
 ## Current Position
 
@@ -216,7 +216,7 @@ Items acknowledged and deferred at milestone close, most recent first:
 ## Session Continuity
 
 Last session: 2026-10-02
-Stopped at: Phase 5 complete (UAT 2/2, verification passed, SECURITY threats_open 0) — milestone v2.25.0 al 100%, listo para /gsd-complete-milestone v2.25.0
+Stopped at: Milestone v2.25.0 shipped y archivado (override_closeout aprobado por el usuario; audit-open limpio; tag v2.25.0 creado) — próximo: /gsd-new-milestone
 Resume file: None
 
 ## Operator Next Steps
