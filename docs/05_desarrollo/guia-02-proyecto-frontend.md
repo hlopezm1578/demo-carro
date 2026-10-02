@@ -65,15 +65,31 @@ número: es parte del entorno que tu proyecto asume.
 conjunto. La tentación es "mejorarle" la versión de TypeScript a la última —
 no lo hagas: el template fija `~6.0.2` porque es la combinación probada con
 Vite 8 y React 19 (la 7.x es demasiado nueva). TypeScript **no se instala
-aparte**: ya viene en el template, con su versión correcta. Mis únicas
-decisiones de hoy son el nombre de la carpeta (`frontend`, la hermana de
-`backend/` en el monorepo, ADR-003) y el template (`react-ts`, ADR-004).*
+aparte**: ya viene en el template, con su versión correcta. Mis decisiones de
+hoy: el nombre de la carpeta (`frontend`, la hermana de `backend/` en el
+monorepo, ADR-003), el template (`react-ts`, ADR-004) — y las dos preguntas
+que el scaffold hace en consola antes de generar el proyecto, que respondemos
+abajo.*
 
 Desde la raíz de tu monorepo (donde está `backend/`), ejecuta:
 
 ```
 npm create vite@latest frontend -- --template react-ts
 ```
+
+El template fija framework y variantes, pero las versiones actuales de
+`create-vite` hacen **dos preguntas más** en consola:
+
+1. **`Which linter to use?`** — elige **Oxlint** (la primera opción: basta
+   con `Enter`). Oxlint es el linter que el template React trae configurado
+   de fábrica — escrito en Rust, mucho más rápido que ESLint — y trae su
+   config (`.oxlintrc.json`) y el script `npm run lint` listos. ESLint sigue
+   siendo el estándar histórico, pero su ecosistema de plugins no aporta
+   nada a este proyecto: usamos lo que el scaffold entrega.
+2. **`Install with npm and start now?`** — responde **No** (`Enter`): la
+   instalación la hacemos a mano en el comando siguiente, viendo qué hace
+   cada paso. Un "sí" aquí instalaría dependencias y levantaría el servidor
+   de una — atajo que hoy no tomamos.
 
 Entra a la carpeta e instala las dependencias del scaffold:
 
@@ -84,7 +100,8 @@ npm install
 
 ✅ **Mini-verificación:** abre `frontend/package.json`: en `dependencies`
 figura `"react": "^19.3.0"` (o 19.x) y en `devDependencies`
-`"typescript": "~6.0.2"`. Si quieres adelantar la recompensa: `npm run dev`
+`"typescript": "~6.0.2"` y `"oxlint"` — el linter que elegiste en la
+pregunta de consola. Si quieres adelantar la recompensa: `npm run dev`
 muestra la página de demo de Vite en `http://localhost:5173` (detén con
 `Ctrl+C`; la volveremos a encender más adelante).
 
