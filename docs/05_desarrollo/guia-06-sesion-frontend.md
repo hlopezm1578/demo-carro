@@ -53,7 +53,96 @@ revisa antes que tú.
 
 ---
 
-## Paso 2 — `stores/useAuthStore.ts`: la sesión que sobrevive recargas
+## Paso 2 — `types/api.ts`: los schemas nuevos, espejados a mano
+
+🧠 **El desarrollador piensa:** *el mismo ejercicio de la guía 2 (D-09
+heredado): abrir `contrato_api.yaml` 0.2.0 y traducir sus schemas nuevos a
+TypeScript, campo a campo, SIN generación automática. `UsuarioPublico`
+(id/email/rol — fíjate que `hashed_password` no existe: no cruza la
+frontera, RN-07), `Token` (access_token/token_type) y `RegistroPayload`
+(espejo de `RegistroCreate`). Escribir `rol: Rol` con
+`Rol = "cliente" | "admin"` es leer la regla AUTH-03 en dos idiomas — el
+del contrato y el del compilador — y que el compilador la haga cumplir.
+Y van ANTES del store que las usa: los tipos son el proveedor, el store
+del paso siguiente el consumidor — proveedor primero, consumidor después,
+el mismo orden que el backend practicó todo el proyecto.*
+
+**Reemplaza `frontend/src/types/api.ts` completo** — el archivo entero de
+la guía 2, más el bloque de la etapa 2 al final:
+
+```typescript
+// Espejo manual de los schemas del contrato_api.yaml (ADR-004, D-09).
+// Compara campo a campo: required en YAML = campo sin "?" aquí.
+export type Familia = "citricas" | "florales" | "frutales" | "dulces";
+
+export interface ProductoResumen {
+  id: number;
+  sku: string;
+  nombre: string;
+  precio: number; // CLP entero (RN-02), sin decimales
+  familia: Familia;
+  imagen: string; // "/products/citricas-01.jpg" — ruta local (RN-03)
+}
+
+export interface ProductoDetalle extends ProductoResumen {
+  descripcion: string;
+  notas: string[];
+  stock: number;
+}
+
+// Slug ASCII (lo que viaja) → etiqueta con acento (lo que se muestra)
+export const FAMILIA_LABELS: Record<Familia, string> = {
+  citricas: "Cítricas",
+  florales: "Florales",
+  frutales: "Frutales",
+  dulces: "Dulces",
+};
+
+// Color del badge de familia por pantalla (docs/03_diseno.md §4.1)
+export const FAMILIA_BADGES: Record<Familia, string> = {
+  citricas: "bg-amber-100 text-amber-800",
+  florales: "bg-pink-100 text-pink-800",
+  frutales: "bg-rose-100 text-rose-800",
+  dulces: "bg-violet-100 text-violet-800",
+};
+
+// --- Etapa 2: cuentas (espejo de contrato_api.yaml 0.2.0) ---
+
+export type Rol = "cliente" | "admin";
+
+export interface UsuarioPublico {
+  id: number;
+  email: string;
+  rol: Rol; // viaja como claim en el token desde que se emite (AUTH-03)
+}
+
+export interface Token {
+  access_token: string;
+  token_type: string;
+}
+
+// Espejo de RegistroCreate: mínimo 8 SIN composición (RN-05)
+export interface RegistroPayload {
+  email: string;
+  password: string;
+}
+```
+
+✅ **Mini-verificación:** experimento del compilador, como en la guía 2:
+agrega al final del archivo esta línea con un rol inventado:
+
+```typescript
+const rolMalo: Rol = "superadmin";
+```
+
+`npm run build` **falla** con
+`Type '"superadmin"' is not assignable to type 'Rol'` — el compilador acaba
+de impedir que un rol que no existe llegue a la pantalla. Borra la línea y
+el build vuelve a pasar.
+
+---
+
+## Paso 3 — `stores/useAuthStore.ts`: la sesión que sobrevive recargas
 
 🧠 **El desarrollador piensa:** *tres decisiones de ADR-009 hechas código.
 **Primera: el store guarda `token` y `usuario`** — el par que compone la
@@ -117,56 +206,6 @@ export const useAuthStore = create<EstadoAuth>()(
 persistencia (recargar y seguir vivo) llega en el paso 10 — hoy solo
 comprueba que el store compila; su consumidor llega en los pasos
 siguientes.
-
----
-
-## Paso 3 — `types/api.ts`: los schemas nuevos, espejados a mano
-
-🧠 **El desarrollador piensa:** *el mismo ejercicio de la guía 2 (D-09
-heredado): abrir `contrato_api.yaml` 0.2.0 y traducir sus schemas nuevos a
-TypeScript, campo a campo, SIN generación automática. `UsuarioPublico`
-(id/email/rol — fíjate que `hashed_password` no existe: no cruza la
-frontera, RN-07), `Token` (access_token/token_type) y `RegistroPayload`
-(espejo de `RegistroCreate`). Escribir `rol: Rol` con
-`Rol = "cliente" | "admin"` es leer la regla AUTH-03 en dos idiomas — el
-del contrato y el del compilador — y que el compilador la haga cumplir.*
-
-Agrega al final de **`frontend/src/types/api.ts`**:
-
-```typescript
-// --- Etapa 2: cuentas (espejo de contrato_api.yaml 0.2.0) ---
-
-export type Rol = "cliente" | "admin";
-
-export interface UsuarioPublico {
-  id: number;
-  email: string;
-  rol: Rol; // viaja como claim en el token desde que se emite (AUTH-03)
-}
-
-export interface Token {
-  access_token: string;
-  token_type: string;
-}
-
-// Espejo de RegistroCreate: mínimo 8 SIN composición (RN-05)
-export interface RegistroPayload {
-  email: string;
-  password: string;
-}
-```
-
-✅ **Mini-verificación:** experimento del compilador, como en la guía 2:
-agrega al final del archivo esta línea con un rol inventado:
-
-```typescript
-const rolMalo: Rol = "superadmin";
-```
-
-`npm run build` **falla** con
-`Type '"superadmin"' is not assignable to type 'Rol'` — el compilador acaba
-de impedir que un rol que no existe llegue a la pantalla. Borra la línea y
-el build vuelve a pasar.
 
 ---
 
