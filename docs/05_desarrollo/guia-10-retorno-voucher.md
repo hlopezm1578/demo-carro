@@ -52,9 +52,66 @@ con Bearer, la misma función que la guía 6 creó para el registro: cero
 código nuevo en `lib/api.ts`, la regla cumple su promesa en el único
 lado donde aplicaba.*
 
-Agrega al final de **`frontend/src/types/api.ts`**:
+Reemplaza el contenido completo de **`frontend/src/types/api.ts`** por
+este — lo nuevo del paso es el bloque de la etapa 3 al final:
 
 ```typescript
+// Espejo manual de los schemas del contrato_api.yaml (ADR-004, D-09).
+// Compara campo a campo: required en YAML = campo sin "?" aquí.
+export type Familia = "citricas" | "florales" | "frutales" | "dulces";
+
+export interface ProductoResumen {
+  id: number;
+  sku: string;
+  nombre: string;
+  precio: number; // CLP entero (RN-02), sin decimales
+  familia: Familia;
+  imagen: string; // "/products/citricas-01.jpg" — ruta local (RN-03)
+}
+
+export interface ProductoDetalle extends ProductoResumen {
+  descripcion: string;
+  notas: string[];
+  stock: number;
+}
+
+// Slug ASCII (lo que viaja) → etiqueta con acento (lo que se muestra)
+export const FAMILIA_LABELS: Record<Familia, string> = {
+  citricas: "Cítricas",
+  florales: "Florales",
+  frutales: "Frutales",
+  dulces: "Dulces",
+};
+
+// Color del badge de familia por pantalla (docs/03_diseno.md §4.1)
+export const FAMILIA_BADGES: Record<Familia, string> = {
+  citricas: "bg-amber-100 text-amber-800",
+  florales: "bg-pink-100 text-pink-800",
+  frutales: "bg-rose-100 text-rose-800",
+  dulces: "bg-violet-100 text-violet-800",
+};
+
+// --- Etapa 2: cuentas (espejo de contrato_api.yaml 0.2.0) ---
+
+export type Rol = "cliente" | "admin";
+
+export interface UsuarioPublico {
+  id: number;
+  email: string;
+  rol: Rol; // viaja como claim en el token desde que se emite (AUTH-03)
+}
+
+export interface Token {
+  access_token: string;
+  token_type: string;
+}
+
+// Espejo de RegistroCreate: mínimo 8 SIN composición (RN-05)
+export interface RegistroPayload {
+  email: string;
+  password: string;
+}
+
 // --- Etapa 3: pago y pedidos (espejo de contrato_api.yaml 0.3.0) ---
 
 export type EstadoPedido = "pending" | "paid" | "cancelled" | "rejected";
@@ -128,11 +185,18 @@ carro sin comprar nada. La entrada de la mutación es `{ items }` tal
 cual: el store ya guarda SOLO pares `{producto_id, cantidad}` (D-27) —
 el payload del contrato, sin una línea de transformación.*
 
-En **`frontend/src/features/checkout/Checkout.tsx`**, extiende los
-imports — `useMutation` junto al `useQueries` que ya vive ahí, `apiPost`
-junto al `apiGet`, y el tipo nuevo:
+Reemplaza el contenido completo de
+**`frontend/src/features/checkout/Checkout.tsx`** por este — lo nuevo del
+paso: `useMutation`/`apiPost` en los imports, la mutación `pagar` después
+de leer el store (con el form POST auto-submit en su `onSuccess`), y el
+bloque deshabilitado de la guía 8 reemplazado por el CTA encendido con su
+aviso de error:
 
 ```tsx
+// El resumen del pedido (RF-09): pantalla protegida por RequireAuth — el
+// pedido queda asociado a la cuenta que nombra el subtítulo. Las líneas
+// NO tienen stepper (la sala de edición es /carro) y el CTA "Pagar con
+// Webpay" crea la orden y viaja a la pasarela por form POST (D-31).
 import { useMutation, useQueries } from "@tanstack/react-query";
 import { Link, Navigate, useNavigate } from "react-router";
 
@@ -140,11 +204,18 @@ import { ApiError, apiGet, apiPost } from "../../lib/api";
 import { useAuthStore } from "../../stores/useAuthStore";
 import { useCarroStore } from "../../stores/useCarroStore";
 import type { CheckoutRespuesta, ProductoDetalle } from "../../types/api";
-```
 
-Dentro del componente, después de leer el store, agrega la mutación:
+const clp = new Intl.NumberFormat("es-CL", {
+  style: "currency",
+  currency: "CLP",
+});
 
-```tsx
+export default function Checkout() {
+  const navegar = useNavigate();
+  const email = useAuthStore((s) => s.usuario?.email ?? null);
+  const items = useCarroStore((s) => s.items);
+  const quitar = useCarroStore((s) => s.quitar);
+
   // Encender el CTA (D-31 → PAY-01): crear la orden y viajar a Webpay.
   // El submit del form vive SOLO acá — en el onSuccess del clic — JAMÁS
   // en un useEffect (StrictMode monta dos veces en dev: dos órdenes).
@@ -169,13 +240,156 @@ Dentro del componente, después de leer el store, agrega la mutación:
       form.submit(); // la SPA se despide: full-page load hacia Webpay
     },
   });
-```
 
-Y al final de la card, **reemplaza el bloque deshabilitado completo** —
-el botón `disabled`, la nota "El pago llega en la etapa siguiente." y su
-párrafo — por el CTA encendido con su aviso de error:
+  // Misma hidratación por ítem que /carro: el MISMO queryKey (con String),
+  // la misma caché — llegar al checkout desde el carro no consulta nada
+  // nuevo.
+  const resultados = useQueries({
+    queries: items.map((item) => ({
+      queryKey: ["producto", String(item.producto_id)],
+      queryFn: () =>
+        apiGet<ProductoDetalle>(`api/productos/${item.producto_id}`),
+    })),
+  });
 
-```tsx
+  // Carro vacío CON sesión: un resumen sin líneas no existe como pantalla
+  // — no hay empty state propio del checkout, hay un redirect al carro.
+  if (items.length === 0) {
+    return <Navigate to="/carro" replace />;
+  }
+
+  // Error general (no-404): el backend no responde.
+  const falloGeneral = resultados.some(
+    (r) => r.isError && !(r.error instanceof ApiError && r.error.status === 404)
+  );
+  if (falloGeneral) {
+    return (
+      <main className="max-w-xl mx-auto px-4 py-16 text-center">
+        <h1 className="text-xl font-bold text-neutral-900">
+          No pudimos cargar tu pedido
+        </h1>
+        <p className="mt-2 text-sm text-neutral-600">
+          Revisa que el backend esté corriendo en el puerto 8000 e inténtalo
+          de nuevo.
+        </p>
+        <button
+          onClick={() => resultados.forEach((r) => r.isError && r.refetch())}
+          className="mt-6 bg-orange-600 text-white font-bold rounded-full px-6 py-2 min-h-11 hover:bg-orange-700 focus-visible:ring-2 focus-visible:ring-orange-600 focus:outline-none"
+        >
+          Reintentar
+        </button>
+      </main>
+    );
+  }
+
+  const cargando = resultados.some((r) => r.isPending);
+
+  // El total usa la cantidad tapada (RN-09), igual que en /carro.
+  const total = resultados.reduce((suma, r, i) => {
+    if (!r.data) return suma;
+    const { cantidad } = items[i];
+    return suma + Math.min(cantidad, r.data.stock) * r.data.precio;
+  }, 0);
+
+  return (
+    <main className="max-w-2xl mx-auto px-4 py-16">
+      <button
+        onClick={() => navegar(-1)}
+        className="text-sm text-orange-600 min-h-11 flex items-center focus-visible:ring-2 focus-visible:ring-orange-600 focus:outline-none"
+      >
+        ← Volver al carro
+      </button>
+
+      <h1 className="mt-4 text-2xl md:text-3xl font-extrabold text-neutral-900">
+        Resumen de tu pedido
+      </h1>
+      {email && (
+        <p className="mt-1 text-sm text-neutral-600">
+          Comprando como {email}
+        </p>
+      )}
+
+      <div className="mt-6 bg-white rounded-2xl border border-orange-100 p-6">
+        <ul className="divide-y divide-orange-100">
+          {items.map((item, i) => {
+            const r = resultados[i];
+            if (r.isPending) {
+              return (
+                <li
+                  key={item.producto_id}
+                  className="py-4 flex gap-4 items-center"
+                >
+                  <div className="h-6 w-2/3 animate-pulse bg-neutral-200 rounded-2xl" />
+                </li>
+              );
+            }
+            if (
+              r.isError &&
+              r.error instanceof ApiError &&
+              r.error.status === 404
+            ) {
+              return (
+                <li
+                  key={item.producto_id}
+                  className="py-4 text-sm text-neutral-600 flex flex-wrap gap-2 items-center justify-between"
+                >
+                  Este aroma ya no está disponible
+                  <button
+                    onClick={() => quitar(item.producto_id)}
+                    className="text-sm text-red-600 min-h-11 focus-visible:ring-2 focus-visible:ring-orange-600 focus:outline-none"
+                  >
+                    Quitar
+                  </button>
+                </li>
+              );
+            }
+            const producto = r.data;
+            if (!producto) return null;
+            const { cantidad } = item;
+            const enPantalla = Math.min(cantidad, producto.stock); // RN-09
+            return (
+              <li
+                key={item.producto_id}
+                className="py-4 flex flex-wrap gap-2 items-center justify-between"
+              >
+                <div>
+                  <Link
+                    to={`/productos/${producto.id}`}
+                    className="text-xl font-bold text-neutral-900 focus-visible:ring-2 focus-visible:ring-orange-600 focus:outline-none"
+                  >
+                    {producto.nombre}
+                  </Link>
+                  {producto.stock === 0 ? (
+                    <span className="ms-2 text-sm rounded-full px-2 py-1 bg-neutral-200 text-neutral-700">
+                      Agotado
+                    </span>
+                  ) : (
+                    <span className="ms-2 text-sm text-neutral-600">
+                      × {enPantalla}
+                    </span>
+                  )}
+                </div>
+                {producto.stock > 0 && (
+                  <p className="text-lg font-extrabold text-orange-700">
+                    {clp.format(enPantalla * producto.precio)}
+                  </p>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+
+        <div className="mt-2 pt-4 border-t-2 border-orange-100 flex items-baseline justify-between gap-4">
+          <span className="text-base font-bold text-neutral-900">Total</span>
+          {cargando ? (
+            <div className="h-8 w-28 animate-pulse bg-neutral-200 rounded-2xl" />
+          ) : (
+            <span className="text-2xl font-extrabold text-orange-700">
+              {clp.format(total)}
+            </span>
+          )}
+        </div>
+
         {pagar.isError && (
           <p className="mt-4 rounded-2xl bg-red-50 text-red-600 p-4 text-sm">
             {pagar.error instanceof ApiError
@@ -191,6 +405,10 @@ párrafo — por el CTA encendido con su aviso de error:
         >
           {pagar.isPending ? "Pagando…" : "Pagar con Webpay"}
         </button>
+      </div>
+    </main>
+  );
+}
 ```
 
 La nota "El pago llega en la etapa siguiente." desaparece con el bloque:
@@ -227,24 +445,56 @@ cortesía de UX para pantallas que no existen sin sesión; esta pantalla
 SÍ existe sin sesión — degradada. Y la ruta protegida `/pedidos` del
 historial llega en la guía 11, con su "Mis pedidos" en el navbar.)*
 
-En **`frontend/src/main.tsx`**, agrega el import junto a los de las
-features:
+Reemplaza el contenido completo de **`frontend/src/main.tsx`** por este
+— lo nuevo del paso: el import de `ResultadoPago` y la ruta pública
+`/pago/resultado` junto al `/carro` y FUERA del bloque `RequireAuth`:
 
 ```tsx
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import { BrowserRouter, Routes, Route } from "react-router";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+import "./index.css";
+import Layout from "./components/Layout";
+import Landing from "./features/landing/Landing";
+import Catalogo from "./features/catalogo/Catalogo";
+import FichaProducto from "./features/catalogo/FichaProducto";
+import NoEncontrado from "./features/catalogo/NoEncontrado";
+import Login from "./features/cuentas/Login";
+import Registro from "./features/cuentas/Registro";
+import Carro from "./features/carro/Carro";
+import RequireAuth from "./components/RequireAuth";
+import Checkout from "./features/checkout/Checkout";
 import ResultadoPago from "./features/pago/ResultadoPago";
-```
 
-Y la ruta dentro de `<Route element={<Layout />}>` — pública, junto al
-`/carro` y FUERA del bloque `RequireAuth`:
+const queryClient = new QueryClient();
 
-```tsx
-<Route path="/carro" element={<Carro />} />
-{/* PÚBLICA a propósito: el 302 del retorno llega sin sesión en la URL
-    (Pitfall 12) — la pantalla degrada con honestidad, no expulsa. */}
-<Route path="/pago/resultado" element={<ResultadoPago />} />
-<Route element={<RequireAuth />}>
-  <Route path="/checkout" element={<Checkout />} />
-</Route>
+createRoot(document.getElementById("root")!).render(
+  <StrictMode>
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <Routes>
+          <Route element={<Layout />}>
+            <Route path="/" element={<Landing />} />
+            <Route path="/productos" element={<Catalogo />} />
+            <Route path="/productos/:id" element={<FichaProducto />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/registro" element={<Registro />} />
+            <Route path="/carro" element={<Carro />} />
+            {/* PÚBLICA a propósito: el 302 del retorno llega sin sesión en la URL
+                (Pitfall 12) — la pantalla degrada con honestidad, no expulsa. */}
+            <Route path="/pago/resultado" element={<ResultadoPago />} />
+            <Route element={<RequireAuth />}>
+              <Route path="/checkout" element={<Checkout />} />
+            </Route>
+            <Route path="*" element={<NoEncontrado />} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </QueryClientProvider>
+  </StrictMode>
+);
 ```
 
 ✅ **Mini-verificación (la cara anulado, sin pagar nada):** la pantalla
