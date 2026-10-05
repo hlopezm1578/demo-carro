@@ -52,9 +52,145 @@ el chat NO es `useQuery` — no hay nada que cachear, refrescar ni
 re-fetchear: cada mensaje es un ENVÍO puntual con una respuesta única
 (D-57). La respuesta única se llama mutación, y el paso 2 la escribe.*
 
-En **`frontend/src/types/api.ts`**, agrega al final:
+Reemplaza el contenido completo de **`frontend/src/types/api.ts`** por
+este — lo nuevo del paso: el bloque de la asesora al final:
 
 ```typescript
+// Espejo manual de los schemas del contrato_api.yaml (ADR-004, D-09).
+// Compara campo a campo: required en YAML = campo sin "?" aquí.
+export type Familia = "citricas" | "florales" | "frutales" | "dulces";
+
+export interface ProductoResumen {
+  id: number;
+  sku: string;
+  nombre: string;
+  precio: number; // CLP entero (RN-02), sin decimales
+  familia: Familia;
+  imagen: string; // "/products/citricas-01.jpg" — ruta local (RN-03)
+}
+
+export interface ProductoDetalle extends ProductoResumen {
+  descripcion: string;
+  notas: string[];
+  stock: number;
+}
+
+// Slug ASCII (lo que viaja) → etiqueta con acento (lo que se muestra)
+export const FAMILIA_LABELS: Record<Familia, string> = {
+  citricas: "Cítricas",
+  florales: "Florales",
+  frutales: "Frutales",
+  dulces: "Dulces",
+};
+
+// Color del badge de familia por pantalla (docs/03_diseno.md §4.1)
+export const FAMILIA_BADGES: Record<Familia, string> = {
+  citricas: "bg-amber-100 text-amber-800",
+  florales: "bg-pink-100 text-pink-800",
+  frutales: "bg-rose-100 text-rose-800",
+  dulces: "bg-violet-100 text-violet-800",
+};
+
+// --- Etapa 2: cuentas (espejo de contrato_api.yaml 0.2.0) ---
+
+export type Rol = "cliente" | "admin";
+
+export interface UsuarioPublico {
+  id: number;
+  email: string;
+  rol: Rol; // viaja como claim en el token desde que se emite (AUTH-03)
+}
+
+export interface Token {
+  access_token: string;
+  token_type: string;
+}
+
+// Espejo de RegistroCreate: mínimo 8 SIN composición (RN-05)
+export interface RegistroPayload {
+  email: string;
+  password: string;
+}
+
+// --- Etapa 3: pago y pedidos (espejo de contrato_api.yaml 0.3.0) ---
+
+export type EstadoPedido = "pending" | "paid" | "cancelled" | "rejected";
+
+// Espejo de CheckoutRespuesta: los tres datos del form POST (PAY-01)
+export interface CheckoutRespuesta {
+  url: string;
+  token_ws: string; // el nombre EXACTO que exige Webpay en el wire
+  numero: string; // "MAURA-000001" — la orden recién nacida en pending (D-34)
+}
+
+export interface OrdenLista {
+  numero: string;
+  fecha: string; // ISO — el formato es asunto del render
+  total: number;
+  estado: EstadoPedido; // pending se muestra como "en curso" (RN-11)
+}
+
+export interface OrdenLinea {
+  nombre_snapshot: string; // congelado al comprar (RN-10)
+  precio_snapshot: number;
+  cantidad: number;
+}
+
+export interface OrdenDetalle extends OrdenLista {
+  lineas: OrdenLinea[];
+}
+
+// --- Etapa 4: panel de administración (espejo de contrato_api.yaml 0.4.0) ---
+
+export interface ProductoAdmin {
+  id: number;
+  nombre: string;
+  familia: Familia;
+  precio: number;
+  stock: number;
+  imagen: string;
+  activo: boolean; // el soft delete visible (D-52) — el catálogo público no lo muestra
+}
+
+// Espejo de ProductoCrear/ProductoEditar: la MISMA allow-list para crear
+// y para guardar (sin id ni activo — T-04-09, el mass assignment vetado).
+export interface ProductoPayload {
+  nombre: string;
+  descripcion: string;
+  familia: Familia;
+  precio: number;
+  stock: number;
+  notas: string[];
+  imagen: string;
+}
+
+export interface PedidoAdmin {
+  numero: string; // el legible, jamás el id interno (RN-13)
+  fecha: string;
+  email_clienta: string; // visible solo para admin (D-55)
+  total: number;
+  estado: EstadoPedido;
+}
+
+export interface ConteoEstados {
+  pending: number;
+  paid: number;
+  cancelled: number;
+  rejected: number;
+}
+
+export interface TopAroma {
+  nombre: string; // snapshot congelado al vender (D-36) — histórico
+  unidades: number;
+}
+
+export interface Metricas {
+  ingresos_totales: number;
+  pedidos_por_estado: ConteoEstados;
+  top_5: TopAroma[];
+  productos_stock_bajo: number;
+}
+
 // --- Etapa 4: la asesora de aromas (espejo de contrato_api.yaml 0.4.0) ---
 
 // Quién escribió cada mensaje del historial visible (ChatMensaje.rol)
@@ -66,9 +202,117 @@ export interface ChatRespuesta {
 }
 ```
 
-Y en **`frontend/src/lib/api.ts`**, agrega al final:
+Y reemplaza el contenido completo de **`frontend/src/lib/api.ts`** por
+este — lo nuevo del paso: `apiPostPublico` al final:
 
 ```typescript
+// Regla 5 (ADR-002): TODO el HTTP del frontend sale de este archivo.
+// La etapa 2 lo extiende sin romper la base de la guía 4: ApiError y la
+// URL base siguen intactos. Lo nuevo: pedir() adjunta el Bearer, vigila
+// el 401 (interceptor, D-22) y normaliza el detail del 422 (que FastAPI
+// manda como array, no string).
+import { useAuthStore } from "../stores/useAuthStore";
+
+export class ApiError extends Error {
+  readonly status: number;
+
+  constructor(mensaje: string, status: number) {
+    super(mensaje);
+    this.status = status;
+  }
+}
+
+const base = import.meta.env.VITE_API_URL ?? "";
+
+async function pedir<T>(
+  ruta: string,
+  init: RequestInit = {},
+  { sinAuth = false }: { sinAuth?: boolean } = {}
+): Promise<T> {
+  // getState(): leer el store FUERA de React — API pública de Zustand.
+  const token = useAuthStore.getState().token;
+  const headers = new Headers(init.headers); // p. ej. el Content-Type del JSON
+  // sinAuth (Pitfall 5): esta llamada JAMÁS lleva Bearer — el login la usa
+  // para que su 401 (credenciales incorrectas) lo muestre el formulario
+  // con su banner, aunque el store todavía tenga un token viejo (pasa si
+  // `verificar` falló por error de red y el formulario se muestra con la
+  // sesión a medio caer).
+  const llevaBearer = token !== null && !sinAuth;
+  if (llevaBearer) headers.set("Authorization", `Bearer ${token}`);
+
+  const res = await fetch(`${base}/${ruta}`, { ...init, headers });
+
+  if (!res.ok) {
+    // Interceptor 401 (D-22): SOLO llamadas que llevaban Bearer. Las
+    // sinAuth (como el login) muestran su 401 en el propio formulario
+    // con su banner — jamás esta redirección (Pitfall 5).
+    if (res.status === 401 && llevaBearer) {
+      useAuthStore.getState().cerrarSesion(); // borra token+usuario (y el localStorage del persist)
+      window.location.assign("/login?expirada=1"); // carga completa: caché de queries en blanco
+    }
+    let mensaje = `Error HTTP ${res.status}`;
+    try {
+      const cuerpo = await res.json();
+      // El detail tiene DOS caras: string en los errores que el backend
+      // lanza a mano ("Credenciales incorrectas") y ARRAY de validación
+      // en el 422 de FastAPI ([{loc, msg, type}, …]). Se normaliza a UN
+      // string humano: asignar el array tal cual degrada el mensaje a
+      // "[object Object]" al llegar a ApiError.
+      const detalle = cuerpo?.detail;
+      if (typeof detalle === "string") mensaje = detalle;
+      else if (Array.isArray(detalle) && detalle[0]?.msg)
+        mensaje = detalle[0].msg;
+    } catch {
+      // El cuerpo no traía JSON: nos quedamos con el mensaje genérico
+    }
+    throw new ApiError(mensaje, res.status);
+  }
+  return res.json();
+}
+
+export async function apiGet<T>(ruta: string): Promise<T> {
+  return pedir<T>(ruta);
+}
+
+// El login del contrato es un form OAuth2: el cuerpo viaja como FormData
+// (username transporta el email). SIN Content-Type manual: el navegador
+// agrega el boundary — setearlo a mano rompe el parseo del backend.
+export async function apiPostForm<T>(ruta: string, form: FormData): Promise<T> {
+  // sinAuth: el login jamás lleva Bearer (Pitfall 5) — ni siquiera con un
+  // token viejo todavía en el store.
+  return pedir<T>(ruta, { method: "POST", body: form }, { sinAuth: true });
+}
+
+// El registro SÍ es JSON: aquí el Content-Type se declara explícito.
+export async function apiPost<T>(ruta: string, cuerpo: unknown): Promise<T> {
+  return pedir<T>(ruta, {
+    method: "POST",
+    body: JSON.stringify(cuerpo),
+    headers: { "Content-Type": "application/json" },
+  });
+}
+
+// --- Etapa 4: las escrituras del panel (guía 13) ---
+// El PRIMER PUT y el PRIMER PATCH del proyecto: pedir() ya trae el
+// Bearer, el interceptor 401 y la normalización del detail — solo cambian
+// los verbos. PUT manda el body COMPLETO (allow-list todo-o-nada);
+// PATCH, un campo (toggle, transición).
+export async function apiPut<T>(ruta: string, cuerpo: unknown): Promise<T> {
+  return pedir<T>(ruta, {
+    method: "PUT",
+    body: JSON.stringify(cuerpo),
+    headers: { "Content-Type": "application/json" },
+  });
+}
+
+export async function apiPatch<T>(ruta: string, cuerpo: unknown): Promise<T> {
+  return pedir<T>(ruta, {
+    method: "PATCH",
+    body: JSON.stringify(cuerpo),
+    headers: { "Content-Type": "application/json" },
+  });
+}
+
 // --- Etapa 4: el chat de la asesora (guía 15) ---
 // POST JSON PÚBLICO: el molde de apiPost con el sinAuth que el login
 // estrenó — /api/asistente no pide sesión (D-59) y la burbuja la usa una
@@ -418,8 +662,9 @@ pieza de la asesora; su hogar natural es su feature). La regla 6 veta
 features importando features SIN razón — y su segunda excepción (la
 ProductCard) ya quedó firmada en el paso 2 con el patrón D-46.*
 
-En **`frontend/src/components/Layout.tsx`**, agrega el import y la
-pieza:
+Reemplaza el contenido completo de **`frontend/src/components/Layout.tsx`**
+por este — lo nuevo del paso: el import de la burbuja y la pieza al final
+del layout:
 
 ```tsx
 import { Outlet } from "react-router";
