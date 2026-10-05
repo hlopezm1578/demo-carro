@@ -841,26 +841,45 @@ providers es intocable: StrictMode → QueryClientProvider → BrowserRouter.
 agrega envuelta en el `RequireAuth` que ya escribimos en el paso 5. Hoy el
 mapa de rutas crece por composición, como la API en su momento.*
 
-En **`frontend/src/main.tsx`**, agrega los imports junto a los de las
-features:
+Reemplaza el contenido completo de **`frontend/src/main.tsx`** por este —
+lo nuevo del paso: los imports de `Login` y `Registro`, y sus dos rutas
+dentro del `<Route element={<Layout />}>`:
 
 ```tsx
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import { BrowserRouter, Routes, Route } from "react-router";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+import "./index.css";
+import Layout from "./components/Layout";
+import Landing from "./features/landing/Landing";
+import Catalogo from "./features/catalogo/Catalogo";
+import FichaProducto from "./features/catalogo/FichaProducto";
+import NoEncontrado from "./features/catalogo/NoEncontrado";
 import Login from "./features/cuentas/Login";
 import Registro from "./features/cuentas/Registro";
-```
 
-Y las rutas dentro de `<Route element={<Layout />}>`, junto a las
-existentes:
+const queryClient = new QueryClient();
 
-```tsx
-<Route element={<Layout />}>
-  <Route path="/" element={<Landing />} />
-  <Route path="/productos" element={<Catalogo />} />
-  <Route path="/productos/:id" element={<FichaProducto />} />
-  <Route path="/login" element={<Login />} />
-  <Route path="/registro" element={<Registro />} />
-  <Route path="*" element={<NoEncontrado />} />
-</Route>
+createRoot(document.getElementById("root")!).render(
+  <StrictMode>
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <Routes>
+          <Route element={<Layout />}>
+            <Route path="/" element={<Landing />} />
+            <Route path="/productos" element={<Catalogo />} />
+            <Route path="/productos/:id" element={<FichaProducto />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/registro" element={<Registro />} />
+            <Route path="*" element={<NoEncontrado />} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </QueryClientProvider>
+  </StrictMode>
+);
 ```
 
 ✅ **Mini-verificación:** `npm run build` pasa, y con `npm run dev` las
