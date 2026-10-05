@@ -269,23 +269,52 @@ orden, el servidor validará el token y el rol, y no se puede falsificar.
 Ocultar botones es cortesía; rechazar requests es ley — y esta pantalla
 nace sabiendo la diferencia (T-02-13).*
 
-En **`frontend/src/main.tsx`**, agrega los imports junto a los de las
-features y componentes:
+Reemplaza el contenido completo de **`frontend/src/main.tsx`** por este
+— lo nuevo del paso: los imports de `RequireAuth` y `Checkout`, y la ruta
+protegida `/checkout` dentro del `<Route element={<Layout />}>`:
 
 ```tsx
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import { BrowserRouter, Routes, Route } from "react-router";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+import "./index.css";
+import Layout from "./components/Layout";
+import Landing from "./features/landing/Landing";
+import Catalogo from "./features/catalogo/Catalogo";
+import FichaProducto from "./features/catalogo/FichaProducto";
+import NoEncontrado from "./features/catalogo/NoEncontrado";
+import Login from "./features/cuentas/Login";
+import Registro from "./features/cuentas/Registro";
+import Carro from "./features/carro/Carro";
 import RequireAuth from "./components/RequireAuth";
 import Checkout from "./features/checkout/Checkout";
-```
 
-Y la ruta protegida dentro de `<Route element={<Layout />}>`, junto a las
-existentes:
+const queryClient = new QueryClient();
 
-```tsx
-<Route path="/carro" element={<Carro />} />
-<Route element={<RequireAuth />}>
-  <Route path="/checkout" element={<Checkout />} />
-</Route>
-<Route path="*" element={<NoEncontrado />} />
+createRoot(document.getElementById("root")!).render(
+  <StrictMode>
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <Routes>
+          <Route element={<Layout />}>
+            <Route path="/" element={<Landing />} />
+            <Route path="/productos" element={<Catalogo />} />
+            <Route path="/productos/:id" element={<FichaProducto />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/registro" element={<Registro />} />
+            <Route path="/carro" element={<Carro />} />
+            <Route element={<RequireAuth />}>
+              <Route path="/checkout" element={<Checkout />} />
+            </Route>
+            <Route path="*" element={<NoEncontrado />} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </QueryClientProvider>
+  </StrictMode>
+);
 ```
 
 ✅ **Mini-verificación (AUTH-04 y el returnTo, en vivo):** CIERRA la sesión
