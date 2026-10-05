@@ -192,21 +192,206 @@ export const STOCK_BAJO = 5;
 ```
 
 Ahora el refactor en las DOS consumidoras viejas — tu código, no las
-guías:
+guías. Reemplaza el contenido completo de cada una por su versión
+importando del módulo (la tabla `BADGES` local desaparece de ambas):
 
-En **`frontend/src/features/pago/VoucherPedido.tsx`** y en
-**`frontend/src/features/pedidos/Pedidos.tsx`**: BORRA la constante
-`BADGES` local (la tabla completa con su comentario) y agrega el import
-junto a los existentes:
+**`frontend/src/features/pago/VoucherPedido.tsx`**:
 
 ```tsx
+// El voucher de la TIENDA (D-43, PAY-04): el detalle completo del pedido
+// — numero legible, fecha, líneas congeladas, total y estado como badge.
+// Componente presentation pura: RECIBE el pedido, no lo fetchea. La
+// guía 11 lo reutiliza como detalle del historial (D-46).
 import { BADGES } from "../../lib/badges"; // la tercera consumidora nació: bajó a módulo (D-45)
+import type { OrdenDetalle } from "../../types/api";
+
+const clp = new Intl.NumberFormat("es-CL", {
+  style: "currency",
+  currency: "CLP",
+});
+
+export default function VoucherPedido({ pedido }: { pedido: OrdenDetalle }) {
+  const badge = BADGES[pedido.estado] ?? BADGES.pending;
+  const fecha = new Date(pedido.fecha).toLocaleDateString("es-CL");
+  return (
+    <section className="mt-6 bg-white rounded-2xl border border-orange-100 p-6">
+      <p className="text-sm text-neutral-600">
+        Pedido {pedido.numero} · {fecha} ·{" "}
+        <span className={`rounded-full px-2 py-1 text-sm ${badge.clases}`}>
+          {badge.texto}
+        </span>
+      </p>
+      <ul className="mt-2 divide-y divide-orange-100">
+        {pedido.lineas.map((linea, i) => (
+          <li
+            key={i}
+            className="py-4 flex flex-wrap gap-2 items-center justify-between"
+          >
+            <div>
+              <span className="text-xl font-bold text-neutral-900">
+                {linea.nombre_snapshot}
+              </span>
+              <span className="ms-2 text-sm text-neutral-600">
+                × {linea.cantidad}
+              </span>
+            </div>
+            <p className="text-lg font-extrabold text-orange-700">
+              {clp.format(linea.precio_snapshot * linea.cantidad)}
+            </p>
+          </li>
+        ))}
+      </ul>
+      <div className="mt-2 pt-4 border-t-2 border-orange-100 flex items-baseline justify-between gap-4">
+        <span className="text-base font-bold text-neutral-900">
+          {pedido.estado === "paid" ? "Total pagado" : "Total"}
+        </span>
+        <span className="text-2xl font-extrabold text-orange-700">
+          {clp.format(pedido.total)}
+        </span>
+      </div>
+    </section>
+  );
+}
 ```
 
-Y un detalle que el compilador no te deja pasar: si en `Pedidos.tsx` el
-`import type` queda con `EstadoPedido` huérfano (solo la tabla borrada lo
-usaba — `VoucherPedido.tsx` no lo tiene), quítalo del import: el scaffold
-corre con `noUnusedLocals` y un import sin uso rompe el build.
+**`frontend/src/features/pedidos/Pedidos.tsx`**:
+
+```tsx
+// El historial de pedidos (RF-17): TODAS las órdenes de la clienta con su
+// estado real — las "en curso" incluidas (RN-11, D-48). Ruta protegida
+// (paso 4); cada fila abre el detalle, que ES el voucher de la guía 10
+// (D-46).
+import { useQuery } from "@tanstack/react-query";
+import { Link } from "react-router";
+
+import { BADGES } from "../../lib/badges"; // la tercera consumidora nació: bajó a módulo (D-45)
+import { apiGet } from "../../lib/api";
+import type { OrdenLista } from "../../types/api";
+
+const clp = new Intl.NumberFormat("es-CL", {
+  style: "currency",
+  currency: "CLP",
+});
+
+export default function Pedidos() {
+  // El Bearer lo adjunta apiGet desde el store; el backend responde SOLO
+  // con las órdenes de la dueña del token (guía 9, RF-17).
+  const pedidos = useQuery({
+    queryKey: ["pedidos"],
+    queryFn: () => apiGet<OrdenLista[]>("api/pedidos"),
+  });
+
+  if (pedidos.isPending) {
+    return (
+      <main className="max-w-2xl mx-auto px-4 py-16">
+        <h1 className="text-2xl md:text-3xl font-extrabold text-neutral-900">
+          Mis pedidos
+        </h1>
+        <div className="mt-6 bg-white rounded-2xl border border-orange-100 p-6 divide-y divide-orange-100">
+          {[0, 1].map((i) => (
+            <div
+              key={i}
+              className="py-4 flex items-center justify-between gap-4"
+            >
+              <div className="h-4 w-44 animate-pulse bg-neutral-200 rounded-2xl" />
+              <div className="h-6 w-24 animate-pulse bg-neutral-200 rounded-2xl" />
+            </div>
+          ))}
+        </div>
+      </main>
+    );
+  }
+
+  if (pedidos.isError) {
+    return (
+      <main className="max-w-xl mx-auto px-4 py-16 text-center">
+        <h1 className="text-xl font-bold text-neutral-900">
+          No pudimos cargar tus pedidos
+        </h1>
+        <p className="mt-2 text-sm text-neutral-600">
+          Revisa que el backend esté corriendo en el puerto 8000 e inténtalo
+          de nuevo.
+        </p>
+        <button
+          onClick={() => pedidos.refetch()}
+          className="mt-6 bg-orange-600 text-white font-bold rounded-full px-6 py-2 min-h-11 hover:bg-orange-700 focus-visible:ring-2 focus-visible:ring-orange-600 focus:outline-none"
+        >
+          Reintentar
+        </button>
+      </main>
+    );
+  }
+
+  // Empty state honesto: cero órdenes es un estado con su propia pantalla
+  // — no una lista vacía sin explicación.
+  if (pedidos.data.length === 0) {
+    return (
+      <main className="max-w-xl mx-auto px-4 py-16 text-center">
+        <h1 className="text-2xl md:text-3xl font-extrabold text-neutral-900">
+          Todavía no tienes pedidos
+        </h1>
+        <p className="mt-2 text-base text-neutral-600">
+          Cuando hagas tu primera compra, aparece aquí con su estado.
+        </p>
+        <Link
+          to="/productos"
+          className="mt-6 inline-flex bg-orange-600 text-white font-bold rounded-full px-6 py-2 min-h-11 hover:bg-orange-700 focus-visible:ring-2 focus-visible:ring-orange-600 focus:outline-none"
+        >
+          Ver catálogo
+        </Link>
+      </main>
+    );
+  }
+
+  return (
+    <main className="max-w-2xl mx-auto px-4 py-16">
+      <h1 className="text-2xl md:text-3xl font-extrabold text-neutral-900">
+        Mis pedidos
+      </h1>
+      <ul className="mt-6 bg-white rounded-2xl border border-orange-100 divide-y divide-orange-100">
+        {pedidos.data.map((pedido) => {
+          const badge = BADGES[pedido.estado] ?? BADGES.pending;
+          return (
+            <li key={pedido.numero}>
+              {/* La fila completa navega al detalle — y la URL lleva el
+                  NUMERO legible, jamás el id interno (RN-13, D-37). */}
+              <Link
+                to={`/pedidos/${pedido.numero}`}
+                className="min-h-11 p-4 flex flex-wrap gap-2 items-center justify-between focus-visible:ring-2 focus-visible:ring-orange-600 focus:outline-none"
+              >
+                <div>
+                  <p className="text-base font-bold text-neutral-900">
+                    {pedido.numero}
+                  </p>
+                  <p className="mt-1 flex flex-wrap items-center gap-2 text-sm text-neutral-600">
+                    {new Date(pedido.fecha).toLocaleDateString("es-CL")}
+                    <span className={`rounded-full px-2 py-1 ${badge.clases}`}>
+                      {badge.texto}
+                    </span>
+                  </p>
+                </div>
+                <span className="flex items-baseline gap-4">
+                  <span className="text-lg font-extrabold text-orange-700">
+                    {clp.format(pedido.total)}
+                  </span>
+                  <span className="text-sm text-orange-600 font-bold">
+                    Ver detalle →
+                  </span>
+                </span>
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+    </main>
+  );
+}
+```
+
+Fíjate en un detalle que el compilador no te deja pasar: en `Pedidos.tsx`
+el `import type` quedó SOLO con `OrdenLista` — con la tabla borrada,
+`EstadoPedido` no tenía más usuario en el archivo, y el scaffold corre con
+`noUnusedLocals`: un import sin uso rompe el build.
 
 ✅ **Mini-verificación:** `npm run build` pasa — con los DOS archivos
 viejos importando del módulo y sin la tabla duplicada en ninguno. Si
@@ -236,9 +421,96 @@ paso 6 (hidratación desde la ficha pública). Y `ProductoPayload` es el
 espejo de la allow-list `ProductoCrear`/`ProductoEditar` — un solo tipo
 porque el contrato dice que son LA MISMA lista de campos.*
 
-En **`frontend/src/lib/api.ts`**, agrega al final:
+Reemplaza el contenido completo de **`frontend/src/lib/api.ts`** por este
+— lo nuevo del paso: `apiPut` y `apiPatch` al final:
 
 ```typescript
+// Regla 5 (ADR-002): TODO el HTTP del frontend sale de este archivo.
+// La etapa 2 lo extiende sin romper la base de la guía 4: ApiError y la
+// URL base siguen intactos. Lo nuevo: pedir() adjunta el Bearer, vigila
+// el 401 (interceptor, D-22) y normaliza el detail del 422 (que FastAPI
+// manda como array, no string).
+import { useAuthStore } from "../stores/useAuthStore";
+
+export class ApiError extends Error {
+  readonly status: number;
+
+  constructor(mensaje: string, status: number) {
+    super(mensaje);
+    this.status = status;
+  }
+}
+
+const base = import.meta.env.VITE_API_URL ?? "";
+
+async function pedir<T>(
+  ruta: string,
+  init: RequestInit = {},
+  { sinAuth = false }: { sinAuth?: boolean } = {}
+): Promise<T> {
+  // getState(): leer el store FUERA de React — API pública de Zustand.
+  const token = useAuthStore.getState().token;
+  const headers = new Headers(init.headers); // p. ej. el Content-Type del JSON
+  // sinAuth (Pitfall 5): esta llamada JAMÁS lleva Bearer — el login la usa
+  // para que su 401 (credenciales incorrectas) lo muestre el formulario
+  // con su banner, aunque el store todavía tenga un token viejo (pasa si
+  // `verificar` falló por error de red y el formulario se muestra con la
+  // sesión a medio caer).
+  const llevaBearer = token !== null && !sinAuth;
+  if (llevaBearer) headers.set("Authorization", `Bearer ${token}`);
+
+  const res = await fetch(`${base}/${ruta}`, { ...init, headers });
+
+  if (!res.ok) {
+    // Interceptor 401 (D-22): SOLO llamadas que llevaban Bearer. Las
+    // sinAuth (como el login) muestran su 401 en el propio formulario
+    // con su banner — jamás esta redirección (Pitfall 5).
+    if (res.status === 401 && llevaBearer) {
+      useAuthStore.getState().cerrarSesion(); // borra token+usuario (y el localStorage del persist)
+      window.location.assign("/login?expirada=1"); // carga completa: caché de queries en blanco
+    }
+    let mensaje = `Error HTTP ${res.status}`;
+    try {
+      const cuerpo = await res.json();
+      // El detail tiene DOS caras: string en los errores que el backend
+      // lanza a mano ("Credenciales incorrectas") y ARRAY de validación
+      // en el 422 de FastAPI ([{loc, msg, type}, …]). Se normaliza a UN
+      // string humano: asignar el array tal cual degrada el mensaje a
+      // "[object Object]" al llegar a ApiError.
+      const detalle = cuerpo?.detail;
+      if (typeof detalle === "string") mensaje = detalle;
+      else if (Array.isArray(detalle) && detalle[0]?.msg)
+        mensaje = detalle[0].msg;
+    } catch {
+      // El cuerpo no traía JSON: nos quedamos con el mensaje genérico
+    }
+    throw new ApiError(mensaje, res.status);
+  }
+  return res.json();
+}
+
+export async function apiGet<T>(ruta: string): Promise<T> {
+  return pedir<T>(ruta);
+}
+
+// El login del contrato es un form OAuth2: el cuerpo viaja como FormData
+// (username transporta el email). SIN Content-Type manual: el navegador
+// agrega el boundary — setearlo a mano rompe el parseo del backend.
+export async function apiPostForm<T>(ruta: string, form: FormData): Promise<T> {
+  // sinAuth: el login jamás lleva Bearer (Pitfall 5) — ni siquiera con un
+  // token viejo todavía en el store.
+  return pedir<T>(ruta, { method: "POST", body: form }, { sinAuth: true });
+}
+
+// El registro SÍ es JSON: aquí el Content-Type se declara explícito.
+export async function apiPost<T>(ruta: string, cuerpo: unknown): Promise<T> {
+  return pedir<T>(ruta, {
+    method: "POST",
+    body: JSON.stringify(cuerpo),
+    headers: { "Content-Type": "application/json" },
+  });
+}
+
 // --- Etapa 4: las escrituras del panel (guía 13) ---
 // El PRIMER PUT y el PRIMER PATCH del proyecto: pedir() ya trae el
 // Bearer, el interceptor 401 y la normalización del detail — solo cambian
@@ -261,9 +533,94 @@ export async function apiPatch<T>(ruta: string, cuerpo: unknown): Promise<T> {
 }
 ```
 
-Y en **`frontend/src/types/api.ts`**, agrega al final:
+Y reemplaza el contenido completo de **`frontend/src/types/api.ts`** por
+este — lo nuevo del paso: el bloque de la etapa 4 (panel) al final:
 
 ```typescript
+// Espejo manual de los schemas del contrato_api.yaml (ADR-004, D-09).
+// Compara campo a campo: required en YAML = campo sin "?" aquí.
+export type Familia = "citricas" | "florales" | "frutales" | "dulces";
+
+export interface ProductoResumen {
+  id: number;
+  sku: string;
+  nombre: string;
+  precio: number; // CLP entero (RN-02), sin decimales
+  familia: Familia;
+  imagen: string; // "/products/citricas-01.jpg" — ruta local (RN-03)
+}
+
+export interface ProductoDetalle extends ProductoResumen {
+  descripcion: string;
+  notas: string[];
+  stock: number;
+}
+
+// Slug ASCII (lo que viaja) → etiqueta con acento (lo que se muestra)
+export const FAMILIA_LABELS: Record<Familia, string> = {
+  citricas: "Cítricas",
+  florales: "Florales",
+  frutales: "Frutales",
+  dulces: "Dulces",
+};
+
+// Color del badge de familia por pantalla (docs/03_diseno.md §4.1)
+export const FAMILIA_BADGES: Record<Familia, string> = {
+  citricas: "bg-amber-100 text-amber-800",
+  florales: "bg-pink-100 text-pink-800",
+  frutales: "bg-rose-100 text-rose-800",
+  dulces: "bg-violet-100 text-violet-800",
+};
+
+// --- Etapa 2: cuentas (espejo de contrato_api.yaml 0.2.0) ---
+
+export type Rol = "cliente" | "admin";
+
+export interface UsuarioPublico {
+  id: number;
+  email: string;
+  rol: Rol; // viaja como claim en el token desde que se emite (AUTH-03)
+}
+
+export interface Token {
+  access_token: string;
+  token_type: string;
+}
+
+// Espejo de RegistroCreate: mínimo 8 SIN composición (RN-05)
+export interface RegistroPayload {
+  email: string;
+  password: string;
+}
+
+// --- Etapa 3: pago y pedidos (espejo de contrato_api.yaml 0.3.0) ---
+
+export type EstadoPedido = "pending" | "paid" | "cancelled" | "rejected";
+
+// Espejo de CheckoutRespuesta: los tres datos del form POST (PAY-01)
+export interface CheckoutRespuesta {
+  url: string;
+  token_ws: string; // el nombre EXACTO que exige Webpay en el wire
+  numero: string; // "MAURA-000001" — la orden recién nacida en pending (D-34)
+}
+
+export interface OrdenLista {
+  numero: string;
+  fecha: string; // ISO — el formato es asunto del render
+  total: number;
+  estado: EstadoPedido; // pending se muestra como "en curso" (RN-11)
+}
+
+export interface OrdenLinea {
+  nombre_snapshot: string; // congelado al comprar (RN-10)
+  precio_snapshot: number;
+  cantidad: number;
+}
+
+export interface OrdenDetalle extends OrdenLista {
+  lineas: OrdenLinea[];
+}
+
 // --- Etapa 4: panel de administración (espejo de contrato_api.yaml 0.4.0) ---
 
 export interface ProductoAdmin {
@@ -354,31 +711,76 @@ ver la subnav: ve NoAutorizado a secas), y `LayoutAdmin` por fuera de las
 tres sub-rutas con `index` para `/admin` exacto (Productos) y paths
 relativos `pedidos`/`metricas`.*
 
-En **`frontend/src/main.tsx`**, agrega los imports junto a los de las
-features:
+Reemplaza el contenido completo de **`frontend/src/main.tsx`** por este —
+lo nuevo del paso: los cinco imports del panel y la rama nueva DESPUÉS del
+bloque `<Route element={<Layout />}>` de la tienda, paralela y FUERA de
+él:
 
 ```tsx
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import { BrowserRouter, Routes, Route } from "react-router";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+import "./index.css";
+import Layout from "./components/Layout";
+import Landing from "./features/landing/Landing";
+import Catalogo from "./features/catalogo/Catalogo";
+import FichaProducto from "./features/catalogo/FichaProducto";
+import NoEncontrado from "./features/catalogo/NoEncontrado";
+import Login from "./features/cuentas/Login";
+import Registro from "./features/cuentas/Registro";
+import Carro from "./features/carro/Carro";
+import RequireAuth from "./components/RequireAuth";
+import Checkout from "./features/checkout/Checkout";
+import ResultadoPago from "./features/pago/ResultadoPago";
+import DetallePedido from "./features/pedidos/DetallePedido";
+import Pedidos from "./features/pedidos/Pedidos";
 import RequireAdmin from "./components/RequireAdmin";
 import AdminMetricas from "./features/admin/AdminMetricas";
 import AdminPedidos from "./features/admin/AdminPedidos";
 import AdminProductos from "./features/admin/AdminProductos";
 import LayoutAdmin from "./features/admin/LayoutAdmin";
-```
 
-Y la rama nueva DESPUÉS del bloque `<Route element={<Layout />}>` de la
-tienda — paralela, FUERA de él:
+const queryClient = new QueryClient();
 
-```tsx
-{/* La rama del panel (etapa 4, D-55): FUERA del Layout de tienda — sin
-    Footer ni burbuja, con su propio layout de subnav. El guard por
-    fuera del layout: una clienta que fuerza /admin ni ve la subnav. */}
-<Route element={<RequireAdmin />}>
-  <Route path="/admin" element={<LayoutAdmin />}>
-    <Route index element={<AdminProductos />} />
-    <Route path="pedidos" element={<AdminPedidos />} />
-    <Route path="metricas" element={<AdminMetricas />} />
-  </Route>
-</Route>
+createRoot(document.getElementById("root")!).render(
+  <StrictMode>
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <Routes>
+          <Route element={<Layout />}>
+            <Route path="/" element={<Landing />} />
+            <Route path="/productos" element={<Catalogo />} />
+            <Route path="/productos/:id" element={<FichaProducto />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/registro" element={<Registro />} />
+            <Route path="/carro" element={<Carro />} />
+            {/* PÚBLICA a propósito: el 302 del retorno llega sin sesión en la URL
+                (Pitfall 12) — la pantalla degrada con honestidad, no expulsa. */}
+            <Route path="/pago/resultado" element={<ResultadoPago />} />
+            <Route element={<RequireAuth />}>
+              <Route path="/checkout" element={<Checkout />} />
+              <Route path="/pedidos" element={<Pedidos />} />
+              <Route path="/pedidos/:numero" element={<DetallePedido />} />
+            </Route>
+            <Route path="*" element={<NoEncontrado />} />
+          </Route>
+          {/* La rama del panel (etapa 4, D-55): FUERA del Layout de tienda — sin
+              Footer ni burbuja, con su propio layout de subnav. El guard por
+              fuera del layout: una clienta que fuerza /admin ni ve la subnav. */}
+          <Route element={<RequireAdmin />}>
+            <Route path="/admin" element={<LayoutAdmin />}>
+              <Route index element={<AdminProductos />} />
+              <Route path="pedidos" element={<AdminPedidos />} />
+              <Route path="metricas" element={<AdminMetricas />} />
+            </Route>
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </QueryClientProvider>
+  </StrictMode>
+);
 ```
 
 ✅ **Mini-verificación:** el build todavía no pasa — faltan los cuatro
@@ -452,11 +854,74 @@ export default function LayoutAdmin() {
 }
 ```
 
-Y en **`frontend/src/components/Navbar.tsx`**, dentro del bloque con
-sesión (`{usuario ? ( ... )}`), agrega el link ANTES del de "Mis
-pedidos":
+Y reemplaza el contenido completo de **`frontend/src/components/Navbar.tsx`**
+por este — lo nuevo del paso: el link "Panel" condicionado por rol dentro
+del bloque con sesión, ANTES del de "Mis pedidos":
 
 ```tsx
+// Navbar con estado de sesión (A9): sin sesión → "Ingresar"; con sesión →
+// email truncado + "Cerrar sesión". El badge del carro llega en la guía 7.
+import { Link, NavLink, useNavigate } from "react-router";
+
+import { useAuthStore } from "../stores/useAuthStore";
+import { useCarroStore } from "../stores/useCarroStore";
+
+const estiloLink = ({ isActive }: { isActive: boolean }) =>
+  `text-sm min-h-11 flex items-center focus-visible:ring-2 focus-visible:ring-orange-600 focus:outline-none ${
+    isActive ? "text-orange-600 font-bold" : "text-neutral-600"
+  }`;
+
+export default function Navbar() {
+  const navegar = useNavigate();
+  const usuario = useAuthStore((s) => s.usuario);
+  const cerrarSesion = useAuthStore((s) => s.cerrarSesion);
+  // D-28: unidades TOTALES del carro (no ítems): 2 de un aroma + 1 de
+  // otro = 3.
+  const unidades = useCarroStore((s) =>
+    s.items.reduce((total, i) => total + i.cantidad, 0)
+  );
+
+  function salir() {
+    cerrarSesion(); // borra token+usuario — y el persist limpia localStorage
+    navegar("/"); // sin confirmación: entrar de nuevo son dos campos
+  }
+
+  return (
+    <header className="sticky top-0 z-10 bg-orange-50/90 backdrop-blur border-b border-orange-100">
+      <nav className="max-w-6xl mx-auto flex items-center justify-between gap-4 px-4 py-3">
+        <Link
+          to="/"
+          className="flex items-center gap-2 text-xl font-bold text-neutral-900 truncate focus-visible:ring-2 focus-visible:ring-orange-600 focus:outline-none"
+        >
+          <span
+            aria-hidden="true"
+            className="h-2.5 w-2.5 rounded-full bg-orange-600"
+          />
+          Maura · Body Splash
+        </Link>
+        <div className="flex flex-wrap items-center gap-4">
+          <NavLink to="/" end className={estiloLink}>
+            Inicio
+          </NavLink>
+          <NavLink to="/productos" className={estiloLink}>
+            Catálogo
+          </NavLink>
+          <NavLink to="/carro" className={estiloLink}>
+            Carro
+            {unidades > 0 && (
+              <span
+                aria-live="polite"
+                aria-label={`${unidades} ${
+                  unidades === 1 ? "unidad" : "unidades"
+                } en el carro`}
+                className="ms-2 rounded-full bg-orange-600 text-white text-sm px-2 py-1"
+              >
+                {unidades}
+              </span>
+            )}
+          </NavLink>
+          {usuario ? (
+            <>
               {/* Panel: solo el rol admin lo ve (D-55) — el mismo
                   condicionado de "Mis pedidos" (D-47), ahora por rol.
                   Cortesía de UX: el 403 real es del backend (ADR-015). */}
@@ -468,6 +933,29 @@ pedidos":
               <NavLink to="/pedidos" className={estiloLink}>
                 Mis pedidos
               </NavLink>
+              <span
+                className="text-sm text-neutral-600 truncate max-w-32"
+                title={usuario.email}
+              >
+                {usuario.email}
+              </span>
+              <button
+                onClick={salir}
+                className="text-sm text-orange-600 font-bold min-h-11 focus-visible:ring-2 focus-visible:ring-orange-600 focus:outline-none"
+              >
+                Cerrar sesión
+              </button>
+            </>
+          ) : (
+            <NavLink to="/login" className={estiloLink}>
+              Ingresar
+            </NavLink>
+          )}
+        </div>
+      </nav>
+    </header>
+  );
+}
 ```
 
 ✅ **Mini-verificación:** `npm run build` sigue esperando a las pantallas
