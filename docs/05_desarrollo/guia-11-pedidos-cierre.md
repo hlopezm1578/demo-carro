@@ -355,10 +355,74 @@ una pantalla que lo expulsa al login (D-47). El `estiloLink` de siempre lo
 hace idéntico a sus vecinos — y el estado activo del `NavLink` marca
 naranja la sección donde estás.*
 
-En **`frontend/src/components/Navbar.tsx`**, dentro del bloque con sesión
-(`{usuario ? ( ... )}`), agrega el link ANTES del `<span>` del email:
+Reemplaza el contenido completo de **`frontend/src/components/Navbar.tsx`**
+por este — lo nuevo del paso: el link "Mis pedidos" dentro del bloque con
+sesión, ANTES del `<span>` del email:
 
 ```tsx
+// Navbar con estado de sesión (A9): sin sesión → "Ingresar"; con sesión →
+// email truncado + "Cerrar sesión". El badge del carro llega en la guía 7.
+import { Link, NavLink, useNavigate } from "react-router";
+
+import { useAuthStore } from "../stores/useAuthStore";
+import { useCarroStore } from "../stores/useCarroStore";
+
+const estiloLink = ({ isActive }: { isActive: boolean }) =>
+  `text-sm min-h-11 flex items-center focus-visible:ring-2 focus-visible:ring-orange-600 focus:outline-none ${
+    isActive ? "text-orange-600 font-bold" : "text-neutral-600"
+  }`;
+
+export default function Navbar() {
+  const navegar = useNavigate();
+  const usuario = useAuthStore((s) => s.usuario);
+  const cerrarSesion = useAuthStore((s) => s.cerrarSesion);
+  // D-28: unidades TOTALES del carro (no ítems): 2 de un aroma + 1 de
+  // otro = 3.
+  const unidades = useCarroStore((s) =>
+    s.items.reduce((total, i) => total + i.cantidad, 0)
+  );
+
+  function salir() {
+    cerrarSesion(); // borra token+usuario — y el persist limpia localStorage
+    navegar("/"); // sin confirmación: entrar de nuevo son dos campos
+  }
+
+  return (
+    <header className="sticky top-0 z-10 bg-orange-50/90 backdrop-blur border-b border-orange-100">
+      <nav className="max-w-6xl mx-auto flex items-center justify-between gap-4 px-4 py-3">
+        <Link
+          to="/"
+          className="flex items-center gap-2 text-xl font-bold text-neutral-900 truncate focus-visible:ring-2 focus-visible:ring-orange-600 focus:outline-none"
+        >
+          <span
+            aria-hidden="true"
+            className="h-2.5 w-2.5 rounded-full bg-orange-600"
+          />
+          Maura · Body Splash
+        </Link>
+        <div className="flex flex-wrap items-center gap-4">
+          <NavLink to="/" end className={estiloLink}>
+            Inicio
+          </NavLink>
+          <NavLink to="/productos" className={estiloLink}>
+            Catálogo
+          </NavLink>
+          <NavLink to="/carro" className={estiloLink}>
+            Carro
+            {unidades > 0 && (
+              <span
+                aria-live="polite"
+                aria-label={`${unidades} ${
+                  unidades === 1 ? "unidad" : "unidades"
+                } en el carro`}
+                className="ms-2 rounded-full bg-orange-600 text-white text-sm px-2 py-1"
+              >
+                {unidades}
+              </span>
+            )}
+          </NavLink>
+          {usuario ? (
+            <>
               <NavLink to="/pedidos" className={estiloLink}>
                 Mis pedidos
               </NavLink>
@@ -368,6 +432,23 @@ En **`frontend/src/components/Navbar.tsx`**, dentro del bloque con sesión
               >
                 {usuario.email}
               </span>
+              <button
+                onClick={salir}
+                className="text-sm text-orange-600 font-bold min-h-11 focus-visible:ring-2 focus-visible:ring-orange-600 focus:outline-none"
+              >
+                Cerrar sesión
+              </button>
+            </>
+          ) : (
+            <NavLink to="/login" className={estiloLink}>
+              Ingresar
+            </NavLink>
+          )}
+        </div>
+      </nav>
+    </header>
+  );
+}
 ```
 
 ✅ **Mini-verificación:** `npm run build` pasa. Con sesión: "Mis pedidos"
@@ -394,23 +475,60 @@ mostrar sin sesión. El voucher degrada (resultado y numero); el historial
 expulsa. La ruta del detalle es `/pedidos/:numero` — el NUMERO viaja en la
 URL (D-37), como el paso 2 lo construyó.*
 
-En **`frontend/src/main.tsx`**, agrega los imports junto a los de las
-features:
+Reemplaza el contenido completo de **`frontend/src/main.tsx`** por este —
+lo nuevo del paso: los imports de `DetallePedido` y `Pedidos`, y las dos
+rutas dentro del bloque `RequireAuth` existente:
 
 ```tsx
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import { BrowserRouter, Routes, Route } from "react-router";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+import "./index.css";
+import Layout from "./components/Layout";
+import Landing from "./features/landing/Landing";
+import Catalogo from "./features/catalogo/Catalogo";
+import FichaProducto from "./features/catalogo/FichaProducto";
+import NoEncontrado from "./features/catalogo/NoEncontrado";
+import Login from "./features/cuentas/Login";
+import Registro from "./features/cuentas/Registro";
+import Carro from "./features/carro/Carro";
+import RequireAuth from "./components/RequireAuth";
+import Checkout from "./features/checkout/Checkout";
+import ResultadoPago from "./features/pago/ResultadoPago";
 import DetallePedido from "./features/pedidos/DetallePedido";
 import Pedidos from "./features/pedidos/Pedidos";
-```
 
-Y las rutas dentro del bloque `RequireAuth` existente, junto al
-`/checkout`:
+const queryClient = new QueryClient();
 
-```tsx
-<Route element={<RequireAuth />}>
-  <Route path="/checkout" element={<Checkout />} />
-  <Route path="/pedidos" element={<Pedidos />} />
-  <Route path="/pedidos/:numero" element={<DetallePedido />} />
-</Route>
+createRoot(document.getElementById("root")!).render(
+  <StrictMode>
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <Routes>
+          <Route element={<Layout />}>
+            <Route path="/" element={<Landing />} />
+            <Route path="/productos" element={<Catalogo />} />
+            <Route path="/productos/:id" element={<FichaProducto />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/registro" element={<Registro />} />
+            <Route path="/carro" element={<Carro />} />
+            {/* PÚBLICA a propósito: el 302 del retorno llega sin sesión en la URL
+                (Pitfall 12) — la pantalla degrada con honestidad, no expulsa. */}
+            <Route path="/pago/resultado" element={<ResultadoPago />} />
+            <Route element={<RequireAuth />}>
+              <Route path="/checkout" element={<Checkout />} />
+              <Route path="/pedidos" element={<Pedidos />} />
+              <Route path="/pedidos/:numero" element={<DetallePedido />} />
+            </Route>
+            <Route path="*" element={<NoEncontrado />} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </QueryClientProvider>
+  </StrictMode>
+);
 ```
 
 ✅ **Mini-verificación (el returnTo del historial, en vivo):** cierra la
