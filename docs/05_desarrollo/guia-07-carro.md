@@ -138,18 +138,51 @@ hace merge con lo que ya iba: la edición fina de cantidades vive en `/carro`
 PANTALLA; la barrera real la pondrá el backend al crear la orden en la etapa
 3 (CART-03) — primera barrera hoy, segunda barrera después.*
 
-En **`frontend/src/features/catalogo/FichaProducto.tsx`**, agrega el import
-del store junto a los existentes:
+Reemplaza el contenido completo de
+**`frontend/src/features/catalogo/FichaProducto.tsx`** por este — lo nuevo
+del paso son tres cosas y van marcadas por donde quedan: el import del
+store junto a los demás imports, las constantes `agregar`/`productoId`/
+`enCarro` debajo de los `useParams`/`useNavigate`, y el botón con su
+helper al final de la columna de información:
 
 ```tsx
+import { useQuery } from "@tanstack/react-query";
+import { Link, useNavigate, useParams } from "react-router";
+import { ApiError, apiGet } from "../../lib/api";
 import { useCarroStore } from "../../stores/useCarroStore";
-```
+import {
+  FAMILIA_BADGES,
+  FAMILIA_LABELS,
+  type ProductoDetalle,
+} from "../../types/api";
 
-Dentro del componente, DEBAJO de los `useParams`/`useNavigate` que ya
-tienes desde la guía 4 (no los copies otra vez: redeclararlos rompe el
-build), agrega solo las líneas nuevas:
+const clp = new Intl.NumberFormat("es-CL", { style: "currency", currency: "CLP" });
 
-```tsx
+function BadgeDisponibilidad({ stock }: { stock: number }) {
+  if (stock === 0) {
+    return (
+      <span className="text-sm rounded-full px-2 py-1 bg-neutral-200 text-neutral-700">
+        Agotado
+      </span>
+    );
+  }
+  if (stock <= 3) {
+    return (
+      <span className="text-sm rounded-full px-2 py-1 bg-amber-100 text-amber-800">
+        ¡Últimas {stock} unidades!
+      </span>
+    );
+  }
+  return (
+    <span className="text-sm rounded-full px-2 py-1 bg-emerald-100 text-emerald-800">
+      Disponible
+    </span>
+  );
+}
+
+export default function FichaProducto() {
+  const { id } = useParams();
+  const navigate = useNavigate();
   const agregar = useCarroStore((s) => s.agregar);
   // ¿Cuántas unidades de ESTE aroma ya van en el carro? Para el tope (D-30).
   // Number(id): el id del useParams es un string; el store guarda número.
@@ -157,12 +190,125 @@ build), agrega solo las líneas nuevas:
   const enCarro = useCarroStore(
     (s) => s.items.find((i) => i.producto_id === productoId)?.cantidad ?? 0
   );
-```
 
-Y al final de la columna de información, justo debajo del `<p>` de
-disponibilidad ("N unidades disponibles"), agrega:
+  const query = useQuery({
+    queryKey: ["producto", id],
+    queryFn: () => apiGet<ProductoDetalle>(`api/productos/${id}`),
+  });
 
-```tsx
+  if (query.isPending) {
+    return (
+      <div className="max-w-5xl mx-auto px-4 py-10 grid md:grid-cols-2 gap-10">
+        <div className="aspect-square animate-pulse bg-neutral-200 rounded-3xl" />
+        <div className="space-y-4">
+          <div className="h-6 w-24 animate-pulse bg-neutral-200 rounded-full" />
+          <div className="h-8 w-3/4 animate-pulse bg-neutral-200 rounded-2xl" />
+          <div className="h-4 w-1/2 animate-pulse bg-neutral-200 rounded-2xl" />
+        </div>
+      </div>
+    );
+  }
+
+  if (
+    query.isError &&
+    query.error instanceof ApiError &&
+    query.error.status === 404
+  ) {
+    return (
+      <div className="max-w-xl mx-auto px-4 py-16 text-center">
+        <h1 className="text-xl font-bold text-neutral-900">
+          Producto no encontrado
+        </h1>
+        <p className="mt-2 text-sm text-neutral-600">
+          Puede que el enlace esté viejo.
+        </p>
+        <Link
+          to="/productos"
+          className="mt-6 inline-flex items-center text-sm text-orange-600 min-h-11 focus-visible:ring-2 focus-visible:ring-orange-600 focus:outline-none"
+        >
+          Volver al catálogo
+        </Link>
+      </div>
+    );
+  }
+
+  if (query.isError) {
+    return (
+      <div className="max-w-xl mx-auto px-4 py-16 text-center">
+        <h1 className="text-xl font-bold text-neutral-900">
+          No pudimos cargar este producto
+        </h1>
+        <p className="mt-2 text-sm text-neutral-600">
+          Revisa que el backend esté corriendo en el puerto 8000 e inténtalo
+          de nuevo.
+        </p>
+        <button
+          onClick={() => query.refetch()}
+          className="mt-6 bg-orange-600 text-white font-bold rounded-full px-6 py-2 min-h-11 hover:bg-orange-700 focus-visible:ring-2 focus-visible:ring-orange-600 focus:outline-none"
+        >
+          Reintentar
+        </button>
+      </div>
+    );
+  }
+
+  const producto = query.data;
+
+  return (
+    <div className="max-w-5xl mx-auto px-4 py-10">
+      <button
+        onClick={() => navigate(-1)}
+        className="text-sm text-orange-600 min-h-11 flex items-center focus-visible:ring-2 focus-visible:ring-orange-600 focus:outline-none"
+      >
+        ← Volver al catálogo
+      </button>
+
+      <div className="mt-4 grid md:grid-cols-2 gap-10">
+        <img
+          src={producto.imagen}
+          alt={producto.nombre}
+          className="rounded-3xl aspect-square object-cover bg-neutral-200 w-full shadow-md"
+        />
+        <div>
+          <div className="flex flex-wrap gap-2">
+            <span
+              className={`text-sm rounded-full px-2 py-1 ${FAMILIA_BADGES[producto.familia]}`}
+            >
+              {FAMILIA_LABELS[producto.familia]}
+            </span>
+            <BadgeDisponibilidad stock={producto.stock} />
+          </div>
+          <h1 className="mt-3 text-2xl md:text-3xl font-extrabold text-neutral-900">
+            {producto.nombre}
+          </h1>
+          <p className="mt-1 text-2xl font-extrabold text-orange-700">
+            {clp.format(producto.precio)}
+          </p>
+          <p className="mt-5 text-base leading-relaxed text-neutral-600">
+            {producto.descripcion}
+          </p>
+          {producto.notas.length > 0 && (
+            <div className="mt-6">
+              <p className="text-sm font-bold text-neutral-900">
+                Notas aromáticas
+              </p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {producto.notas.map((nota) => (
+                  <span
+                    key={nota}
+                    className="text-sm rounded-full px-2 py-1 bg-orange-50 text-neutral-700"
+                  >
+                    {nota}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+          <p className="mt-6 text-sm font-semibold text-neutral-600">
+            {producto.stock === 0
+              ? "Agotado"
+              : `${producto.stock} ${producto.stock === 1 ? "unidad" : "unidades"} disponibles`}
+          </p>
           <button
             onClick={() => agregar(producto.id, 1)}
             disabled={producto.stock === 0 || enCarro >= producto.stock}
@@ -175,6 +321,11 @@ disponibilidad ("N unidades disponibles"), agrega:
               Ya tienes todo el stock disponible en tu carro.
             </p>
           )}
+        </div>
+      </div>
+    </div>
+  );
+}
 ```
 
 ✅ **Mini-verificación (D-27, con tus ojos):** abre la ficha de **Brisa de
@@ -611,19 +762,47 @@ Vive DENTRO del Layout (Navbar y Footer alrededor), los imports salen de
 siempre. ¿Protegida? NO: el carro es del visitante anónimo (RF-11) — la
 sesión se exigirá donde sí importa, en el checkout de la guía 8.*
 
-En **`frontend/src/main.tsx`**, agrega el import junto a los de las
-features:
+Reemplaza el contenido completo de **`frontend/src/main.tsx`** por este
+— lo nuevo del paso: el import de `Carro` junto a los de las features, y
+la ruta `/carro` dentro del `<Route element={<Layout />}>`:
 
 ```tsx
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import { BrowserRouter, Routes, Route } from "react-router";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+import "./index.css";
+import Layout from "./components/Layout";
+import Landing from "./features/landing/Landing";
+import Catalogo from "./features/catalogo/Catalogo";
+import FichaProducto from "./features/catalogo/FichaProducto";
+import NoEncontrado from "./features/catalogo/NoEncontrado";
+import Login from "./features/cuentas/Login";
+import Registro from "./features/cuentas/Registro";
 import Carro from "./features/carro/Carro";
-```
 
-Y la ruta dentro de `<Route element={<Layout />}>`, junto a las existentes:
+const queryClient = new QueryClient();
 
-```tsx
-<Route path="/login" element={<Login />} />
-<Route path="/registro" element={<Registro />} />
-<Route path="/carro" element={<Carro />} />
+createRoot(document.getElementById("root")!).render(
+  <StrictMode>
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <Routes>
+          <Route element={<Layout />}>
+            <Route path="/" element={<Landing />} />
+            <Route path="/productos" element={<Catalogo />} />
+            <Route path="/productos/:id" element={<FichaProducto />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/registro" element={<Registro />} />
+            <Route path="/carro" element={<Carro />} />
+            <Route path="*" element={<NoEncontrado />} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </QueryClientProvider>
+  </StrictMode>
+);
 ```
 
 ✅ **Mini-verificación:** con `npm run dev`, abre
@@ -679,26 +858,56 @@ estilo es el de siempre: pastilla redonda terracota con blanco, `px-2 py-1`
 — a lo más dos dígitos sin romper el alto del link, porque el link ya tiene
 su `min-h-11` desde la guía 2.*
 
-En **`frontend/src/components/Navbar.tsx`**, agrega el import junto al del
-store de sesión:
+Reemplaza el contenido completo de **`frontend/src/components/Navbar.tsx`**
+por este — lo nuevo del paso: el import del store del carro, el selector
+`unidades` junto a los otros, y el link "Carro" con su badge entre
+"Catálogo" y la zona de sesión:
 
 ```tsx
+// Navbar con estado de sesión (A9): sin sesión → "Ingresar"; con sesión →
+// email truncado + "Cerrar sesión". El badge del carro llega en la guía 7.
+import { Link, NavLink, useNavigate } from "react-router";
+
+import { useAuthStore } from "../stores/useAuthStore";
 import { useCarroStore } from "../stores/useCarroStore";
-```
 
-Dentro del componente, junto a los otros selectores:
+const estiloLink = ({ isActive }: { isActive: boolean }) =>
+  `text-sm min-h-11 flex items-center focus-visible:ring-2 focus-visible:ring-orange-600 focus:outline-none ${
+    isActive ? "text-orange-600 font-bold" : "text-neutral-600"
+  }`;
 
-```tsx
+export default function Navbar() {
+  const navegar = useNavigate();
+  const usuario = useAuthStore((s) => s.usuario);
+  const cerrarSesion = useAuthStore((s) => s.cerrarSesion);
   // D-28: unidades TOTALES del carro (no ítems): 2 de un aroma + 1 de
   // otro = 3.
   const unidades = useCarroStore((s) =>
     s.items.reduce((total, i) => total + i.cantidad, 0)
   );
-```
 
-Y el link "Carro" entre "Catálogo" y la zona de sesión:
+  function salir() {
+    cerrarSesion(); // borra token+usuario — y el persist limpia localStorage
+    navegar("/"); // sin confirmación: entrar de nuevo son dos campos
+  }
 
-```tsx
+  return (
+    <header className="sticky top-0 z-10 bg-orange-50/90 backdrop-blur border-b border-orange-100">
+      <nav className="max-w-6xl mx-auto flex items-center justify-between gap-4 px-4 py-3">
+        <Link
+          to="/"
+          className="flex items-center gap-2 text-xl font-bold text-neutral-900 truncate focus-visible:ring-2 focus-visible:ring-orange-600 focus:outline-none"
+        >
+          <span
+            aria-hidden="true"
+            className="h-2.5 w-2.5 rounded-full bg-orange-600"
+          />
+          Maura · Body Splash
+        </Link>
+        <div className="flex flex-wrap items-center gap-4">
+          <NavLink to="/" end className={estiloLink}>
+            Inicio
+          </NavLink>
           <NavLink to="/productos" className={estiloLink}>
             Catálogo
           </NavLink>
@@ -716,6 +925,31 @@ Y el link "Carro" entre "Catálogo" y la zona de sesión:
               </span>
             )}
           </NavLink>
+          {usuario ? (
+            <>
+              <span
+                className="text-sm text-neutral-600 truncate max-w-32"
+                title={usuario.email}
+              >
+                {usuario.email}
+              </span>
+              <button
+                onClick={salir}
+                className="text-sm text-orange-600 font-bold min-h-11 focus-visible:ring-2 focus-visible:ring-orange-600 focus:outline-none"
+              >
+                Cerrar sesión
+              </button>
+            </>
+          ) : (
+            <NavLink to="/login" className={estiloLink}>
+              Ingresar
+            </NavLink>
+          )}
+        </div>
+      </nav>
+    </header>
+  );
+}
 ```
 
 ✅ **Mini-verificación (el contador vivo):** con el carro vacío, el navbar
