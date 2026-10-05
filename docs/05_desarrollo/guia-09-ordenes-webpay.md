@@ -188,11 +188,275 @@ La tabla contra el diccionario de §2.2 del diseño, campo a campo: PEDIDO
 `nombre_snapshot` 120, `precio_snapshot`, `cantidad`) — ni una más.
 
 Un detalle de infraestructura: el `create_all` del seed solo crea las
-tablas de los modelos que están IMPORTADOS cuando corre. En
-**`backend/app/seed.py`**, agrega este import junto a los de modelos:
+tablas de los modelos que están IMPORTADOS cuando corre. Reemplaza el
+contenido completo de **`backend/app/seed.py`** por este — lo único nuevo
+respecto de la guía 3 es el import de `app.models.pedido` junto a los de
+modelos:
 
 ```python
+"""Seed idempotente del catálogo demo (STORE-04).
+
+Uso (agnóstico de terminal, D-12):
+
+    uv run python -m app.seed
+
+Upsert por SKU: si el producto no existe se crea ("[+]"); si ya existe se
+actualiza campo a campo al valor canónico ("[="). La re-ejecución converge
+siempre al estado demo sin duplicar filas ni resetear IDs. Prohibido el
+patrón DELETE FROM + reinsert: rompería las FK de los pedidos de la fase 3
+y reiniciaría los IDs.
+"""
+
+from sqlalchemy import select
+from sqlalchemy.orm import Session
+
+from app.config import settings
+from app.database import Base, SessionLocal, engine
+from app.models.producto import FamiliaAromatica, Producto
+from app.models.usuario import RolUsuario, Usuario
 from app.models import pedido  # noqa: F401 — registra pedidos/pedidos_lineas en el create_all
+from app.security import get_password_hash
+
+
+def upsert_producto(sesion: Session, datos: dict) -> str:
+    """Crea el producto ("[+]") o lo actualiza al valor canónico ("[=]")."""
+    existente = sesion.scalar(select(Producto).where(Producto.sku == datos["sku"]))
+    if existente is None:
+        sesion.add(Producto(**datos))
+        return "[+]"
+    for campo, valor in datos.items():
+        setattr(existente, campo, valor)  # restaura precios/stock del demo
+    return "[=]"
+
+
+def upsert_usuario(sesion: Session, email: str, password: str, rol: RolUsuario) -> str:
+    """Crea la cuenta ("[+]") o restaura credenciales y rol ("[=]").
+
+    Re-ejecutar el seed REINICIA la contraseña demo al valor del .env —
+    cada alumno reinicia su admin sin miedo (D-23). El rol también se
+    fija: el claim sale del usuario en cada emisión (ADR-011).
+    """
+    existente = sesion.scalar(select(Usuario).where(Usuario.email == email))
+    hash_nuevo = get_password_hash(password)
+    if existente is None:
+        sesion.add(Usuario(email=email, hashed_password=hash_nuevo, rol=rol))
+        return "[+]"
+    existente.hashed_password = hash_nuevo  # restaura la contraseña demo
+    existente.rol = rol                     # y fija el rol que el .env dice
+    return "[=]"
+
+
+# Datos demo canónicos: 4 familias x 3 productos (D-05/D-06). Precios CLP
+# enteros dentro de $6.990–$12.990 (D-07); imágenes locales (D-08); stock con
+# exactamente dos valores bajos (citricas-03 y florales-03, para la alerta de
+# la fase 4) y ninguno en 0 (la ficha siempre muestra disponibilidad).
+PRODUCTOS_DEMO: list[dict] = [
+    # -- Cítricas ----------------------------------------------------------
+    {
+        "sku": "citricas-01",
+        "nombre": "Brisa de Naranja",
+        "descripcion": (
+            "Naranja recién pelada con un fondo de bergamota. "
+            "Frescura luminosa para el día."
+        ),
+        "precio": 7990,
+        "stock": 14,
+        "familia": FamiliaAromatica.citricas,
+        "notas": ["naranja", "bergamota", "mandarina"],
+        "activo": True,
+        "imagen": "/products/citricas-01.jpg",
+    },
+    {
+        "sku": "citricas-02",
+        "nombre": "Limón y Albahaca",
+        "descripcion": (
+            "Limón chispeante con albahaca fresca y un toque de cidrón. "
+            "Energía cítrica para arrancar bien el día."
+        ),
+        "precio": 6990,
+        "stock": 9,
+        "familia": FamiliaAromatica.citricas,
+        "notas": ["limón", "albahaca", "cidrón"],
+        "activo": True,
+        "imagen": "/products/citricas-02.jpg",
+    },
+    {
+        "sku": "citricas-03",
+        "nombre": "Gajo de Pomelo",
+        "descripcion": (
+            "Pomelo rosado con cardamomo y un cierre de lima. "
+            "Jugoso, con personalidad y ganas de sol."
+        ),
+        "precio": 8990,
+        "stock": 3,
+        "familia": FamiliaAromatica.citricas,
+        "notas": ["pomelo rosado", "cardamomo", "lima"],
+        "activo": True,
+        "imagen": "/products/citricas-03.jpg",
+    },
+    # -- Florales ----------------------------------------------------------
+    {
+        "sku": "florales-01",
+        "nombre": "Jazmín de Tarde",
+        "descripcion": (
+            "Jazmín que abre con azahar y cierra en neroli. "
+            "Un ramo sereno para la tarde."
+        ),
+        "precio": 9990,
+        "stock": 11,
+        "familia": FamiliaAromatica.florales,
+        "notas": ["jazmín", "azahar", "neroli"],
+        "activo": True,
+        "imagen": "/products/florales-01.jpg",
+    },
+    {
+        "sku": "florales-02",
+        "nombre": "Peonía Blanca",
+        "descripcion": (
+            "Peonía blanca con freesia y un velo de almizcle floral. "
+            "Suave, limpio y romántico."
+        ),
+        "precio": 8990,
+        "stock": 7,
+        "familia": FamiliaAromatica.florales,
+        "notas": ["peonía", "freesia", "almizcle floral"],
+        "activo": True,
+        "imagen": "/products/florales-02.jpg",
+    },
+    {
+        "sku": "florales-03",
+        "nombre": "Rosa de Río",
+        "descripcion": (
+            "Rosa con geranio y un guiño de litchi. "
+            "Floral con cuerpo, para no pasar inadvertida."
+        ),
+        "precio": 10990,
+        "stock": 2,
+        "familia": FamiliaAromatica.florales,
+        "notas": ["rosa", "geranio", "litchi"],
+        "activo": True,
+        "imagen": "/products/florales-03.jpg",
+    },
+    # -- Frutales ----------------------------------------------------------
+    {
+        "sku": "frutales-01",
+        "nombre": "Mora Silvestre",
+        "descripcion": (
+            "Mora con frambuesa y cassis. "
+            "Un canasto de berries recién cosechados."
+        ),
+        "precio": 8490,
+        "stock": 16,
+        "familia": FamiliaAromatica.frutales,
+        "notas": ["mora", "frambuesa", "cassis"],
+        "activo": True,
+        "imagen": "/products/frutales-01.jpg",
+    },
+    {
+        "sku": "frutales-02",
+        "nombre": "Durazno Crema",
+        "descripcion": (
+            "Durazno maduro sobre vainilla cremosa y almendra. "
+            "Dulzor frutal con el confort de un postre."
+        ),
+        "precio": 9490,
+        "stock": 8,
+        "familia": FamiliaAromatica.frutales,
+        "notas": ["durazno", "vainilla cremosa", "almendra"],
+        "activo": True,
+        "imagen": "/products/frutales-02.jpg",
+    },
+    {
+        "sku": "frutales-03",
+        "nombre": "Frutilla Fresca",
+        "descripcion": (
+            "Frutilla fresca con flor de azahar y un fondo de almíbar. "
+            "Dulce, jugosa y sin empalagar."
+        ),
+        "precio": 7490,
+        "stock": 5,
+        "familia": FamiliaAromatica.frutales,
+        "notas": ["frutilla", "flor de azahar", "almíbar"],
+        "activo": True,
+        "imagen": "/products/frutales-03.jpg",
+    },
+    # -- Dulces ------------------------------------------------------------
+    {
+        "sku": "dulces-01",
+        "nombre": "Vainilla y Sándalo",
+        "descripcion": (
+            "Vainilla cremosa sobre un fondo cálido de sándalo. "
+            "El abrazo dulce de la casa."
+        ),
+        "precio": 12990,
+        "stock": 6,
+        "familia": FamiliaAromatica.dulces,
+        "notas": ["vainilla", "sándalo", "ámbar"],
+        "activo": True,
+        "imagen": "/products/dulces-01.jpg",
+    },
+    {
+        "sku": "dulces-02",
+        "nombre": "Caramelo Salado",
+        "descripcion": (
+            "Caramelo con un punto de sal marina y praliné. "
+            "Golosura con un giro adulto."
+        ),
+        "precio": 11490,
+        "stock": 12,
+        "familia": FamiliaAromatica.dulces,
+        "notas": ["caramelo", "sal marina", "praliné"],
+        "activo": True,
+        "imagen": "/products/dulces-02.jpg",
+    },
+    {
+        "sku": "dulces-03",
+        "nombre": "Algodón de Azúcar",
+        "descripcion": (
+            "Nube de algodón de azúcar con frambuesa blanca y almizcle dulce. "
+            "Pura nostalgia dulce."
+        ),
+        "precio": 10490,
+        "stock": 10,
+        "familia": FamiliaAromatica.dulces,
+        "notas": ["algodón de azúcar", "frambuesa blanca", "almizcle dulce"],
+        "activo": True,
+        "imagen": "/products/dulces-03.jpg",
+    },
+]
+
+
+def main() -> None:
+    # El schema y el seed existen ANTES de cualquier verificación de
+    # endpoints: la creación de tablas vive aquí, no en main.py.
+    Base.metadata.create_all(bind=engine)
+    with SessionLocal() as sesion:
+        marcas = []
+        for datos in PRODUCTOS_DEMO:
+            marca = upsert_producto(sesion, datos)
+            marcas.append(marca)
+            print(f"{marca} {datos['sku']} — {datos['nombre']}")
+        # Cuentas demo DESPUÉS de productos (la etapa 3 conectará pedidos
+        # con ambos). Credenciales desde el .env: jamás en el código
+        # (D-23, D-24).
+        cuentas_demo = [
+            (settings.admin_email, settings.admin_password, RolUsuario.admin),
+            (settings.cliente_email, settings.cliente_password, RolUsuario.cliente),
+        ]
+        for email, password, rol in cuentas_demo:
+            marca = upsert_usuario(sesion, email, password, rol)
+            marcas.append(marca)
+            print(f"{marca} {email} ({rol.value})")
+        sesion.commit()
+    print(
+        f"Seed listo: {marcas.count('[+]')} creados [+], "
+        f"{marcas.count('[=]')} actualizados [=] "
+        f"({len(PRODUCTOS_DEMO)} productos + {len(cuentas_demo)} cuentas)"
+    )
+
+
+if __name__ == "__main__":
+    main()
 ```
 
 ✅ **Mini-verificación:** desde `backend/`, ejecuta:
@@ -591,15 +855,50 @@ la transacción, que es lo que Pitfall 11 garantiza; endurecer ese camino
 con reintentos no está en el contrato de esta etapa.*
 
 Antes del service, una línea de configuración: la URL pública del
-backend que el `return_url` necesita. En **`backend/app/config.py`**,
-agrega dentro de la clase `Settings` (debajo del bloque de la etapa 2):
+backend que el `return_url` necesita. Reemplaza el contenido completo de
+**`backend/app/config.py`** por este — lo nuevo es el bloque de la etapa
+3 al final de la clase `Settings`:
 
 ```python
+"""Configuración tipada de la API.
+
+TODO lo configurable vive en un solo lugar: pydantic-settings carga
+valores por defecto de desarrollo y permite sobreescribirlos con
+variables de entorno (p. ej. DATABASE_URL, CORS_ORIGINS). Los secretos
+jamás van en el código.
+"""
+
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class Settings(BaseSettings):
+    """Ajustes del backend. En producción se sobreescriben por entorno."""
+
+    # El .env entra en acción: la guía 1 lo dejó gitignoreado esperando
+    # este momento (variables de entorno Y archivo, sin activar nada).
+    model_config = SettingsConfigDict(env_file=".env")
+
+    database_url: str = "sqlite:///./maura.db"
+    cors_origins: list[str] = ["http://localhost:5173"]
+
+    # --- Etapa 2: cuentas JWT (ADR-009) ---
+    secret_key: str  # SIN default: sin .env la app no parte (fail-fast)
+    token_dias: int = 7  # vida del token (D-20)
+    # Cuentas demo del seed (D-23, D-24): credenciales por entorno,
+    # jamás escritas en el código ni en la guía.
+    admin_email: str
+    admin_password: str
+    cliente_email: str
+    cliente_password: str
+
     # --- Etapa 3: pago Webpay (ADR-012) ---
     # La URL pública del BACKEND: a ella vuelve el navegador desde Webpay
     # (return_url). NO es cors_origins — esa es la SPA. Dev y producción
-    # difieren; la fase 5 la congela junto con el origen público.
+    # difieren; la fase 5 la congelará junto con el origen público.
     backend_url: str = "http://localhost:8000"
+
+
+settings = Settings()
 ```
 
 Crea **`backend/app/services/pedidos.py`** — primera parte (la ida y el
@@ -763,10 +1062,43 @@ transición a `paid`; si pierde la carrera (`StockInsuficiente`), el
 `rollback` revierte el descuento parcial y la orden queda REJECTED — la
 verdad, no un voucher falso (ADR-013).*
 
-Continúa **`backend/app/services/pedidos.py`**: agrega `RetornoResultado`
-y `clasificar_flujo` entre `CarroNoComprable` y la clase…
+Reemplaza el contenido completo de **`backend/app/services/pedidos.py`**
+por este — las adiciones del paso: `RetornoResultado` y `clasificar_flujo`
+entre `CarroNoComprable` y la clase, y los tres métodos de la vuelta
+(`procesar_retorno`/`_cancelar`/`_confirmar`) después de `iniciar_checkout`:
 
 ```python
+"""Casos de uso de pedidos: checkout, retorno e historial. El service NO
+conoce HTTP — las señales (CarroNoComprable, None del detalle) las
+traduce el router (CART-03, PAY-02, ORDR-01).
+"""
+
+from dataclasses import dataclass
+
+from sqlalchemy import update
+from sqlalchemy.orm import Session
+
+from app.config import settings
+from app.models.pedido import EstadoPedido, LineaPedido, Pedido
+from app.models.usuario import Usuario
+from app.repositories.pedido import PedidoRepository, StockInsuficiente
+from app.repositories.producto import ProductoRepository
+from app.schemas.pedido import CheckoutCreate, CheckoutRespuesta
+from app.services import webpay
+
+
+class CarroNoComprable(Exception):
+    """Señal de regla de negocio: el carro no puede convertirse en orden.
+
+    La lanza iniciar_checkout (stock insuficiente o aroma desaparecido) y
+    el router la traduce al 400 del contrato (CART-03) con SU mensaje.
+    """
+
+    def __init__(self, mensaje: str) -> None:
+        super().__init__(mensaje)
+        self.mensaje = mensaje
+
+
 @dataclass
 class RetornoResultado:
     """Lo que el retorno decidió — el router lo convierte en la 302.
@@ -798,12 +1130,60 @@ def clasificar_flujo(
     if token_ws and not tbk_token and not tbk_id_sesion:
         return "normal"  # aprobado o rechazado por la tarjeta: lo decide el commit
     return "desconocido"  # defensivo: el router responde el 400 del contrato
-```
 
-…y los tres métodos de la vuelta DENTRO de `PedidosService` (después de
-`iniciar_checkout`):
 
-```python
+class PedidosService:
+    """Orquesta el ciclo de vida de la orden (D-34..D-37)."""
+
+    def __init__(self, db: Session) -> None:
+        # Recibe la SESIÓN (no un solo repo): necesita el catálogo para
+        # recalcular, el repo de pedidos para persistir… y decide cuándo
+        # cerrar la transacción — las fronteras son de la etapa (Pitfall 11).
+        self.db = db
+        self.pedidos = PedidoRepository(db)
+        self.productos = ProductoRepository(db)
+
+    # --- La ida: el checkout (CART-03, D-34, Pitfall 11) ---
+
+    def iniciar_checkout(self, usuario: Usuario, datos: CheckoutCreate) -> CheckoutRespuesta:
+        """Valida recalculando, crea la orden PENDING y la transacción — en ese orden."""
+        lineas: list[LineaPedido] = []
+        total = 0
+        for item in datos.items:
+            producto = self.productos.obtener(item.producto_id)
+            if producto is None or not producto.activo:
+                raise CarroNoComprable("Un aroma de tu carro ya no está disponible")
+            if producto.stock < item.cantidad:  # valida SIN tocar (RN-12, D-35)
+                raise CarroNoComprable(
+                    f"Stock insuficiente en {producto.nombre} (quedan {producto.stock})"
+                )
+            total += producto.precio * item.cantidad  # precio VIGENTE (CART-03)
+            lineas.append(
+                LineaPedido(
+                    producto_id=producto.id,
+                    nombre_snapshot=producto.nombre,  # congelado (D-36, RN-10)
+                    precio_snapshot=producto.precio,
+                    cantidad=item.cantidad,
+                )
+            )
+
+        # La orden nace PENDING (D-34) — flush SIN commit: la transacción
+        # sigue abierta para abrazar la llamada a Webpay (Pitfall 11).
+        pedido = self.pedidos.crear(usuario.id, total, lineas)
+
+        # Recién AHORA la pasarela: si create falla, la orden se revierte
+        # sola al cerrar la sesión sin commit.
+        respuesta = webpay.crear(
+            buy_order=pedido.numero,  # el numero ES el buy_order (D-37)
+            session_id=str(usuario.id),  # espejo informativo — el mapeo real va por buy_order
+            amount=float(total),  # CLP entero como float (RN-02)
+            return_url=f"{settings.backend_url}/api/pago/retorno",
+        )
+        self.db.commit()  # Webpay respondió: la orden PENDING queda persistida
+        return CheckoutRespuesta(
+            url=respuesta["url"], token_ws=respuesta["token_ws"], numero=pedido.numero
+        )
+
     # --- La vuelta: el retorno (PAY-02/PAY-03, ADR-012/013) ---
 
     def procesar_retorno(
@@ -907,6 +1287,19 @@ def clasificar_flujo(
             return RetornoResultado(estado="rechazado", numero=pedido.numero)
         self.db.commit()
         return RetornoResultado(estado="pagado", numero=pedido.numero)
+
+    # --- El historial (ORDR-01, D-46..D-49) ---
+
+    def listar(self, usuario_id: int) -> list[Pedido]:
+        """TODAS las órdenes de la clienta — las "en curso" incluidas (RN-11)."""
+        return self.pedidos.por_usuario(usuario_id)
+
+    def detalle(self, usuario_id: int, numero: str) -> Pedido | None:
+        """La orden si existe Y es de la dueña del token — None si no (404 uniforme)."""
+        pedido = self.pedidos.por_numero(numero)
+        if pedido is None or pedido.usuario_id != usuario_id:
+            return None  # "no existe" y "no es tuya" responden IGUAL (ORDR-01)
+        return pedido
 ```
 
 ✅ **Mini-verificación (el discriminador, en tu máquina):** desde
