@@ -1684,7 +1684,21 @@ REJECTED con stock 0 (la segunda mitad). Y la cuarta prueba el 404
 uniforme: el admin pregunta por el pedido de la clienta y el sistema le
 dice "no encontrado" — porque para él, no lo es.*
 
-Con la API encendida y el seed corrido. Los cuatro golpes, en orden:
+Preparación del escenario, dos comandos explícitos antes del primer golpe.
+El seed primero (idempotente: re-correrlo es siempre seguro):
+
+```
+uv run python -m app.seed
+```
+
+Los 14 `[=]` de siempre y las tablas al día. Luego, en otra terminal, la
+API encendida:
+
+```
+uv run fastapi dev app/main.py
+```
+
+Con la API encendida y el seed corrido, los cuatro golpes, en orden:
 
 ✅ **Mini-verificación (la orden nace PENDING con transacción real):**
 desde `backend/`, ejecuta (una línea — las credenciales salen del propio
