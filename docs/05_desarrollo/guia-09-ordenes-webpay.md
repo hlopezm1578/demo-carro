@@ -464,7 +464,8 @@ if __name__ == "__main__":
     main()
 ```
 
-✅ **Mini-verificación:** desde `backend/`, ejecuta:
+✅ **Mini-verificación (el modelo contra el contrato):** desde `backend/`,
+ejecuta:
 
 ```
 uv run python -c "from app.models.pedido import EstadoPedido, Pedido, LineaPedido; print([m.name for m in EstadoPedido]); print([c.name for c in Pedido.__table__.columns]); print([c.name for c in LineaPedido.__table__.columns])"
@@ -473,10 +474,22 @@ uv run python -c "from app.models.pedido import EstadoPedido, Pedido, LineaPedid
 Debe imprimir `['pending', 'paid', 'cancelled', 'rejected']` y las dos
 listas de columnas — compáralas con el `enum: [pending, paid, cancelled,
 rejected]` de `OrdenLista` en `contrato_api.yaml` y con el diccionario de
-§2.2: iguales, caracter por caracter. Después ejecuta `uv run python -m
-app.seed`: los 14 `[=]` de siempre Y las dos tablas nuevas creadas —
-`create_all` agrega `pedidos` y `pedidos_lineas` sin tocar las existentes
-(ADR-005; sin migraciones en esta etapa).
+§2.2: iguales, caracter por caracter.
+
+✅ **Mini-verificación (el re-seed que materializa las tablas):** el modelo
+en Python todavía no vive en la base — el `create_all` del seed es quien
+crea `pedidos` y `pedidos_lineas`. Desde `backend/`, ejecuta:
+
+```
+uv run python -m app.seed
+```
+
+Debe imprimir los 14 `[=]` de siempre — y con ellos nacieron las dos tablas
+nuevas: `create_all` agrega `pedidos` y `pedidos_lineas` sin tocar las
+existentes (ADR-005; sin migraciones en esta etapa). Este paso NO es
+opcional: si lo saltas, el checkout del paso 10 revienta con
+`no such table: pedidos` — el modelo existe en el código, pero la base
+nunca se enteró de él.
 
 ---
 
