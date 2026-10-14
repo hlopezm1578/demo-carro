@@ -57,6 +57,11 @@ Desde `backend/`, ejecuta:
 uv add transbank-sdk
 ```
 
+> 🔧 **¿`invalid peer certificate: UnknownIssuer`?** El proxy de tu red
+> intercepta HTTPS y uv no conoce su certificado. Corre el comando con
+> `--system-certs`, o define `UV_SYSTEM_CERTS=true` una vez — la receta
+> completa está en la guía 1, junto al primer `uv add`.
+
 Tu `pyproject.toml` gana la dependencia congelada en `uv.lock` (RNF-04). El
 SDK instala `requests` y `marshmallow` como dependencias suyas — no las
 tocas: son internas del SDK.

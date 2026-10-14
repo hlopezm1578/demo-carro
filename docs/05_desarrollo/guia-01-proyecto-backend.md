@@ -159,6 +159,17 @@ Desde `backend/` (dentro de la carpeta, no en la raíz), ejecuta:
 uv add "fastapi[standard]" sqlalchemy pydantic-settings
 ```
 
+> 🔧 **Si uv falla con `invalid peer certificate: UnknownIssuer`:** tu red —
+> un proxy corporativo o escolar, o un antivirus que inspecciona HTTPS —
+> intercepta la conexión a PyPI y la re-firma con un certificado propio. uv
+> viaja con su propia lista de certificados y no conoce al tuyo; el navegador
+> no falla porque usa los de Windows, y por eso el problema parece ser "solo
+> de uv". La vacuna: agrega `--system-certs` al comando (`uv add ...
+> --system-certs`) para que uv use los certificados del sistema, o define una
+> sola vez la variable de entorno `UV_SYSTEM_CERTS=true` (PowerShell:
+> `setx UV_SYSTEM_CERTS true` y reabre la terminal) y todo `uv` de las guías
+> queda cubierto sin flag extra.
+
 Verás cómo uv resuelve el grafo completo de dependencias y crea el entorno
 virtual del proyecto (`.venv/`, que vive dentro de `backend/` y jamás se sube
 al repositorio). Al terminar, tu `pyproject.toml` queda así:
