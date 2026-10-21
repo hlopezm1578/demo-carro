@@ -269,3 +269,19 @@ round-robin al más antiguo. `netstat -ano` mostraba PIDs fantasma que `taskkill
 exige matar TODOS los python del taller y verificar el puerto libre antes de subir. Lección
 hermana del "hot-reload se cuelga" ya documentada: si un fix de prompt "no funciona", verifica
 que el proceso que responde sea el que crees.
+
+## Addenda 3 (2026-10-21): revisión preventiva — guia-13 violaba la regla "build siempre verde"
+
+Tras el D-4 de guia-10 (03-UAT.md), el usuario fijó regla de proyecto: ninguna mini-verificación
+puede dejar el build en rojo como resultado esperado (convención 3 revisada en CONVENTIONS.md +
+memoria builds-verdes en AGENTS.md). Revisión hacia adelante (guias 11-18) y hacia atrás (02-08)
+aplicando la regla: **guia-13 era el otro violador** — su paso 4 reescribía `main.tsx` con la rama
+`/admin` importando `LayoutAdmin`/`AdminProductos`/`AdminPedidos`/`AdminMetricas` recién creados
+en los pasos 5-8, con MVs que confesaban "el build todavía no pasa" y hasta sugerían "comenta la
+rama un momento" como workaround. **Fix:** reordenamiento — 4 LayoutAdmin+Navbar, 5 AdminProductos,
+6 AdminPedidos, 7 AdminMetricas, 8 main.tsx (cableado al final, MV build verde completo); las 4 MVs
+de "build en espera" reescritas a verde; referencias cruzadas de paso actualizadas. El resto de la
+serie ya cumplía: backend siempre registra routers en `main.py` después de crearlos; frontend
+(guias 06/07/08/11/15) cablea rutas al final; guia-02 paso 6 crea los cinco stubs DENTRO del mismo
+paso (verde al cerrarlo — patrón permitido). Detectado en revisión estática preventiva: el usuario
+aún no llega a guia-13 en su corrida de maura-bs.

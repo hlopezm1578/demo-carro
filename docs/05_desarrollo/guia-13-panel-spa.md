@@ -124,7 +124,7 @@ export default function RequireAdmin() {
 ```
 
 ✅ **Mini-verificación:** `npm run build` pasa. Nada usa el guard todavía
-— su rama llega en el paso 4, y su comportamiento se prueba de verdad en
+— su rama llega en el paso 8, y su comportamiento se prueba de verdad en
 el paso 9.
 
 ---
@@ -417,7 +417,7 @@ espejo manual de siempre (D-09) — abrir el contrato 0.4.0 y traducir
 `ProductoAdmin`, `PedidoAdmin` y `Metricas` campo a campo. Fíjate qué NO
 trae `ProductoAdmin`: `descripcion` y `notas` — el listado admin es
 liviano a propósito, y esa ausencia tiene consecuencias en el editor del
-paso 6 (hidratación desde la ficha pública). Y `ProductoPayload` es el
+paso 5 (hidratación desde la ficha pública). Y `ProductoPayload` es el
 espejo de la allow-list `ProductoCrear`/`ProductoEditar` — un solo tipo
 porque el contrato dice que son LA MISMA lista de campos.*
 
@@ -692,106 +692,7 @@ línea y el build vuelve a pasar.
 
 ---
 
-## Paso 4 — `main.tsx`: la rama paralela del panel, FUERA del Layout de tienda
-
-🧠 **El desarrollador piensa:** *la decisión de rutas más importante del
-día, y es de LAYOUT, no de guard: la rama `/admin` vive FUERA del
-`<Route element={<Layout />}>` de la tienda — una segunda rama de primer
-nivel, paralela. ¿Por qué? Porque el Layout de tienda arrastra el Footer
-y (en la guía 15) la burbuja de la asesora: piezas que le hablan a la
-CLIENTA. El panel es la trastienda de la dueña: otra navbar de segundo
-nivel (la subnav), otro ritmo (`py-12` de densidad de trabajo contra el
-`py-16` de marketing), y ni Footer ni burbuja — la dueña no necesita que
-su propia asesora le venda stock. Dos ramas, dos layouts, un solo router:
-el patrón de rutas anidadas con `<Outlet />` que el proyecto usa desde la
-guía 2, ahora con dos raíces. Y fíjate el ORDEN de los envoltorios:
-`RequireAdmin` por fuera de `LayoutAdmin` — el guard decide ANTES de que
-exista chrome de panel (una clienta que fuerza `/admin` ni siquiera debe
-ver la subnav: ve NoAutorizado a secas), y `LayoutAdmin` por fuera de las
-tres sub-rutas con `index` para `/admin` exacto (Productos) y paths
-relativos `pedidos`/`metricas`.*
-
-Reemplaza el contenido completo de **`frontend/src/main.tsx`** por este —
-lo nuevo del paso: los cinco imports del panel y la rama nueva DESPUÉS del
-bloque `<Route element={<Layout />}>` de la tienda, paralela y FUERA de
-él:
-
-```tsx
-import { StrictMode } from "react";
-import { createRoot } from "react-dom/client";
-import { BrowserRouter, Routes, Route } from "react-router";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-
-import "./index.css";
-import Layout from "./components/Layout";
-import Landing from "./features/landing/Landing";
-import Catalogo from "./features/catalogo/Catalogo";
-import FichaProducto from "./features/catalogo/FichaProducto";
-import NoEncontrado from "./features/catalogo/NoEncontrado";
-import Login from "./features/cuentas/Login";
-import Registro from "./features/cuentas/Registro";
-import Carro from "./features/carro/Carro";
-import RequireAuth from "./components/RequireAuth";
-import Checkout from "./features/checkout/Checkout";
-import ResultadoPago from "./features/pago/ResultadoPago";
-import DetallePedido from "./features/pedidos/DetallePedido";
-import Pedidos from "./features/pedidos/Pedidos";
-import RequireAdmin from "./components/RequireAdmin";
-import AdminMetricas from "./features/admin/AdminMetricas";
-import AdminPedidos from "./features/admin/AdminPedidos";
-import AdminProductos from "./features/admin/AdminProductos";
-import LayoutAdmin from "./features/admin/LayoutAdmin";
-
-const queryClient = new QueryClient();
-
-createRoot(document.getElementById("root")!).render(
-  <StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <Routes>
-          <Route element={<Layout />}>
-            <Route path="/" element={<Landing />} />
-            <Route path="/productos" element={<Catalogo />} />
-            <Route path="/productos/:id" element={<FichaProducto />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/registro" element={<Registro />} />
-            <Route path="/carro" element={<Carro />} />
-            {/* PÚBLICA a propósito: el 302 del retorno llega sin sesión en la URL
-                (Pitfall 12) — la pantalla degrada con honestidad, no expulsa. */}
-            <Route path="/pago/resultado" element={<ResultadoPago />} />
-            <Route element={<RequireAuth />}>
-              <Route path="/checkout" element={<Checkout />} />
-              <Route path="/pedidos" element={<Pedidos />} />
-              <Route path="/pedidos/:numero" element={<DetallePedido />} />
-            </Route>
-            <Route path="*" element={<NoEncontrado />} />
-          </Route>
-          {/* La rama del panel (etapa 4, D-55): FUERA del Layout de tienda — sin
-              Footer ni burbuja, con su propio layout de subnav. El guard por
-              fuera del layout: una clienta que fuerza /admin ni ve la subnav. */}
-          <Route element={<RequireAdmin />}>
-            <Route path="/admin" element={<LayoutAdmin />}>
-              <Route index element={<AdminProductos />} />
-              <Route path="pedidos" element={<AdminPedidos />} />
-              <Route path="metricas" element={<AdminMetricas />} />
-            </Route>
-          </Route>
-        </Routes>
-      </BrowserRouter>
-    </QueryClientProvider>
-  </StrictMode>
-);
-```
-
-✅ **Mini-verificación:** el build todavía no pasa — faltan los cuatro
-componentes del panel (LayoutAdmin y las tres pantallas, pasos 6 a 8). Si
-prefieres ver verde entre pasos, comenta la rama hasta el paso 8; el
-orden de esta guía la monta completa al final del paso 8 y la prueba en
-el 9.
-
----
-
-## Paso 5 — `LayoutAdmin` y el navbar que solo la dueña ve completo
+## Paso 4 — `LayoutAdmin` y el navbar que solo la dueña ve completo
 
 🧠 **El desarrollador piensa:** *dos piezas de chrome, dos decisiones. **El
 layout**: la MISMA Navbar compartida de la tienda — marca, catálogo, carro,
@@ -958,14 +859,13 @@ export default function Navbar() {
 }
 ```
 
-✅ **Mini-verificación:** `npm run build` sigue esperando a las pantallas
-(paso 8) — pero el Navbar y el layout ya compilan solos si quieres
-adelantarlos: comenta la rama del paso 4 un momento y `npm run build`
-pasa con las dos piezas nuevas.
+✅ **Mini-verificación:** `npm run build` pasa — el layout y el Navbar ya
+compilan, todavía sin consumidores (la rama del panel se cablea al
+final, en el paso 8).
 
 ---
 
-## Paso 6 — `AdminProductos`: la tabla de TODOS, el editor inline y el toggle sin confirmación
+## Paso 5 — `AdminProductos`: la tabla de TODOS, el editor inline y el toggle sin confirmación
 
 🧠 **El desarrollador piensa:** *la pantalla más cargada del panel, con
 cuatro decisiones que se sostienen juntas. **La tabla lista TODOS**: el
@@ -1003,7 +903,7 @@ el respaldo trabajando, no un hueco escondido. **El toggle no pide
 confirmación**: "Desactivar"/"Reactivar" escribe directo porque es
 reversible POR DISEÑO — el botón de vuelta está en la misma fila — y el
 feedback es el badge cambiando en el lugar, sin toast. El contraste con
-"Anular" (paso 7), que SÍ confirma en dos pasos, es la lección de
+"Anular" (paso 6), que SÍ confirma en dos pasos, es la lección de
 asimetría de la fase 2 hecha regla: la confirmación se cobra donde no
 hay vuelta. Y las notas cruzan la frontera como en todo el sistema: texto
 con comas en pantalla, `string[]` por el cable — el split/join vive en
@@ -1488,13 +1388,13 @@ export default function AdminProductos() {
 }
 ```
 
-✅ **Mini-verificación:** el build sigue esperando a las pantallas 11 y 12
-— esta es la primera de tres. Su momento de verde llega al final del paso
-8; su momento de verdad, en el 9.
+✅ **Mini-verificación:** `npm run build` pasa — la primera pantalla del
+panel compila todavía sin ruta (el cableado llega en el paso 8); su
+momento de verdad, en el 9.
 
 ---
 
-## Paso 7 — `AdminPedidos`: todas las órdenes, la anulación en dos pasos y el 409 con su copy
+## Paso 6 — `AdminPedidos`: todas las órdenes, la anulación en dos pasos y el 409 con su copy
 
 🧠 **El desarrollador piensa:** *la pantalla de la acción destructiva de la
 fase, y cada decisión gira alrededor de eso. **"Anular" solo aparece en
@@ -1509,7 +1409,7 @@ patrón "Vaciar carro" de la fase 2 (primera acción destructiva de
 entonces, primera IRREVERSIBLE de ahora): el primer clic transforma la
 celda en "¿Anular el pedido {numero}?" con "Sí, anular"/"Cancelar" — sin
 modal ni `window.confirm`, texto que reemplaza texto en el mismo lugar.
-El contraste con el toggle del paso 6 es la lección completa: la
+El contraste con el toggle del paso 5 es la lección completa: la
 confirmación se cobra donde no hay vuelta, y solo ahí. **El 409 se
 muestra con SU copy** — "Ese pedido ya no está en curso." — y tras
 mostrarlo se invalida el prefijo `["pedidos"]`: la fila refresca con la
@@ -1727,12 +1627,12 @@ export default function AdminPedidos() {
 }
 ```
 
-✅ **Mini-verificación:** build aún en espera — una pantalla más y el
-montaje del paso 4 despierta.
+✅ **Mini-verificación:** `npm run build` pasa — la segunda pantalla del
+panel compila sin ruta todavía; falta una pantalla y el cableado.
 
 ---
 
-## Paso 8 — `AdminMetricas`: tres tarjetas, una tabla y el cero honesto
+## Paso 7 — `AdminMetricas`: tres tarjetas, una tabla y el cero honesto
 
 🧠 **El desarrollador piensa:** *la pantalla más tranquila del panel y la
 que más tentación genera de decorar. El requisito veta los gráficos
@@ -1916,10 +1816,109 @@ export default function AdminMetricas() {
 }
 ```
 
-✅ **Mini-verificación:** descomenta (o confirma) la rama del paso 4 y
-`npm run build` pasa completo: guard, layout, navbar, módulo de badges,
-los dos verbos nuevos, los tipos y las tres pantallas — el panel entero
-compila. Su momento de verdad es el siguiente paso, en el navegador.
+✅ **Mini-verificación:** `npm run build` pasa — la tercera pantalla del
+panel compila sin ruta todavía; el cableado llega justo en el paso
+siguiente.
+
+---
+
+## Paso 8 — `main.tsx`: la rama paralela del panel, FUERA del Layout de tienda
+
+🧠 **El desarrollador piensa:** *la decisión de rutas más importante del
+día, y es de LAYOUT, no de guard: la rama `/admin` vive FUERA del
+`<Route element={<Layout />}>` de la tienda — una segunda rama de primer
+nivel, paralela. ¿Por qué? Porque el Layout de tienda arrastra el Footer
+y (en la guía 15) la burbuja de la asesora: piezas que le hablan a la
+CLIENTA. El panel es la trastienda de la dueña: otra navbar de segundo
+nivel (la subnav), otro ritmo (`py-12` de densidad de trabajo contra el
+`py-16` de marketing), y ni Footer ni burbuja — la dueña no necesita que
+su propia asesora le venda stock. Dos ramas, dos layouts, un solo router:
+el patrón de rutas anidadas con `<Outlet />` que el proyecto usa desde la
+guía 2, ahora con dos raíces. Y fíjate el ORDEN de los envoltorios:
+`RequireAdmin` por fuera de `LayoutAdmin` — el guard decide ANTES de que
+exista chrome de panel (una clienta que fuerza `/admin` ni siquiera debe
+ver la subnav: ve NoAutorizado a secas), y `LayoutAdmin` por fuera de las
+tres sub-rutas con `index` para `/admin` exacto (Productos) y paths
+relativos `pedidos`/`metricas`. Todo el panel ya existe — este paso solo
+lo cablea al router.*
+
+Reemplaza el contenido completo de **`frontend/src/main.tsx`** por este —
+lo nuevo del paso: los cinco imports del panel y la rama nueva DESPUÉS del
+bloque `<Route element={<Layout />}>` de la tienda, paralela y FUERA de
+él:
+
+```tsx
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import { BrowserRouter, Routes, Route } from "react-router";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+import "./index.css";
+import Layout from "./components/Layout";
+import Landing from "./features/landing/Landing";
+import Catalogo from "./features/catalogo/Catalogo";
+import FichaProducto from "./features/catalogo/FichaProducto";
+import NoEncontrado from "./features/catalogo/NoEncontrado";
+import Login from "./features/cuentas/Login";
+import Registro from "./features/cuentas/Registro";
+import Carro from "./features/carro/Carro";
+import RequireAuth from "./components/RequireAuth";
+import Checkout from "./features/checkout/Checkout";
+import ResultadoPago from "./features/pago/ResultadoPago";
+import DetallePedido from "./features/pedidos/DetallePedido";
+import Pedidos from "./features/pedidos/Pedidos";
+import RequireAdmin from "./components/RequireAdmin";
+import AdminMetricas from "./features/admin/AdminMetricas";
+import AdminPedidos from "./features/admin/AdminPedidos";
+import AdminProductos from "./features/admin/AdminProductos";
+import LayoutAdmin from "./features/admin/LayoutAdmin";
+
+const queryClient = new QueryClient();
+
+createRoot(document.getElementById("root")!).render(
+  <StrictMode>
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <Routes>
+          <Route element={<Layout />}>
+            <Route path="/" element={<Landing />} />
+            <Route path="/productos" element={<Catalogo />} />
+            <Route path="/productos/:id" element={<FichaProducto />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/registro" element={<Registro />} />
+            <Route path="/carro" element={<Carro />} />
+            {/* PÚBLICA a propósito: el 302 del retorno llega sin sesión en la URL
+                (Pitfall 12) — la pantalla degrada con honestidad, no expulsa. */}
+            <Route path="/pago/resultado" element={<ResultadoPago />} />
+            <Route element={<RequireAuth />}>
+              <Route path="/checkout" element={<Checkout />} />
+              <Route path="/pedidos" element={<Pedidos />} />
+              <Route path="/pedidos/:numero" element={<DetallePedido />} />
+            </Route>
+            <Route path="*" element={<NoEncontrado />} />
+          </Route>
+          {/* La rama del panel (etapa 4, D-55): FUERA del Layout de tienda — sin
+              Footer ni burbuja, con su propio layout de subnav. El guard por
+              fuera del layout: una clienta que fuerza /admin ni ve la subnav. */}
+          <Route element={<RequireAdmin />}>
+            <Route path="/admin" element={<LayoutAdmin />}>
+              <Route index element={<AdminProductos />} />
+              <Route path="pedidos" element={<AdminPedidos />} />
+              <Route path="metricas" element={<AdminMetricas />} />
+            </Route>
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </QueryClientProvider>
+  </StrictMode>
+);
+```
+
+✅ **Mini-verificación:** `npm run build` pasa completo: guard, layout,
+navbar, módulo de badges, los dos verbos nuevos, los tipos, las tres
+pantallas — y la rama del panel ya cableada. El panel entero compila y
+queda montado. Su momento de verdad es el siguiente paso, en el
+navegador.
 
 ---
 
@@ -1929,7 +1928,7 @@ compila. Su momento de verdad es el siguiente paso, en el navegador.
 verifica una promesa del UI-SPEC. La clienta que fuerza `/admin` ve
 NoAutorizado SIN expulsión — y el detalle fino: lo ve A SECAS, sin navbar
 de tienda ni subnav de panel — el guard vetó la RAMA entera y
-`LayoutAdmin` ni se montó (el orden de los envoltorios del paso 4
+`LayoutAdmin` ni se montó (el orden de los envoltorios del paso 8
 haciendo su trabajo). Su sesión SIGUE viva: es permiso, no identidad. El
 returnTo del admin: cerrar sesión, forzar `/admin`, entrar como admin — y
 volver AL PANEL, no a la portada (D-32 por tercera vez). El link Panel
