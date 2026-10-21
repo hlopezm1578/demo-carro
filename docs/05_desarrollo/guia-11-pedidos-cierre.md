@@ -553,7 +553,9 @@ corridas de abajo construyen el historial completo — y cada vuelta a
 `/pedidos` muestra la verdad nueva: la pantalla se monta, el `queryKey`
 `["pedidos"]` consulta y la lista refresca sola.*
 
-Con ambos servidores corriendo y la sesión de la clienta iniciada:
+Con ambos servidores corriendo (`uv run fastapi dev app/main.py` en
+`backend/`, `npm run dev` en `frontend/`) y la sesión de la
+clienta iniciada:
 
 ✅ **Mini-verificación (aprobado y anulado, juntos en la lista):** arma un
 carro, paga APROBADO con la VISA `4051 8856 0044 6623` (CVV `123`,
@@ -694,8 +696,9 @@ miente.
 
 ## ✅ Verificación de la guía 11
 
-Con ambos servidores corriendo, el seed corrido y la sesión de la
-clienta:
+Con ambos servidores corriendo (`uv run fastapi dev app/main.py` en
+`backend/`, `npm run dev` en `frontend/`), el seed corrido y
+la sesión de la clienta:
 
 1. **/pedidos** con pedidos: la lista con numero, fecha, total y badge por
    estado — la PENDING "En curso" incluida, nada filtrado (RF-17, RN-11).

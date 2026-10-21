@@ -805,8 +805,9 @@ createRoot(document.getElementById("root")!).render(
 );
 ```
 
-✅ **Mini-verificación:** con `npm run dev`, abre
-**http://localhost:5173/carro** con algo agregado: la página "Tu carro" con
+✅ **Mini-verificación:** con ambos servidores corriendo (`uv run fastapi dev app/main.py` en
+`backend/`, `npm run dev` en `frontend/`),
+abre **http://localhost:5173/carro** con algo agregado: la página "Tu carro" con
 Navbar y Footer alrededor. Clic en "Quitar" en una fila: desaparece al
 instante y el total se recalcula — el stepper y "Quitar" mutando el mismo
 store que la ficha alimenta.
@@ -963,7 +964,9 @@ otra vez.
 
 ## Paso 8 — La prueba de fuego: el carro que sobrevive (CART-02)
 
-Con ambos servidores corriendo y algo en el carro. Los cuatro momentos:
+Con ambos servidores corriendo (`uv run fastapi dev app/main.py` en
+`backend/`, `npm run dev` en `frontend/`) y algo en
+el carro. Los cuatro momentos:
 
 ✅ **Mini-verificación (RF-11: F5 y sigue vivo):** con 2 aromas en el carro,
 presiona **F5** en `/carro`: las filas siguen ahí y el badge del navbar
@@ -1051,7 +1054,8 @@ consulta dos veces.
 
 ## ✅ Verificación de la guía 7
 
-Con ambos servidores corriendo y el seed hecho:
+Con ambos servidores corriendo (`uv run fastapi dev app/main.py` en
+`backend/`, `npm run dev` en `frontend/`) y el seed hecho:
 
 1. La ficha de un aroma con stock agrega con merge: dos clics → una fila,
    cantidad 2 — y `maura-carro` en localStorage guarda SOLO

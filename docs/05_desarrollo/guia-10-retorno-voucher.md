@@ -830,16 +830,18 @@ createRoot(document.getElementById("root")!).render(
 );
 ```
 
-✅ **Mini-verificación (la cara anulado, sin pagar nada):** cierra
-sesión y abre
+✅ **Mini-verificación (la cara anulado, sin pagar nada):** con ambos
+servidores corriendo (`uv run fastapi dev app/main.py` en
+`backend/`, `npm run dev` en `frontend/`), cierra sesión y abre
 **http://localhost:5173/pago/resultado?estado=anulado** — la cara de
 compra no aprobada se ve SIN sesión y sin pedido: la ruta es pública de
 verdad. Y `npm run build` sigue en verde: pantalla y voucher ya existen
 desde los pasos 3 y 4 — este paso solo cablea.
 
 ✅ **Mini-verificación (la orden pending de la guía 9, con cara de
-SPA):** con la sesión de la clienta puesta y ambos servidores corriendo,
-abre
+SPA):** con ambos servidores corriendo (`uv run fastapi dev app/main.py` en
+`backend/`, `npm run dev` en `frontend/`) y la sesión
+de la clienta puesta, abre
 **http://localhost:5173/pago/resultado?estado=pagado&orden=MAURA-000001**
 — la orden que la prueba de fuego de la guía 9 dejó esperando el retorno.
 Debes ver "Tu pago está en curso" con el badge ámbar **En curso**, las
@@ -930,7 +932,9 @@ carro intacto; la orden queda "en curso" SOLO si la pestaña durmió en
 background y el retorno nunca llegó — el historial de la guía 11 la
 mostrará así por siempre (RN-11).*
 
-Con ambos servidores corriendo y la sesión de la clienta iniciada:
+Con ambos servidores corriendo (`uv run fastapi dev app/main.py` en
+`backend/`, `npm run dev` en `frontend/`) y la sesión de la
+clienta iniciada:
 
 ✅ **Mini-verificación (APROBADO — el ida y vuelta completo):** agrega
 aromas al carro (anota el total), entra a `/checkout` y presiona
@@ -1047,8 +1051,9 @@ pago — y no encontrarlo, porque nunca estuvo ahí.
 
 ## ✅ Verificación de la guía 10
 
-Con ambos servidores corriendo, el seed corrido y la sesión de la
-clienta:
+Con ambos servidores corriendo (`uv run fastapi dev app/main.py` en
+`backend/`, `npm run dev` en `frontend/`), el seed corrido y
+la sesión de la clienta:
 
 1. El experimento del compilador del paso 1: `"PAID"` rechazado por
    `EstadoPedido` — el enum del contrato en dos idiomas.

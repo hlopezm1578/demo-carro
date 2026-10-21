@@ -718,7 +718,9 @@ copy está listo y su copy no promete cifras que nadie puede verificar
 (concern abierto): confía en el wrapper de la guía 14, que ya probiste
 con los topes del 422.*
 
-Con ambos servidores corriendo y TU key en el `.env` del backend:
+Con ambos servidores corriendo (`uv run fastapi dev app/main.py` en
+`backend/`, `npm run dev` en `frontend/`) y TU key
+en el `.env` del backend:
 
 ✅ **Mini-verificación (la bienvenida sin cuota):** abre la burbuja con
 el panel de Network a la vista: aparece "¡Hola! Soy la asesora de
@@ -879,7 +881,9 @@ le vendería stock a su propia dueña.
 
 ## ✅ Verificación de la guía 15
 
-Con ambos servidores corriendo, el seed corrido y TU key en el `.env`:
+Con ambos servidores corriendo (`uv run fastapi dev app/main.py` en
+`backend/`, `npm run dev` en `frontend/`), el seed
+corrido y TU key en el `.env`:
 
 1. `npm run build` pasa — tipos espejados, `apiPostPublico`, la burbuja
    completa y el montaje en el Layout.

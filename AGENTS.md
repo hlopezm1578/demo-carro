@@ -196,6 +196,15 @@ Reglas de escritura establecidas tras UAT de las guías 1–4 (sesión
    que crear varios archivos, van numerados uno por uno con su contenido
    íntegro — no listados compactos con formato flecha que el alumno debe
    descifrar.
+5. **Las verificaciones runtime arrancan el sistema desde cero
+   (2026-10-21).** Toda mini-verificación o verificación de guía que toque
+   el sistema en ejecución (navegador, `/docs`, curl) debe incluir ANTES
+   las instrucciones literales para levantarlo, asumiendo que nada está
+   corriendo. Formato canónico: "Con ambos servidores corriendo (`uv run
+   fastapi dev app/main.py` en `backend/`, `npm run dev` en `frontend/`):"
+   — para verificaciones solo-backend basta "enciende la API (`uv run
+   fastapi dev app/main.py` desde `backend/`)". Nunca asumir "ambos
+   servidores corriendo" a secas.
 <!-- GSD:conventions-end -->
 
 <!-- GSD:architecture-start source:ARCHITECTURE.md -->
@@ -276,3 +285,19 @@ crear el archivo → TS2307 como resultado "esperado" de una MV):
 - Aplica a TODAS las guías de `docs/05_desarrollo/` existentes y futuras, y
   también está registrada como convención 3 en `.planning/CONVENTIONS.md`.
 <!-- builds-verdes-end -->
+
+<!-- arranque-runtime-start (memoria de trabajo del usuario — fuera de los bloques GSD) -->
+
+## Verificaciones runtime: siempre instrucciones de arranque
+
+Regla fijada por el usuario el **2026-10-21** (al revisar guia-10 paso 5):
+al escribir mini-verificaciones o verificaciones de guía que tocan el sistema
+en ejecución (navegador en `localhost:5173`, `/docs`, curl), asumir SIEMPRE
+que nada está corriendo e incluir ANTES las instrucciones literales de
+arranque. Formato canónico: "Con ambos servidores corriendo (`uv run fastapi
+dev app/main.py` en `backend/`, `npm run dev` en `frontend/`):" — para
+verificaciones solo-backend: "enciende la API (`uv run fastapi dev
+app/main.py` desde `backend/`)". Nunca escribir "ambos servidores corriendo"
+a secas. Aplica a guías existentes y futuras; también es la convención 5 en
+`.planning/CONVENTIONS.md`.
+<!-- arranque-runtime-end -->

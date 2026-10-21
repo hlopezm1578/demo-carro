@@ -2070,7 +2070,9 @@ jamás las guías viejas — la promesa se cobra sin re-escribir la historia.
 
 ## ✅ Verificación de la guía 13
 
-Con ambos servidores corriendo y el seed corrido:
+Con ambos servidores corriendo (`uv run fastapi dev app/main.py` en
+`backend/`, `npm run dev` en `frontend/`) y el seed
+corrido:
 
 1. `npm run build` pasa — guard, layout, módulo badges, `apiPut`/
    `apiPatch`, tipos y las tres pantallas.

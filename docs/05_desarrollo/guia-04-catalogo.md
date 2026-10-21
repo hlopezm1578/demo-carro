@@ -982,8 +982,8 @@ del error de red: apaga el backend y verás el otro).
 
 ## Paso 8 — ✅ Verificación de la guía 4 (la tienda, de punta a punta)
 
-Con los dos servidores corriendo (backend en `backend/`, frontend en
-`frontend/`):
+Con ambos servidores corriendo (`uv run fastapi dev app/main.py` en
+`backend/`, `npm run dev` en `frontend/`):
 
 1. **http://localhost:5173/** → la landing de Maura — y sus links
    "Ver aromas →" ahora SÍ filtran al llegar al catálogo.

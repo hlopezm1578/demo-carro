@@ -477,7 +477,8 @@ congela el mecanismo en su primer uso — y la fase 4 lo pagaría.
 
 ## ✅ Verificación de la guía 8
 
-Con ambos servidores corriendo y el seed hecho:
+Con ambos servidores corriendo (`uv run fastapi dev app/main.py` en
+`backend/`, `npm run dev` en `frontend/`) y el seed hecho:
 
 1. **/checkout sin sesión** → `/login`; tras entrar con la clienta seed →
    vuelta al checkout con "Comprando como {email}" (AUTH-04, D-32).

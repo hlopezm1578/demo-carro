@@ -574,7 +574,9 @@ export default function Login() {
 ```
 
 ✅ **Mini-verificación (el 401 en su casa, sin redirección):** con ambos
-servidores corriendo, abre **http://localhost:5173/login** — la card con
+servidores corriendo (`uv run fastapi dev app/main.py` en
+`backend/`, `npm run dev` en `frontend/`),
+abre **http://localhost:5173/login** — la card con
 labels persistentes (sin placeholders), el aviso NO aparece. Envía
 credenciales malas (email de la clienta seed + clave equivocada): banner
 ROJO con "Credenciales incorrectas" DENTRO de la card, la página NO se
@@ -891,8 +893,9 @@ el Footer alrededor — dentro del Layout, no islas.
 
 ## Paso 10 — La prueba de fuego: la sesión que sobrevive (y la que muere)
 
-Con ambos servidores corriendo y el seed de la guía 5 hecho. Los tres
-momentos de AUTH-02:
+Con ambos servidores corriendo (`uv run fastapi dev app/main.py` en
+`backend/`, `npm run dev` en `frontend/`) y el
+seed de la guía 5 hecho. Los tres momentos de AUTH-02:
 
 ✅ **Mini-verificación (login con la clienta seed):** en
 **http://localhost:5173/login**, entra con TU `CLIENTE_EMAIL` y
@@ -978,7 +981,8 @@ sesión.
 
 ## ✅ Verificación de la guía 6
 
-Con ambos servidores corriendo y el seed hecho:
+Con ambos servidores corriendo (`uv run fastapi dev app/main.py` en
+`backend/`, `npm run dev` en `frontend/`) y el seed hecho:
 
 1. **/login** con la clienta seed → 200, el navbar muestra su email, y en
    Local Storage `maura-auth` guarda solo `token` y `usuario`.

@@ -31,3 +31,12 @@ Reglas de escritura establecidas tras UAT de las guías 1–4 (sesión
    que crear varios archivos, van numerados uno por uno con su contenido
    íntegro — no listados compactos con formato flecha que el alumno debe
    descifrar.
+5. **Las verificaciones runtime arrancan el sistema desde cero
+   (2026-10-21).** Toda mini-verificación o verificación de guía que toque
+   el sistema en ejecución (navegador, `/docs`, curl) debe incluir ANTES
+   las instrucciones literales para levantarlo, asumiendo que nada está
+   corriendo. Formato canónico: "Con ambos servidores corriendo (`uv run
+   fastapi dev app/main.py` en `backend/`, `npm run dev` en `frontend/`):"
+   — para verificaciones solo-backend basta "enciende la API (`uv run
+   fastapi dev app/main.py` desde `backend/`)". Nunca asumir "ambos
+   servidores corriendo" a secas.

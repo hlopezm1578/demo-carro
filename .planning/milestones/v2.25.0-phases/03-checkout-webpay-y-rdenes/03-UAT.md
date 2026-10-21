@@ -61,6 +61,15 @@ evidence: |
   proyecto compile en verde al terminar cada paso; todas las MVs de build ahora pasan; la MV runtime
   de la orden pending se movió al paso 5 (junto al cableado de la ruta). Regla persistida como
   convención 3 revisada en .planning/CONVENTIONS.md y memoria en AGENTS.md (builds-verdes).
+  D-5 (doc, hallado 2026-10-21 por el usuario en guia-10 paso 5) las MVs runtime asumían el sistema
+  ya ejecutado ("ambos servidores corriendo" a secas). Regla del usuario: asumir SIEMPRE que nada
+  está corriendo — toda verificación del sistema incluye ANTES las instrucciones literales de
+  arranque. Fix en serie: formato canónico "Con ambos servidores corriendo (`uv run fastapi dev
+  app/main.py` en `backend/`, `npm run dev` en `frontend/`):" aplicado a 17 verificaciones de
+  guias 04, 06, 07, 08, 10, 11, 13 y 15 (las MVs solo-backend ya traían "enciende la API (...)");
+  los bloques de prerrequisito del header de cada guía se dejaron como contexto de entrada.
+  Regla persistida como convención 5 en .planning/CONVENTIONS.md y memoria arranque-runtime en
+  AGENTS.md.
 
 ### 2. Aceptar la corrección del flujo anulado (evidencia runtime vs documentación oficial de Transbank)
 expected: Confirmar que el corpus usa la evidencia del spike como canónica: el anulado llegó por GET (no POST) con TBK_TOKEN+TBK_ID_SESION+TBK_ORDEN_COMPRA sin token_ws — discriminador por presencia de params, inmune al método (03-SPIKE-RETORNO.md, corridas 2026-09-30).
