@@ -420,100 +420,12 @@ cosa (backend apagado) recibe la familia de causa de siempre.
 ✅ **Mini-verificación:** `npm run build` pasa. En `/checkout` con ítems,
 el botón ya no muestra el cursor de "no permitido": está encendido, dice
 "Pagar con Webpay"… y todavía no lo presiones — la ruta donde aterriza
-la vuelta todavía no existe. Llega en el paso 3.
+la vuelta todavía no existe: se construye en los pasos 3 a 5 (primero el
+voucher, después la pantalla, al final su ruta).
 
 ---
 
-## Paso 3 — `main.tsx`: la ruta pública `/pago/resultado`
-
-🧠 **El desarrollador piensa:** *la decisión de ruta más contraintuitiva
-de la fase, y por eso va con su porqué completo: **`/pago/resultado` es
-PÚBLICA — vive FUERA de `RequireAuth`**, exactamente al revés que el
-`/checkout` de la guía 8. ¿No era que el pedido era de una cuenta? Lo es
-— pero fíjate QUIÉN llega a esta dirección: el navegador recién salido
-del formulario de Webpay, empujado por el 302 del backend (ADR-012). Esa
-navegación no pasa por tu guard ni carga tu store antes de decidir: si
-el token de `localStorage` expiró (7 días, D-20) o la clienta abrió el
-link en otro dispositivo, envolver la ruta en `RequireAuth` mandaría el
-302 al login… y el voucher nunca se vería (Pitfall 12). La sesión que
-SOBREVIVIÓ la vuelta de Webpay es el caso feliz, no el único caso. Por
-eso la ruta es pública y la PANTALLA degrada con honestidad cuando no
-hay sesión: el resultado y el numero visibles, y un link al login que SÍ
-lleva `returnTo` — el mismo mecanismo genérico de D-32, ahora sirviendo
-al voucher. (El contraste con la guía 8 es la lección: `RequireAuth` es
-cortesía de UX para pantallas que no existen sin sesión; esta pantalla
-SÍ existe sin sesión — degradada. Y la ruta protegida `/pedidos` del
-historial llega en la guía 11, con su "Mis pedidos" en el navbar.)*
-
-Reemplaza el contenido completo de **`frontend/src/main.tsx`** por este
-— lo nuevo del paso: el import de `ResultadoPago` y la ruta pública
-`/pago/resultado` junto al `/carro` y FUERA del bloque `RequireAuth`:
-
-```tsx
-import { StrictMode } from "react";
-import { createRoot } from "react-dom/client";
-import { BrowserRouter, Routes, Route } from "react-router";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-
-import "./index.css";
-import Layout from "./components/Layout";
-import Landing from "./features/landing/Landing";
-import Catalogo from "./features/catalogo/Catalogo";
-import FichaProducto from "./features/catalogo/FichaProducto";
-import NoEncontrado from "./features/catalogo/NoEncontrado";
-import Login from "./features/cuentas/Login";
-import Registro from "./features/cuentas/Registro";
-import Carro from "./features/carro/Carro";
-import RequireAuth from "./components/RequireAuth";
-import Checkout from "./features/checkout/Checkout";
-import ResultadoPago from "./features/pago/ResultadoPago";
-
-const queryClient = new QueryClient();
-
-createRoot(document.getElementById("root")!).render(
-  <StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <Routes>
-          <Route element={<Layout />}>
-            <Route path="/" element={<Landing />} />
-            <Route path="/productos" element={<Catalogo />} />
-            <Route path="/productos/:id" element={<FichaProducto />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/registro" element={<Registro />} />
-            <Route path="/carro" element={<Carro />} />
-            {/* PÚBLICA a propósito: el 302 del retorno llega sin sesión en la URL
-                (Pitfall 12) — la pantalla degrada con honestidad, no expulsa. */}
-            <Route path="/pago/resultado" element={<ResultadoPago />} />
-            <Route element={<RequireAuth />}>
-              <Route path="/checkout" element={<Checkout />} />
-            </Route>
-            <Route path="*" element={<NoEncontrado />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
-    </QueryClientProvider>
-  </StrictMode>
-);
-```
-
-⚠️ **Ojo: el build queda temporalmente en rojo.** `main.tsx` ahora
-importa una pantalla que todavía no existe (la construyen los pasos 4 y
-5): hasta entonces, `npm run build` falla con `Cannot find module
-'./features/pago/ResultadoPago'` (TS2307). Es esperado — la ruta se
-enciende antes que la pantalla a propósito, porque el orden de los
-pasos construye primero el voucher (la pieza) y después la pantalla que
-lo consume. El build vuelve a verde en el paso 5. Si corres el build en
-los pasos intermedios y ves ese error, no te equivocaste.
-
-✅ **Mini-verificación (la cara anulado, sin pagar nada):** la pantalla
-todavía no existe — la construyen los pasos 4 y 5. Cuando exista, esta
-verificación es: cerrar sesión y abrir
-**http://localhost:5173/pago/resultado?estado=anulado** — la cara de
-compra no aprobada se ve SIN sesión y sin pedido: la ruta es pública de
-verdad. (Puedes ir haciéndola al final; el paso 5 la trae de vuelta.)
-
-## Paso 4 — `VoucherPedido.tsx`: el voucher de la tienda (D-43)
+## Paso 3 — `VoucherPedido.tsx`: el voucher de la tienda (D-43)
 
 🧠 **El desarrollador piensa:** *la recomendación oficial de Webpay es no
 mostrar el voucher de la pasarela: "solo debe mostrarse desde el sitio
@@ -602,17 +514,13 @@ ni los últimos 4 dígitos de la tarjeta — el `card_detail` se queda en el
 backend). El comprobante de la compra es el de la tienda, con lo que la
 tienda sabe que compraste.
 
-✅ **Mini-verificación:** `npm run build` falla SOLO con el TS2307
-esperado del paso 3 (`Cannot find module
-'./features/pago/ResultadoPago'`). Fíjate que la lista de errores no
-tiene NADA en `VoucherPedido.tsx` ni en `types/api.ts`: el voucher
-compila limpio todavía sin consumidores (es presentation pura: su
-consumidor llega en el paso siguiente). El build vuelve a verde en el
-paso 5, cuando exista la pantalla que `main.tsx` importa.
+✅ **Mini-verificación:** `npm run build` pasa — el componente compila
+todavía sin consumidores (es presentation pura: su consumidor llega en
+el paso siguiente).
 
 ---
 
-## Paso 5 — `ResultadoPago.tsx`: leer el 302, fetchear el pedido y degradar con honestidad
+## Paso 4 — `ResultadoPago.tsx`: leer el 302, fetchear el pedido y degradar con honestidad
 
 🧠 **El desarrollador piensa:** *la pantalla que espeja al discriminador
 (D-42): el backend ya decidió el flujo y lo puso en la URL
@@ -842,10 +750,96 @@ export default function ResultadoPago() {
 }
 ```
 
+✅ **Mini-verificación:** `npm run build` pasa — la pantalla compila
+todavía sin ruta: nadie puede navegarla aún, porque el cableado llega
+recién en el paso siguiente. Ese paso trae también las verificaciones
+en vivo de esta pantalla.
+
+---
+
+## Paso 5 — `main.tsx`: la ruta pública `/pago/resultado`
+
+🧠 **El desarrollador piensa:** *la decisión de ruta más contraintuitiva
+de la fase, y por eso va con su porqué completo: **`/pago/resultado` es
+PÚBLICA — vive FUERA de `RequireAuth`**, exactamente al revés que el
+`/checkout` de la guía 8. ¿No era que el pedido era de una cuenta? Lo es
+— pero fíjate QUIÉN llega a esta dirección: el navegador recién salido
+del formulario de Webpay, empujado por el 302 del backend (ADR-012). Esa
+navegación no pasa por tu guard ni carga tu store antes de decidir: si
+el token de `localStorage` expiró (7 días, D-20) o la clienta abrió el
+link en otro dispositivo, envolver la ruta en `RequireAuth` mandaría el
+302 al login… y el voucher nunca se vería (Pitfall 12). La sesión que
+SOBREVIVIÓ la vuelta de Webpay es el caso feliz, no el único caso. Por
+eso la ruta es pública y la PANTALLA degrada con honestidad cuando no
+hay sesión: el resultado y el numero visibles, y un link al login que SÍ
+lleva `returnTo` — el mismo mecanismo genérico de D-32, ahora sirviendo
+al voucher. (El contraste con la guía 8 es la lección: `RequireAuth` es
+cortesía de UX para pantallas que no existen sin sesión; esta pantalla
+SÍ existe sin sesión — degradada. Y la ruta protegida `/pedidos` del
+historial llega en la guía 11, con su "Mis pedidos" en el navbar.)*
+
+Reemplaza el contenido completo de **`frontend/src/main.tsx`** por este
+— lo nuevo del paso: el import de `ResultadoPago` y la ruta pública
+`/pago/resultado` junto al `/carro` y FUERA del bloque `RequireAuth`:
+
+```tsx
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import { BrowserRouter, Routes, Route } from "react-router";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+import "./index.css";
+import Layout from "./components/Layout";
+import Landing from "./features/landing/Landing";
+import Catalogo from "./features/catalogo/Catalogo";
+import FichaProducto from "./features/catalogo/FichaProducto";
+import NoEncontrado from "./features/catalogo/NoEncontrado";
+import Login from "./features/cuentas/Login";
+import Registro from "./features/cuentas/Registro";
+import Carro from "./features/carro/Carro";
+import RequireAuth from "./components/RequireAuth";
+import Checkout from "./features/checkout/Checkout";
+import ResultadoPago from "./features/pago/ResultadoPago";
+
+const queryClient = new QueryClient();
+
+createRoot(document.getElementById("root")!).render(
+  <StrictMode>
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <Routes>
+          <Route element={<Layout />}>
+            <Route path="/" element={<Landing />} />
+            <Route path="/productos" element={<Catalogo />} />
+            <Route path="/productos/:id" element={<FichaProducto />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/registro" element={<Registro />} />
+            <Route path="/carro" element={<Carro />} />
+            {/* PÚBLICA a propósito: el 302 del retorno llega sin sesión en la URL
+                (Pitfall 12) — la pantalla degrada con honestidad, no expulsa. */}
+            <Route path="/pago/resultado" element={<ResultadoPago />} />
+            <Route element={<RequireAuth />}>
+              <Route path="/checkout" element={<Checkout />} />
+            </Route>
+            <Route path="*" element={<NoEncontrado />} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </QueryClientProvider>
+  </StrictMode>
+);
+```
+
+✅ **Mini-verificación (la cara anulado, sin pagar nada):** cierra
+sesión y abre
+**http://localhost:5173/pago/resultado?estado=anulado** — la cara de
+compra no aprobada se ve SIN sesión y sin pedido: la ruta es pública de
+verdad. Y `npm run build` sigue en verde: pantalla y voucher ya existen
+desde los pasos 3 y 4 — este paso solo cablea.
+
 ✅ **Mini-verificación (la orden pending de la guía 9, con cara de
-SPA):** primero, `npm run build` vuelve a pasar — el import del paso 3
-ya tiene su pantalla de verdad. Luego, con la sesión de la clienta
-puesta y ambos servidores corriendo, abre
+SPA):** con la sesión de la clienta puesta y ambos servidores corriendo,
+abre
 **http://localhost:5173/pago/resultado?estado=pagado&orden=MAURA-000001**
 — la orden que la prueba de fuego de la guía 9 dejó esperando el retorno.
 Debes ver "Tu pago está en curso" con el badge ámbar **En curso**, las
@@ -861,7 +855,7 @@ al inicio: el `returnTo` funcionó con la query a cuestas.
 ## Paso 6 — El vaciado del carro en UN punto (D-44)
 
 🧠 **El desarrollador piensa:** *el bloque ya vive en el código del paso
-5 — este paso existe para mirarlo de cerca, porque es una decisión de
+4 — este paso existe para mirarlo de cerca, porque es una decisión de
 producto disfrazada de `useEffect`. **El carro se limpia en un solo
 punto del sistema: cuando el pedido fetcheado llega `paid`.** Ni al
 presionar "Pagar con Webpay" (el pago puede fallar), ni al llegar a la
@@ -881,7 +875,7 @@ porque el pago aprobado DESCONTÓ stock en el backend: la caché de la
 ficha y del carro quedó vieja al instante — la ficha de un aroma agotado
 debe saberlo en la próxima visita sin esperar a que expire la caché.*
 
-El bloque (ya copiado en el paso 5, acá está solo):
+El bloque (ya copiado en el paso 4, acá está solo):
 
 ```tsx
   // El vaciado del carro en UN punto (D-44): SOLO al confirmar el pago

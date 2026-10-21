@@ -55,6 +55,12 @@ evidence: |
   ÚNICO error (VoucherPedido compila limpio). Fix en guia-10: aviso "build en rojo esperado hasta el
   paso 5" tras el código del paso 3, MV del paso 4 reescrita (falla SOLO con el TS2307, sin errores en
   VoucherPedido.tsx ni types/api.ts) y MV del paso 5 abre con el build verde restituido.
+  D-4 (2ª corrección, mismo día — decisión del usuario): "los build siempre deben ser correctos, no
+  puede haber una verificación que genere error" → el fix de advertencia no basta: se REORDENARON los
+  pasos de guia-10 (3 VoucherPedido, 4 ResultadoPago, 5 main.tsx con la ruta pública) para que el
+  proyecto compile en verde al terminar cada paso; todas las MVs de build ahora pasan; la MV runtime
+  de la orden pending se movió al paso 5 (junto al cableado de la ruta). Regla persistida como
+  convención 3 revisada en .planning/CONVENTIONS.md y memoria en AGENTS.md (builds-verdes).
 
 ### 2. Aceptar la corrección del flujo anulado (evidencia runtime vs documentación oficial de Transbank)
 expected: Confirmar que el corpus usa la evidencia del spike como canónica: el anulado llegó por GET (no POST) con TBK_TOKEN+TBK_ID_SESION+TBK_ORDEN_COMPRA sin token_ws — discriminador por presencia de params, inmune al método (03-SPIKE-RETORNO.md, corridas 2026-09-30).
