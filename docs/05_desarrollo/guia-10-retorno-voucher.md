@@ -497,6 +497,15 @@ createRoot(document.getElementById("root")!).render(
 );
 ```
 
+⚠️ **Ojo: el build queda temporalmente en rojo.** `main.tsx` ahora
+importa una pantalla que todavía no existe (la construyen los pasos 4 y
+5): hasta entonces, `npm run build` falla con `Cannot find module
+'./features/pago/ResultadoPago'` (TS2307). Es esperado — la ruta se
+enciende antes que la pantalla a propósito, porque el orden de los
+pasos construye primero el voucher (la pieza) y después la pantalla que
+lo consume. El build vuelve a verde en el paso 5. Si corres el build en
+los pasos intermedios y ves ese error, no te equivocaste.
+
 ✅ **Mini-verificación (la cara anulado, sin pagar nada):** la pantalla
 todavía no existe — la construyen los pasos 4 y 5. Cuando exista, esta
 verificación es: cerrar sesión y abrir
@@ -593,9 +602,13 @@ ni los últimos 4 dígitos de la tarjeta — el `card_detail` se queda en el
 backend). El comprobante de la compra es el de la tienda, con lo que la
 tienda sabe que compraste.
 
-✅ **Mini-verificación:** `npm run build` pasa — el componente compila
-todavía sin consumidores (es presentation pura: su consumidor llega en
-el paso siguiente).
+✅ **Mini-verificación:** `npm run build` falla SOLO con el TS2307
+esperado del paso 3 (`Cannot find module
+'./features/pago/ResultadoPago'`). Fíjate que la lista de errores no
+tiene NADA en `VoucherPedido.tsx` ni en `types/api.ts`: el voucher
+compila limpio todavía sin consumidores (es presentation pura: su
+consumidor llega en el paso siguiente). El build vuelve a verde en el
+paso 5, cuando exista la pantalla que `main.tsx` importa.
 
 ---
 
@@ -830,8 +843,9 @@ export default function ResultadoPago() {
 ```
 
 ✅ **Mini-verificación (la orden pending de la guía 9, con cara de
-SPA):** con la sesión de la clienta puesta y ambos servidores corriendo,
-abre
+SPA):** primero, `npm run build` vuelve a pasar — el import del paso 3
+ya tiene su pantalla de verdad. Luego, con la sesión de la clienta
+puesta y ambos servidores corriendo, abre
 **http://localhost:5173/pago/resultado?estado=pagado&orden=MAURA-000001**
 — la orden que la prueba de fuego de la guía 9 dejó esperando el retorno.
 Debes ver "Tu pago está en curso" con el badge ámbar **En curso**, las

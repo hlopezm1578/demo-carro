@@ -49,6 +49,12 @@ evidence: |
   orden PENDING "en curso": runtime demuestra que el retorno del timeout SÍ llega (~603 s) y marca
   CANCELLED (badge "Anulado"); "en curso" queda solo para el retorno que no llega (pestaña dormida).
   Fix en ambos pasajes + precisión en la MV de la huérfana (guia-11 paso 5).
+  D-4 (doc, hallado 2026-10-21 por el usuario siguiendo guia-10 en maura-bs, paso 4) la MV del paso 4
+  prometía "`npm run build` pasa", pero el paso 3 ya había reescrito main.tsx importando ResultadoPago,
+  que se crea recién en el paso 5 → TS2307 `Cannot find module './features/pago/ResultadoPago'` como
+  ÚNICO error (VoucherPedido compila limpio). Fix en guia-10: aviso "build en rojo esperado hasta el
+  paso 5" tras el código del paso 3, MV del paso 4 reescrita (falla SOLO con el TS2307, sin errores en
+  VoucherPedido.tsx ni types/api.ts) y MV del paso 5 abre con el build verde restituido.
 
 ### 2. Aceptar la corrección del flujo anulado (evidencia runtime vs documentación oficial de Transbank)
 expected: Confirmar que el corpus usa la evidencia del spike como canónica: el anulado llegó por GET (no POST) con TBK_TOKEN+TBK_ID_SESION+TBK_ORDEN_COMPRA sin token_ws — discriminador por presencia de params, inmune al método (03-SPIKE-RETORNO.md, corridas 2026-09-30).
