@@ -451,10 +451,12 @@ export default function Navbar() {
 }
 ```
 
-✅ **Mini-verificación:** `npm run build` pasa. Con sesión: "Mis pedidos"
-aparece entre "Carro" y tu email. Cierra sesión: el link desaparece junto
-al email — el navbar anónimo queda exactamente como estaba. (El clic aún
-no navega a nada: la ruta llega en el paso siguiente.)
+✅ **Mini-verificación:** `npm run build` pasa. Con ambos servidores
+corriendo (`uv run fastapi dev app/main.py` en `backend/`, `npm run dev`
+en `frontend/`) y la sesión iniciada: "Mis pedidos" aparece entre
+"Carro" y tu email. Cierra sesión: el link desaparece junto al email —
+el navbar anónimo queda exactamente como estaba. (El clic aún no navega
+a nada: la ruta llega en el paso siguiente.)
 
 ---
 
@@ -531,9 +533,11 @@ createRoot(document.getElementById("root")!).render(
 );
 ```
 
-✅ **Mini-verificación (el returnTo del historial, en vivo):** cierra la
-sesión y abre **http://localhost:5173/pedidos**: no ves la lista — caes al
-login. Entra con tu `CLIENTE_EMAIL` de la guía 5… y al terminar vuelves AL
+✅ **Mini-verificación (el returnTo del historial, en vivo):** con ambos
+servidores corriendo (`uv run fastapi dev app/main.py` en `backend/`,
+`npm run dev` en `frontend/`), cierra la sesión y abre
+**http://localhost:5173/pedidos**: no ves la lista — caes al login.
+Entra con tu `CLIENTE_EMAIL` de la guía 5… y al terminar vuelves AL
 historial con "Mis pedidos" y tus órdenes: el guard guardó el destino, el
 login lo leyó (D-32) — igual que la guía 8 hizo con el checkout, sin
 tocar una línea del login.
